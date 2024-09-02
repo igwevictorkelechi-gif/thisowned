@@ -6,7 +6,7 @@ import React from "react";
 
 function Navbar() {
   return (
-    <header className="pt-4">
+    <header className="pt-4 pb-4">
       <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
         THANK U FOR SUPPORTING INDEPENDENT BRANDS ★
       </h1>
