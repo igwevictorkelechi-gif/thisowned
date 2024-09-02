@@ -2,9 +2,24 @@
 import { Search, ShoppingBasket } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { navLinks } from "../constants/ContentConstants";
 
 function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+    setIsChecked(!isChecked);
+  };
+
+  // console.log(isMenuOpen);
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+    setIsChecked(!isChecked);
+  };
   return (
     <header className="pt-4 pb-4 bg-black">
       <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
@@ -16,9 +31,13 @@ function Navbar() {
             <Link className="block" href="/">
               <Image
                 src="/logofull.png"
-                width={120}
-                height={120}
-                style={{ width: "12rem", height: "auto" }}
+                width={100}
+                height={100}
+                style={{
+                  width: "10rem",
+                  height: "3rem",
+                  objectFit: "contain",
+                }}
                 alt="logo"
               />
             </Link>
@@ -91,18 +110,18 @@ function Navbar() {
 
             <div className="flex items-center gap-7">
               <div className="flex gap-6">
-                <a className=" text-sm font-medium text-white shadow" href="#">
-                  <Search />
+                <a className="font-medium text-white shadow" href="#">
+                  <Search size={23} />
                 </a>
 
-                <a className="text-sm font-medium text-white shadow" href="#">
-                  <ShoppingBasket />
+                <a className="font-medium text-white shadow" href="#">
+                  <ShoppingBasket size={23} />
                 </a>
               </div>
 
               <div className="block md:hidden">
-                <label className="hamburger">
-                  <input type="checkbox" />
+                <button className="hamburger mt-2.5" onClick={toggleMenu}>
+                  <input type="checkbox" checked={isChecked} readOnly />
                   <svg viewBox="0 0 32 32">
                     <path
                       className="line line-top-bottom"
@@ -110,11 +129,38 @@ function Navbar() {
                     ></path>
                     <path className="line" d="M7 16 27 16"></path>
                   </svg>
-                </label>
+                </button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <div
+        className={`${
+          isMenuOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0"
+        } transform origin-top transition-transform duration-300 ease-in-out absolute mt-3 left-0 w-full z-60 md:hidden`}
+      >
+        {/* {isMenuOpen && ( */}
+        <div className="fixed left-0 w-full bg-white shadow-sm py-2">
+          <ul className="space-y-2 p-2 px-8">
+            {navLinks.map((nav) => (
+              <li
+                key={nav.id}
+                className={`cursor-pointer p-1 font-primary leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
+              >
+                <Link
+                  href={`${nav.id}`}
+                  className="w-full block"
+                  onClick={() => closeMenu()}
+                >
+                  {nav.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {/* )} */}
       </div>
     </header>
   );

@@ -39,6 +39,7 @@ body {
 /* From Uiverse.io by JulanDeAlb */
 .hamburger {
   cursor: pointer;
+  display: inline-block;
 }
 
 .hamburger input {
