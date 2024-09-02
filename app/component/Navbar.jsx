@@ -6,14 +6,14 @@ import React from "react";
 
 function Navbar() {
   return (
-    <header className="pt-4 pb-4">
+    <header className="pt-4 pb-4 bg-black">
       <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
         THANK U FOR SUPPORTING INDEPENDENT BRANDS ★
       </h1>
       <div className="mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex items-center justify-between">
           <div className="flex-1 md:flex md:items-center">
-            <a className="block" href="/">
+            <Link className="block" href="/">
               <Image
                 src="/logofull.png"
                 width={120}
@@ -21,7 +21,7 @@ function Navbar() {
                 style={{ width: "12rem", height: "auto" }}
                 alt="logo"
               />
-            </a>
+            </Link>
           </div>
 
           <div className="md:flex md:items-center md:gap-12">
@@ -30,7 +30,7 @@ function Navbar() {
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
-                    href="#"
+                    href="shop"
                   >
                     SHOP
                   </Link>
