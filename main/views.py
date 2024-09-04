@@ -1,12 +1,17 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .serializers import ProductSerializer, UserSerializer, UserAdminSerializer
-from .models import Product, User
+from .serializers import *
+from .models import Product, User, Collection
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProductListSerializer
+        return super().get_serializer_class()
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -34,3 +39,13 @@ class UserAdminViewSet(viewsets.ModelViewSet):
         if pk == 'current':
             return self.request.user
         return super().get_object()
+
+
+class CollectionViewSet(viewsets.ModelViewSet):
+    queryset = Collection.objects.all()
+    serializer_class = CollectionSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return CollectionDetailSerializer
+        return super().get_serializer_class()

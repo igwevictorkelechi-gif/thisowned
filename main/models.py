@@ -51,8 +51,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     #     super().delete()
 
 
+class Collection(models.Model):
+    name = models.CharField(max_length=70)
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     name = models.CharField(max_length=100)
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='products')
     price = models.FloatField()
     currency = models.CharField(max_length=20)
     discount = models.FloatField(null=True, blank=True)
