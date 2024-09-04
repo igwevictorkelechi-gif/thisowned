@@ -100,7 +100,7 @@ function Navbar() {
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
-                    href="#"
+                    href="login"
                   >
                     LOGIN
                   </Link>
