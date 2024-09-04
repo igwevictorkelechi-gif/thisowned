@@ -1,0 +1,67 @@
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
+from django.db import models
+from django.utils import timezone
+
+
+class UserManager(BaseUserManager):
+    def _create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(email, password, **extra_fields)
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self._create_user(email, password, **extra_fields)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
+    email = models.EmailField(unique=True)
+    # phone_number = models.CharField(max_length=20, blank=True, null=True)
+    is_online = models.BooleanField(default=False)
+    # profile_picture = models.ImageField(upload_to='profile_pictures/', default='profile_pictures/default.png')
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
+    # def delete(self, using=None, keep_parents=False):
+    #     # assuming that you use same storage for all files in this model:
+    #     storage = self.profile_picture.storage
+    #
+    #     if storage.exists(self.profile_picture.name):
+    #         storage.delete(self.profile_picture.name)
+    #
+    #     super().delete()
+
+
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.FloatField()
+    currency = models.CharField(max_length=20)
+    discount = models.FloatField(null=True, blank=True)
+    available_size = models.TextField()
+    details = models.TextField()
+    care = models.TextField()
+    delivery_and_return = models.TextField()
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_image")
+    image = models.ImageField(upload_to="products")
