@@ -4,7 +4,7 @@ import LenisScroll from "./LenisScroll";
 import Navbar from "./component/Navbar";
 import Footer from "./component/Footer";
 
-const rajdhani = Rajdhani({ subsets: ["latin"], weight: "500" });
+const rajdhani = Rajdhani({ subsets: ["latin"], weight: "400" });
 
 export const metadata = {
   title: "Thisowned",

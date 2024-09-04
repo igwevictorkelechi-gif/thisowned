@@ -1,10 +1,11 @@
 import Footer from "./component/Footer";
 import Navbar from "./component/Navbar";
+import Products from "./component/Products";
 
 export default function Home() {
   return (
-    <main className="mx-auto bg-black text-white px">
-      <h1>Home</h1>
+    <main className="mx-auto bg-black text-white">
+      <Products />
     </main>
   );
 }
