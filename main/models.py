@@ -73,3 +73,10 @@ class Product(models.Model):
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_image")
     image = models.ImageField(upload_to="products")
+
+
+class ProductSet(models.Model):
+    products = models.ManyToManyField(Product, related_name="sets")
+
+    def __str__(self):
+        return f"{[x.name for x in self.products.all()]}"

@@ -1,20 +1,11 @@
 from rest_framework import serializers
-from .models import Product, ProductImage, User, Collection
+from .models import Product, ProductImage, User, Collection, ProductSet
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ["image"]
-
-
-class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(source="product_image", many=True, allow_null=True)
-
-    class Meta:
-        model = Product
-        fields = ["id", "name", "price", "currency", "discount", "available_size", "details", "care",
-                  "delivery_and_return", "images"]
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -29,6 +20,32 @@ class ProductListSerializer(serializers.ModelSerializer):
         if all_images:
             return ProductImageSerializer([all_images.first()], many=True).data
         return None
+
+
+class ProductSetSerializer(serializers.ModelSerializer):
+    products = ProductListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProductSet
+        fields = ['id', 'products']
+
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(source="product_image", many=True, allow_null=True)
+    # complete_set = ProductSetSerializer(many=True, source="sets", allow_null=True)
+    complete_set = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ["id", "name", "price", "currency", "discount", "available_size", "details", "care",
+                  "delivery_and_return", "images", "complete_set"]
+
+    def get_complete_set(self, obj):
+        products = obj.sets.all()
+        return ProductSetSerializer(products, many=True).data if products[0].products.count() > 1 else []
+
+
 
 
 class UserSerializer(serializers.ModelSerializer):

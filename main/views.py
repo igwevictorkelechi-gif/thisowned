@@ -14,6 +14,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -49,3 +50,4 @@ class CollectionViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return CollectionDetailSerializer
         return super().get_serializer_class()
+
