@@ -2,12 +2,13 @@
 import { Search, ShoppingBasket } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { navLinks } from "../constants/ContentConstants";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [collections, setCollections] = useState([]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -20,6 +21,14 @@ function Navbar() {
     setIsMenuOpen(false);
     setIsChecked(!isChecked);
   };
+
+  // Fetch collections from the API
+  useEffect(() => {
+    fetch(process.env.NEXT_PUBLIC_COLLECTION_URL)
+      .then((response) => response.json())
+      .then((data) => setCollections(data))
+      .catch((error) => console.error("Error fetching collections:", error));
+  }, []);
   return (
     <header className="pt-4 pb-4 bg-black">
       <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
@@ -71,32 +80,34 @@ function Navbar() {
                     }}
                   >
                     <li>
-                      <a
-                        href="#option1"
-                        className="block px-4 py-2 hover:bg-gray-700"
+                      <Link
+                        href={`shop/all`}
+                        className="block px-4 py-1.5 hover:bg-gray-900"
                       >
-                        Option 1
-                      </a>
+                        All
+                      </Link>
                     </li>
-                    <li>
-                      <a
-                        href="#option2"
-                        className="block px-4 py-2 hover:bg-gray-700"
-                      >
-                        Option 2
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#option3"
-                        className="block px-4 py-2 hover:bg-gray-700"
-                      >
-                        Option 3
-                      </a>
-                    </li>
+
+                    {collections.length > 0 ? (
+                      collections.map((collection) => (
+                        <li key={collection.id}>
+                          <Link
+                            href={`shop/${collection.id}`}
+                            className="block px-4 py-1.5 hover:bg-gray-900"
+                          >
+                            {collection.name}
+                          </Link>
+                        </li>
+                      ))
+                    ) : (
+                      <li>
+                        <span className="block px-4 py-2 text-gray-500">
+                          {/* No collections available */}
+                        </span>
+                      </li>
+                    )}
                   </ul>
                 </li>
-
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
@@ -139,7 +150,7 @@ function Navbar() {
       <div
         className={`${
           isMenuOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0"
-        } transform origin-top transition-transform duration-300 ease-in-out absolute mt-3 left-0 w-full z-60 md:hidden`}
+        } transform origin-top transition-transform duration-300 ease-in-out absolute mt-3 left-0 w-full z-50 md:hidden`}
       >
         {/* {isMenuOpen && ( */}
         <div className="fixed left-0 w-full bg-white shadow-sm py-2">
@@ -147,7 +158,7 @@ function Navbar() {
             {navLinks.map((nav) => (
               <li
                 key={nav.id}
-                className={`cursor-pointer p-1 font-primary leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
+                className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
               >
                 <Link
                   href={`${nav.id}`}
@@ -158,6 +169,73 @@ function Navbar() {
                 </Link>
               </li>
             ))}
+
+            <details
+              className="group [&_summary::-webkit-details-marker]:hidden px-1"
+              // open
+            >
+              <summary className="flex cursor-pointer items-center justify-between gap-1.5">
+                <h2 className="font-medium text-gray-800">COLLECTION</h2>
+
+                <span className="shrink-0 rounded-full bg-white p-1.5 text-gray-900 sm:p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="size-5 shrink-0 transition duration-300 group-open:-rotate-45"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              </summary>
+
+              <div className="px-3 mt-2 text-sm border-l border-red-300">
+                <li>
+                  <Link
+                    href={`shop/all`}
+                    onClick={() => closeMenu()}
+                    className="cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0"
+                  >
+                    ALL
+                  </Link>
+                </li>
+                {collections.length > 0 ? (
+                  collections.map((collection) => (
+                    <li key={collection.id} className="py-1">
+                      <Link
+                        href={`shop/${collection.id}`}
+                        onClick={() => closeMenu()}
+                        className="cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0"
+                      >
+                        {collection.name}
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <li>
+                    <span className="block px-4 py-2 text-gray-500">
+                      {/* No collections available */}
+                    </span>
+                  </li>
+                )}
+              </div>
+            </details>
+
+            <li
+              className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
+            >
+              <Link
+                href={`login`}
+                className="w-full block"
+                onClick={() => closeMenu()}
+              >
+                LOGIN
+              </Link>
+            </li>
           </ul>
         </div>
         {/* )} */}
