@@ -30,7 +30,6 @@ class ProductSetSerializer(serializers.ModelSerializer):
         fields = ['id', 'products']
 
 
-
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(source="product_image", many=True, allow_null=True)
     # complete_set = ProductSetSerializer(many=True, source="sets", allow_null=True)
@@ -43,9 +42,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_complete_set(self, obj):
         products = obj.sets.all()
-        return ProductSetSerializer(products, many=True).data if products[0].products.count() > 1 else []
-
-
+        return [] if products.count() == 0 else ProductSetSerializer(products, many=True).data if products[
+            0].products.count() else []
 
 
 class UserSerializer(serializers.ModelSerializer):
