@@ -58,7 +58,7 @@ function Navbar() {
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
-                    href="shop"
+                    href="/../shop"
                   >
                     SHOP
                   </Link>
@@ -81,7 +81,7 @@ function Navbar() {
                   >
                     <li>
                       <Link
-                        href={`shop/all`}
+                        href={`/../shop/collection/all`}
                         className="block px-4 py-1.5 hover:bg-gray-900"
                       >
                         All
@@ -92,7 +92,7 @@ function Navbar() {
                       collections.map((collection) => (
                         <li key={collection.id}>
                           <Link
-                            href={`shop/${collection.id}`}
+                            href={`/../shop/collection/${collection.name}`}
                             className="block px-4 py-1.5 hover:bg-gray-900"
                           >
                             {collection.name}
@@ -111,7 +111,7 @@ function Navbar() {
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
-                    href="login"
+                    href="/../login"
                   >
                     LOGIN
                   </Link>
@@ -161,7 +161,7 @@ function Navbar() {
                 className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
               >
                 <Link
-                  href={`${nav.id}`}
+                  href={`/../${nav.id}`}
                   className="w-full block"
                   onClick={() => closeMenu()}
                 >
@@ -196,7 +196,7 @@ function Navbar() {
               <div className="px-3 mt-2 text-sm border-l border-red-300">
                 <li>
                   <Link
-                    href={`shop/all`}
+                    href={`/../shop/collection/all`}
                     onClick={() => closeMenu()}
                     className="cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0"
                   >
@@ -207,7 +207,7 @@ function Navbar() {
                   collections.map((collection) => (
                     <li key={collection.id} className="py-1">
                       <Link
-                        href={`shop/${collection.id}`}
+                        href={`/../shop/collection/${collection.name}`}
                         onClick={() => closeMenu()}
                         className="cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0"
                       >

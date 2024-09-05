@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from "react";
 
@@ -23,13 +24,7 @@ function Products() {
   return (
     <div>
       <section>
-        <div className="mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-12">
-          <header className="text-center my-6 pb-8">
-            <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider">
-              Recent Products
-            </h2>
-          </header>
-
+        <div className="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-12">
           {/* Loader */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
@@ -43,15 +38,18 @@ function Products() {
             <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {products.map((product) => (
                 <li key={product.id}>
-                  <a href="#" className="group block overflow-hidden">
+                  <Link
+                    href={`shop/${product.id}`}
+                    className="group block overflow-hidden"
+                  >
                     <img
                       src={product.images[0].image}
                       alt={product.name}
-                      className="h-[350px] w-full object-cover transition duration-500 group-hover:scale-105 sm:h-[450px]"
+                      className="h-[350px] w-full object-cover transition duration-500 group-hover:scale-105 sm:h-[450px] text-white"
                     />
 
                     <div className="relative pt-3">
-                      <h3 className="text-sm text-white-700 group-hover:underline group-hover:underline-offset-4">
+                      <h3 className="text-sm group-hover:underline group-hover:underline-offset-4 text-white">
                         {product.name}
                       </h3>
 
@@ -61,7 +59,7 @@ function Products() {
                         </span>
                       </p>
                     </div>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
