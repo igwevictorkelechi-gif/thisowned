@@ -12,7 +12,7 @@ function ProductCollections({ collections, isAllCollections }) {
     }
   }, [collections]);
 
-  console.log(collections);
+  //   console.log(collections);
 
   const renderProducts = (products) => (
     <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -65,14 +65,12 @@ function ProductCollections({ collections, isAllCollections }) {
               </div>
             </div>
           ) : isAllCollections ? (
-            collections.map((collection) => (
-              <div key={collection.id} className="mb-12">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  {collection.name}
-                </h2>
-                {renderProducts(collection.products)}
-              </div>
-            ))
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                {/* {collections.name} */}
+              </h2>
+              {renderProducts(collections.products)}
+            </div>
           ) : (
             renderProducts(collections.products)
           )}
