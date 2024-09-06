@@ -9,21 +9,23 @@ function ImageGallery({ images }) {
       <div className="grid gap-4 lg:grid-cols-5">
         {/* Sidebar thumbnails */}
         <div className="order-last flex gap-5 lg:order-none lg:flex-col">
-          {images.map((img, index) => (
-            <div
-              key={index}
-              onClick={() => setSelectedImage(img.image)}
-              className="overflow-hidden rounded-lg bg-gray-100"
-            >
-              <Image
-                src={img.image}
-                width={200}
-                height={200}
-                alt={`product image ${index + 1}`}
-                className="h-full w-full object-cover object-center cursor-pointer"
-              />
-            </div>
-          ))}
+          {images
+            .filter((img) => img.image !== selectedImage)
+            .map((img, index) => (
+              <div
+                key={index}
+                onClick={() => setSelectedImage(img.image)}
+                className="overflow-hidden rounded-lg bg-gray-100"
+              >
+                <Image
+                  src={img.image}
+                  width={200}
+                  height={200}
+                  alt={`product image ${index + 1}`}
+                  className="h-full w-full object-cover object-center cursor-pointer"
+                />
+              </div>
+            ))}
         </div>
         <div className="relative overflow-hidden rounded-lg bg-gray-100 lg:col-span-4">
           <Image
