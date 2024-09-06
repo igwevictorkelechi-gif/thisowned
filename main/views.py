@@ -1,5 +1,9 @@
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .serializers import *
 from .models import Product, User, Collection
 
@@ -50,4 +54,37 @@ class CollectionViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return CollectionDetailSerializer
         return super().get_serializer_class()
+
+
+class AllCollectionsView(APIView):
+    def get(self, request):
+        query_sets = [x.products.all() for x in Collection.objects.all()]
+        combined_list = [item for qs in query_sets for item in qs]
+        response = {"name": "all", "products": ProductListSerializer(combined_list, many=True, allow_null=True).data}
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class RegisterViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    http_method_names = ['post']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
+        response_data = {
+            'user': serializer.data,
+            'access': access_token,
+            'refresh': refresh_token
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
 

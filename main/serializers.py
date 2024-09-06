@@ -53,9 +53,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(style={"input_type": "password"}, write_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email')
+        fields = ('id', 'first_name', 'last_name', 'email', "password")
 
 
 class UserTypeSerializer(serializers.ModelSerializer):
