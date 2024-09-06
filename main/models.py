@@ -80,3 +80,14 @@ class ProductSet(models.Model):
 
     def __str__(self):
         return f"{[x.name for x in self.products.all()]}"
+
+
+class SizeGuid(models.Model):
+    products = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="sizes")
+    rating = models.CharField(max_length=20)
+    labels = models.TextField()
+    values = models.TextField()
+    is_available = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.products.name} size guide for {self.rating}"

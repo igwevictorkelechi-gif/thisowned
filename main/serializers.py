@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductImage, User, Collection, ProductSet
+from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -30,15 +30,21 @@ class ProductSetSerializer(serializers.ModelSerializer):
         fields = ['id', 'products']
 
 
+class SizeGuidSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SizeGuid
+        fields = '__all__'
+
+
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(source="product_image", many=True, allow_null=True)
-    # complete_set = ProductSetSerializer(many=True, source="sets", allow_null=True)
+    size_guide = SizeGuidSerializer(source="sizes", many=True, allow_null=True)
     complete_set = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = ["id", "name", "price", "currency", "discount", "available_size", "details", "care",
-                  "delivery_and_return", "images", "complete_set"]
+                  "delivery_and_return", "images", "complete_set", "size_guide"]
 
     def get_complete_set(self, obj):
         products = obj.sets.all()
