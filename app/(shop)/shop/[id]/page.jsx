@@ -8,6 +8,8 @@ import ImageGallery from "../../component/ImageGallery";
 function ShopDetails({ params }) {
   const [product, setProduct] = useState(null); // Store product data
   const [quantity, setQuantity] = useState(1);
+  const [selectedSizes, setSelectedSizes] = useState([]);
+  const [activeTab, setActiveTab] = useState("description");
 
   useEffect(() => {
     // Fetch product details based on the id from params
@@ -37,6 +39,21 @@ function ShopDetails({ params }) {
     if (quantity > 1) {
       setQuantity((quantity) => quantity - 1);
     }
+  };
+
+  // Function to handle size selection
+  const handleSizeChange = (size) => {
+    setSelectedSizes((prevSelectedSizes) => {
+      if (prevSelectedSizes.includes(size)) {
+        // If the size is already selected, remove it
+        return prevSelectedSizes.filter(
+          (selectedSize) => selectedSize !== size
+        );
+      } else {
+        // If the size is not selected, add it
+        return [...prevSelectedSizes, size];
+      }
+    });
   };
 
   if (!product) {
@@ -91,12 +108,12 @@ function ShopDetails({ params }) {
               </ol>
             </nav>
           </div>
-          <div className="flex flex-col lg:flex-row gap- gap-28 mt-8">
+          <div className="flex flex-col lg:flex-row gap-12 md:gap-28 mt-8">
             <div className="w-full">
               <ImageGallery images={product.images} />
             </div>
             <div className="w-full">
-              <div className="mt-6 ml-0">
+              <div className="md:mt-20 ml-0">
                 <h1 className="font-semibold text-2xl text-white">
                   {product.name}
                 </h1>
@@ -110,87 +127,49 @@ function ShopDetails({ params }) {
                   </label>
 
                   <fieldset className="flex flex-wrap gap-3">
-                    {/* {product.sizes.map((size) => ( */}
-                    <div>
-                      <label
-                        //   htmlFor={`Size${size}`}
-                        className="flex cursor-pointer items-center justify-center rounded-md border border-gray-100 bg-white px-2 py-0.5 text-gray-900 hover:border-gray-200"
-                      >
-                        <input
-                          type="radio"
-                          name="SizeOption"
-                          //   value={size}
-                          // id={`Size${size}`}
-                          className="sr-only"
-                        />
-                        <p className="text-sm font-medium">S</p>
-                      </label>
-                    </div>
+                    {(() => {
+                      let sizes = [];
 
-                    <div>
-                      <label
-                        //   htmlFor={`Size${size}`}
-                        className="flex cursor-pointer items-center justify-center rounded-md border border-gray-100 bg-white px-2 py-0.5 text-gray-900 hover:border-gray-200"
-                      >
-                        <input
-                          type="radio"
-                          name="SizeOption"
-                          //   value={size}
-                          // id={`Size${size}`}
-                          className="sr-only"
-                        />
-                        <p className="text-sm font-bold text-red-500">M</p>
-                      </label>
-                    </div>
+                      try {
+                        // Sanitize and parse the available_size string
+                        const sanitizedSizes = product.available_size
+                          .replace(/'/g, '"') // Replace single quotes with double quotes
+                          .trim(); // Trim any extra whitespace
 
-                    <div>
-                      <label
-                        //   htmlFor={`Size${size}`}
-                        className="flex cursor-pointer items-center justify-center rounded-md border border-gray-100 bg-white px-2 py-0.5 text-gray-900 hover:border-gray-200"
-                      >
-                        <input
-                          type="radio"
-                          name="SizeOption"
-                          //   value={size}
-                          // id={`Size${size}`}
-                          className="sr-only"
-                        />
-                        <p className="text-sm font-bold text-red-500">L</p>
-                      </label>
-                    </div>
+                        sizes = JSON.parse(sanitizedSizes);
+                      } catch (error) {
+                        console.error("Error parsing available_size:", error);
+                        return (
+                          <p className="text-sm text-red-500">
+                            Invalid size data
+                          </p>
+                        );
+                      }
 
-                    <div>
-                      <label
-                        //   htmlFor={`Size${size}`}
-                        className="flex cursor-pointer items-center justify-center rounded-md border border-gray-100 bg-white px-2 py-0.5 text-gray-900 hover:border-gray-200"
-                      >
-                        <input
-                          type="radio"
-                          name="SizeOption"
-                          //   value={size}
-                          // id={`Size${size}`}
-                          className="sr-only"
-                        />
-                        <p className="text-sm font-medium">XL</p>
-                      </label>
-                    </div>
-
-                    <div>
-                      <label
-                        //   htmlFor={`Size${size}`}
-                        className="flex cursor-pointer items-center justify-center rounded-md border border-gray-100 bg-white px-2 py-0.5 text-gray-900 hover:border-gray-200"
-                      >
-                        <input
-                          type="radio"
-                          name="SizeOption"
-                          //   value={size}
-                          // id={`Size${size}`}
-                          className="sr-only"
-                        />
-                        <p className="text-sm text-red-500 font-bold">XXL</p>
-                      </label>
-                    </div>
-                    {/* ))} */}
+                      return sizes.map((size) => (
+                        <div key={size}>
+                          <label
+                            htmlFor={`Size${size}`}
+                            className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
+                              selectedSizes.includes(size)
+                                ? "border-red-500 bg-white text-red-500 font-bold"
+                                : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              name="SizeOption"
+                              value={size}
+                              id={`Size${size}`}
+                              className="sr-only"
+                              checked={selectedSizes.includes(size)} // Mark as checked if it's selected
+                              onChange={() => handleSizeChange(size)} // Handle multiple selections
+                            />
+                            <p className="text-sm font-medium">{size}</p>
+                          </label>
+                        </div>
+                      ));
+                    })()}
                   </fieldset>
                 </div>
 
@@ -228,7 +207,7 @@ function ShopDetails({ params }) {
                 </div>
 
                 <div className="mt-12">
-                  <button className="bg-white hover:opacity-95 hover:text-red-500  hover:font-medium text-whte p-3 w-[100%] md:max-w-[50%] shadow-sm rounded-sm">
+                  <button className="bg-white hover:opacity-95 hover:text-red-500  hover:font-medium text-whte p-3 w-[100%] md:max-w-[52%] shadow-sm rounded-sm">
                     Add to Cart
                   </button>
                 </div>
@@ -237,14 +216,53 @@ function ShopDetails({ params }) {
           </div>
 
           <div className="mt-10">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex gap-6">
-                <p className="shrink-0 rounded-t-lg border border-gray-300 border-b-white p-3 text-sm font-medium text-white tracking-wider">
+            {/* Tab navigation */}
+            <div className="pb-8 md:pb-0 border-b border-gray-200">
+              <nav className="-mb-px flex flex-col md:flex-row gap-4 md:gap-6">
+                {/* Product Description Tab */}
+                <button
+                  onClick={() => setActiveTab("description")}
+                  className={`shrink-0 rounded-t-lg md:border p-1.5 md:p-3 text-sm font-medium tracking-wider ${
+                    activeTab === "description"
+                      ? "border-gray-300 border-b-white text-white border-l border-r"
+                      : "border-transparent text-gray-400"
+                  }`}
+                >
                   Product Description
-                </p>
+                </button>
+
+                {/* Delivery Tab */}
+                <button
+                  onClick={() => setActiveTab("delivery")}
+                  className={`shrink-0 rounded-t-lg md:border p-1.5 md:p-3 text-sm font-medium tracking-wider ${
+                    activeTab === "delivery"
+                      ? "border-gray-300 border-b-white text-white border-l border-r"
+                      : "border-transparent text-gray-400"
+                  }`}
+                >
+                  Delivery and return
+                </button>
+
+                {/* Delivery Tab */}
+                <button
+                  onClick={() => setActiveTab("care")}
+                  className={`shrink-0 rounded-t-lg md:border p-1.5 md:p-3 text-sm font-medium tracking-wider ${
+                    activeTab === "care"
+                      ? "border-gray-300 border-b-white text-white border-l border-r"
+                      : "border-transparent text-gray-400"
+                  }`}
+                >
+                  Care
+                </button>
               </nav>
             </div>
-            <p className="mt-7 text-white text-sm">{product.details}</p>
+
+            {/* Tab content */}
+            <div className="mt-7 text-white text-sm">
+              {activeTab === "description" && <p>{product.details}</p>}
+              {activeTab === "delivery" && <p>{product.delivery_and_return}</p>}
+              {activeTab === "care" && <p>{product.care}</p>}
+            </div>
           </div>
         </>
       </section>
