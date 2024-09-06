@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    "storages",
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist'
@@ -98,14 +99,23 @@ DATABASES = {
     }
 }
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, "firebase-credentials.json")
 
-# Use the default storage backend from django-storages
-DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+#
+# AWS_ACCESS_KEY_ID = '28440e2b6db0b9a530a13624648b887e'
+# AWS_SECRET_ACCESS_KEY = '0c6041637e80fa6eeb61331ead7574cdedddaa833c88aec65edac6a1e6a74177'
+# AWS_STORAGE_BUCKET_NAME = 'thisowned-eco'
+# # AWS_S3_ENDPOINT_URL = "https://depojvulqfgrxvinsdgn.supabase.co/storage/v1/object/public/"
+# AWS_S3_CUSTOM_DOMAIN = f'depojvulqfgrxvinsdgn.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}'
+# AWS_S3_REGION_NAME = "us-east-1"  # Supabase does not require a specific region
+# AWS_S3_SIGNATURE_VERSION = 's3v4'
+# AWS_S3_ADDRESSING_STYLE = 'virtual'
 
-# Configure the Google Cloud Storage settings
-GS_BUCKET_NAME = "thisowned-eco.appspot.com"
-GS_DEFAULT_ACL = "publicRead"
+DEFAULT_FILE_STORAGE = "website.storage.SupabaseStorage"
+
+SUPABASE_URL = "https://depojvulqfgrxvinsdgn.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlcG9qdnVscWZncnh2aW5zZGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU1NjA1MDUsImV4cCI6MjA0MTEzNjUwNX0.v6RWQjcYjdMXGouMr6jqpb__Xon_OKNmyBY7DBY6u88"
+SUPABASE_BUCKET_NAME = "thisowned-eco"
 
 
 # Password validation
