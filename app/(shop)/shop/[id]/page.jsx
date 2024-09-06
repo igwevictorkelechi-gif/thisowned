@@ -1,6 +1,5 @@
 "use client";
 import { ChevronRight, Home } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import ImageGallery from "../../component/ImageGallery";

@@ -92,7 +92,7 @@ function Navbar() {
                       collections.map((collection) => (
                         <li key={collection.id}>
                           <Link
-                            href={`/../shop/collection/${collection.name}`}
+                            href={`/../shop/collection/${collection.id}`}
                             className="block px-4 py-1.5 hover:bg-gray-900"
                           >
                             {collection.name}
@@ -207,7 +207,7 @@ function Navbar() {
                   collections.map((collection) => (
                     <li key={collection.id} className="py-1">
                       <Link
-                        href={`/../shop/collection/${collection.name}`}
+                        href={`/../shop/collection/${collection.id}`}
                         onClick={() => closeMenu()}
                         className="cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0"
                       >

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from "react";
@@ -42,7 +43,9 @@ function Products() {
                     href={`shop/${product.id}`}
                     className="group block overflow-hidden"
                   >
-                    <img
+                    <Image
+                      width={500}
+                      height={500}
                       src={product.images[0].image}
                       alt={product.name}
                       className="h-[350px] w-full object-cover transition duration-500 group-hover:scale-105 sm:h-[450px] text-white"
