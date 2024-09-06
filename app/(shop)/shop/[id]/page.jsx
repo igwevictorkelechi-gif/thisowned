@@ -93,7 +93,7 @@ function ShopDetails({ params }) {
           </div>
           <div className="flex flex-col lg:flex-row gap- gap-28 mt-8">
             <div className="w-full">
-              <ImageGallery />
+              <ImageGallery images={product.images} />
             </div>
             <div className="w-full">
               <div className="mt-6 ml-0">
@@ -101,7 +101,7 @@ function ShopDetails({ params }) {
                   {product.name}
                 </h1>
                 <p className="font-light text-[1.3rem] mt-4 text-white">
-                  ₦{product.price.toLocaleString()}
+                  ₦{product.price.toLocaleString()}.00
                 </p>
 
                 <div className="mt-6 flex items-center gap-6">
@@ -244,16 +244,7 @@ function ShopDetails({ params }) {
                 </p>
               </nav>
             </div>
-            <p className="mt-7 text-white text-sm">
-              {/* {product.description} */}
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Debitis
-              aperiam quis ullam suscipit animi deserunt necessitatibus dicta
-              vitae minus molestias molestiae, mollitia perspiciatis officiis
-              quam unde earum eveniet culpa voluptas. Lorem ipsum dolor sit amet
-              consectetur adipisicing elit. Iusto minima facere totam, assumenda
-              dolore eius magni asperiores modi ipsa saepe neque non nisi
-              ducimus ut reprehenderit quae veniam libero alias?
-            </p>
+            <p className="mt-7 text-white text-sm">{product.details}</p>
           </div>
         </>
       </section>
