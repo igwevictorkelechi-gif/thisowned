@@ -125,9 +125,9 @@ function Navbar() {
                   <Search size={23} />
                 </a>
 
-                <a className="font-medium text-white shadow" href="#">
+                <Link className="font-medium text-white shadow" href="cart">
                   <ShoppingBasket size={23} />
-                </a>
+                </Link>
               </div>
 
               <div className="block md:hidden">
