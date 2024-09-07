@@ -102,7 +102,7 @@ class CartViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.data["token"] == '':
+        if not request.user.is_authenticated and request.data["token"] == '':
             return Response(
                 {"detail": "Unauthorized: User must be authenticated or token field can not be null"},
                 status=status.HTTP_401_UNAUTHORIZED
@@ -117,6 +117,7 @@ class CartViewSet(viewsets.ModelViewSet):
                 if not cart.owner:
                     cart.owner = self.request.user
                     cart.token = ''
+                    cart.save()
             cart_data = Cart.objects.filter(owner=self.request.user)
         else:
             cart_data = token_carts
