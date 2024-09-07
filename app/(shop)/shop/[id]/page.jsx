@@ -3,6 +3,7 @@ import { ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import ImageGallery from "../../component/ImageGallery";
+import Image from "next/image";
 
 function ShopDetails({ params }) {
   const [product, setProduct] = useState(null); // Store product data
@@ -112,7 +113,7 @@ function ShopDetails({ params }) {
               <ImageGallery images={product.images} />
             </div>
             <div className="w-full">
-              <div className="md:mt-20 ml-0">
+              <div className="md:mt-16 ml-0">
                 <h1 className="font-semibold text-2xl text-white">
                   {product.name}
                 </h1>
@@ -126,49 +127,34 @@ function ShopDetails({ params }) {
                   </label>
 
                   <fieldset className="flex flex-wrap gap-3">
-                    {(() => {
-                      let sizes = [];
-
-                      try {
-                        // Sanitize and parse the available_size string
-                        const sanitizedSizes = product.available_size
-                          .replace(/'/g, '"') // Replace single quotes with double quotes
-                          .trim(); // Trim any extra whitespace
-
-                        sizes = JSON.parse(sanitizedSizes);
-                      } catch (error) {
-                        console.error("Error parsing available_size:", error);
-                        return (
-                          <p className="text-sm text-red-500">
-                            Invalid size data
-                          </p>
-                        );
-                      }
-
-                      return sizes.map((size) => (
-                        <div key={size}>
-                          <label
-                            htmlFor={`Size${size}`}
-                            className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
-                              selectedSizes.includes(size)
-                                ? "border-red-500 bg-white text-red-500 font-bold"
-                                : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              name="SizeOption"
-                              value={size}
-                              id={`Size${size}`}
-                              className="sr-only"
-                              checked={selectedSizes.includes(size)} // Mark as checked if it's selected
-                              onChange={() => handleSizeChange(size)} // Handle multiple selections
-                            />
-                            <p className="text-sm font-medium">{size}</p>
-                          </label>
-                        </div>
-                      ));
-                    })()}
+                    {product.size_guide.map(
+                      (size) =>
+                        size.is_available && (
+                          <div key={size.id}>
+                            <label
+                              htmlFor={`Size${size.rating}`}
+                              className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
+                                selectedSizes.includes(size.rating)
+                                  ? "border-red-500 bg-white text-red-500 font-bold"
+                                  : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                name="SizeOption"
+                                value={size.rating}
+                                id={`Size${size.rating}`}
+                                className="sr-only"
+                                checked={selectedSizes.includes(size.rating)}
+                                onChange={() => handleSizeChange(size.rating)}
+                              />
+                              <p className="text-sm font-medium">
+                                {size.rating}
+                              </p>
+                            </label>
+                          </div>
+                        )
+                    )}
                   </fieldset>
                 </div>
 
@@ -210,6 +196,81 @@ function ShopDetails({ params }) {
                     Add to Cart
                   </button>
                 </div>
+                {/* Conditionally render "Complete the Set" */}
+                {product.complete_set && product.complete_set.length > 0 && (
+                  <div className="mt-20">
+                    <hr className="md:w-[90%] mb-6 border-gray-700" />
+
+                    <h1 className="text-white tracking-tigher mb-10 font-semibold text-base">
+                      COMPLETE THE SET
+                    </h1>
+                    <div className="w-full grid grid-cols-2 gap-20 lg:grid-cols-3 lg:gap-[6rem]">
+                      {product.complete_set.map((setItem) =>
+                        setItem.products.map((item) => (
+                          <div key={item.id}>
+                            <div className="flex flex-col justify-center items-center">
+                              <Image
+                                width={160}
+                                height={160}
+                                src={item.images[0].image}
+                                alt={item.name}
+                                className="rounded object-cover"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <h3 className="font-medium text-sm text-gray-100 group-hover:underline group-hover:underline-offset-4">
+                                {item.name}
+                              </h3>
+                              <div className="relative w-72 max-w-full mx-auto my-5">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="absolute top-0 bottom-0 w-5 h-5 my-auto text-gray-400 right-3"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <select className="w-full px-3 py-1 text-sm text-gray-100 bg-black border rounded-lg shadow-sm outline-none appearance-none focus:ring-offset-2 focus:ring-red-500 focus:ring-1">
+                                  {product.size_guide.map((size) => (
+                                    <option key={size.id} value={size.rating}>
+                                      {size.rating}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex items-center justify-between mt-3">
+                                <input
+                                  type="checkbox"
+                                  className="size-4 rounded border-gray-300"
+                                  id={`Option${item.id}`}
+                                />
+                                <p className="text-sm text-gray-200">
+                                  ₦{item.price.toLocaleString()}.00
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="my-10">
+                      <h1 className="text-white font-bold text-base tracking-wider">
+                        TOTAL PRICE: <span className="ml-10">₦200,604</span>
+                      </h1>
+                      <button
+                        className="bg-white hover:opacity-95 hover:text-red-500 hover:font-medium text-whte p-1.5 w-[100%]
+                       md:max-w-[38%] shadow-sm rounded-sm mt-6"
+                      >
+                        Add selected to Cart
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
