@@ -91,3 +91,12 @@ class SizeGuid(models.Model):
 
     def __str__(self):
         return f"{self.products.name} size guide for {self.rating}"
+
+
+class Cart(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cart", blank=True, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="cart")
+    amount = models.IntegerField()
+    size = models.ForeignKey(SizeGuid, on_delete=models.CASCADE, related_name='cart_size')
+    is_complete_set = models.BooleanField(default=False)
+    token = models.CharField(max_length=200, blank=True, null=True)

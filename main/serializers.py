@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid
+from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -87,3 +87,41 @@ class CollectionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = ['id', 'name', 'products']
+
+
+class CartSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(write_only=True, allow_null=True)
+    product = serializers.SerializerMethodField()
+    size = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cart
+        fields = ["product", "size", "amount", "is_complete_set", "token"]
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.get('context', {}).get('request')
+        super().__init__(*args, **kwargs)
+
+        if request and request.method == 'GET':
+            self.fields['product'] = ProductListSerializer()
+            self.fields['size'] = SizeGuidSerializer()
+        elif request and request.method == 'POST':
+            self.fields['product'] = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+            self.fields['size'] = serializers.PrimaryKeyRelatedField(queryset=SizeGuid.objects.all())
+
+    def get_product(self, obj):
+        serializer = ProductListSerializer(obj.product)
+        return serializer.data
+
+    def get_size(self, obj):
+        serializer = SizeGuidSerializer(obj.size)
+        return serializer.data
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and request.user:
+            validated_data["owner"] = request.user
+            validated_data['token'] = ''
+
+        return super().create(validated_data)
+

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -88,3 +89,36 @@ class RegisterViewSet(viewsets.ModelViewSet):
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
+class CartViewSet(viewsets.ModelViewSet):
+    serializer_class = CartSerializer
+    queryset = Cart.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            return Response(
+                {"detail": "Unauthorized: Invalid or missing token."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.data["token"] == '':
+            return Response(
+                {"detail": "Unauthorized: User must be authenticated or token field can not be null"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().create(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'], url_path=r'token/(?P<token>[^/.]+)')
+    def cart_list_by_token(self, request, token=None):
+        token_carts = Cart.objects.filter(token=token)
+        if self.request.user and self.request.user.is_authenticated:
+            for cart in token_carts:
+                if not cart.owner:
+                    cart.owner = self.request.user
+                    cart.token = ''
+            cart_data = Cart.objects.filter(owner=self.request.user)
+        else:
+            cart_data = token_carts
+        serializer = self.get_serializer(cart_data, many=True)
+        return Response(serializer.data)
