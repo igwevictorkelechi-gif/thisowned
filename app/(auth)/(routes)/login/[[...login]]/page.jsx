@@ -3,9 +3,77 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
+import { useAuth } from "../../../../utils/AuthContext";
 
 function Page() {
+  const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true); // Show loader
+    setError(""); // Clear any previous errors
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_AUTH_TOKEN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Login failed. Please check your credentials.");
+      }
+
+      const data = await response.json();
+
+      // Store tokens securely
+      localStorage.setItem("accessToken", data.access);
+      localStorage.setItem("refreshToken", data.refresh);
+
+      // Update login state
+      setIsLoggedIn(true);
+      // Trigger a custom event to notify other components
+      window.dispatchEvent(new Event("storage"));
+
+      Swal.fire({
+        title: "Success!",
+        text: "Login successful",
+        icon: "success",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Redirect to shop page using Next.js router
+          router.push("shop");
+        }
+      });
+    } catch (err) {
+      setError(err.message);
+      Swal.fire({
+        title: "Error!",
+        text: err.message,
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+    } finally {
+      setIsLoading(false); // Stop the loader
+    }
+  };
+
   return (
     <div>
       <main className="w-full flex flex-col items-center justify-center px-5 mt-[6rem] my-10">
@@ -28,14 +96,22 @@ function Page() {
               <h3 className="text-gray-800 text-2xl font-semibold tracking-wider">
                 Log in to your account
               </h3>
+
+              {/* {error && (
+                <p className="text-red-500 text-base text-center mt-4">
+                  {error}
+                </p>
+              )} */}
             </div>
           </div>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="font-medium">Email</label>
               <input
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
             </div>
@@ -44,6 +120,8 @@ function Page() {
               <input
                 type="password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
             </div>
@@ -67,8 +145,28 @@ function Page() {
                 Forgot password?
               </Link>
             </div>
-            <button className="w-full px-4 py-2 text-white font-medium bg-black hover:bg-gray-800 rounded-lg duration-150">
-              Login
+            <button
+              type="submit"
+              className={`w-full px-4 py-2 text-white font-medium hover:bg-gray-800 rounded-lg duration-150 
+               flex items-center justify-center  ${
+                 isLoading ? "bg-gray-800 py-2" : "bg-black"
+               }`}
+              disabled={isLoading} // Disable button while loading
+            >
+              {isLoading ? (
+                <div className="dot-spinner">
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                </div>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
           {/* <button className="w-full flex items-center justify-center gap-x-3 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50 duration-150 active:bg-gray-100">

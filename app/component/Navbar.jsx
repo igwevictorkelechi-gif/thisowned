@@ -4,11 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { navLinks } from "../constants/ContentConstants";
+import { useAuth } from "../utils/AuthContext";
+import Swal from "sweetalert2";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [collections, setCollections] = useState([]);
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -22,12 +25,36 @@ function Navbar() {
     setIsChecked(!isChecked);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setIsLoggedIn(false);
+    Swal.fire({
+      title: "Success!",
+      text: "Logout successful",
+      icon: "success",
+      confirmButtonColor: "#000000",
+      confirmButtonText: "Close",
+    });
+    // Optionally, you can redirect to the home page or show a logout success message
+    // router.push('/');
+    // Trigger a custom event to notify other components
+    window.dispatchEvent(new Event("storage"));
+  };
+
   // Fetch collections from the API
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_COLLECTION_URL)
       .then((response) => response.json())
       .then((data) => setCollections(data))
       .catch((error) => console.error("Error fetching collections:", error));
+
+    const checkLoginStatus = () => {
+      const accessToken = localStorage.getItem("accessToken");
+      setIsLoggedIn(!!accessToken);
+    };
+
+    checkLoginStatus();
   }, []);
   return (
     <header className="pt-4 pb-4 bg-black">
@@ -111,9 +138,10 @@ function Navbar() {
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
-                    href="/../login"
+                    href={isLoggedIn ? "/" : "/../login"}
+                    onClick={isLoggedIn ? handleLogout : undefined}
                   >
-                    LOGIN
+                    {isLoggedIn ? "LOGOUT" : "LOGIN"}
                   </Link>
                 </li>
               </ul>
@@ -229,11 +257,11 @@ function Navbar() {
               className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
             >
               <Link
-                href={`login`}
+                href={isLoggedIn ? "/" : `login`}
                 className="w-full block"
-                onClick={() => closeMenu()}
+                onClick={isLoggedIn ? handleLogout : closeMenu}
               >
-                LOGIN
+                {isLoggedIn ? "LOGOUT" : "LOGIN"}
               </Link>
             </li>
           </ul>
