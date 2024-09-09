@@ -10,16 +10,20 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
+    size = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ["id", "name", "price", "currency", "discount", "images"]
+        fields = ["id", "name", "price", "currency", "discount", "images", 'size']
 
     def get_images(self, obj):
         all_images = obj.product_image.all()
         if all_images:
             return ProductImageSerializer([all_images.first()], many=True).data
         return None
+
+    def get_size(self, obj):
+        return [size.rating for size in obj.sizes.all()]
 
 
 class ProductSetSerializer(serializers.ModelSerializer):
@@ -58,6 +62,18 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name', 'email', "password")
+
+    def create(self, validated_data):
+        # Create the user with a hashed password
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
 
 
 class UserTypeSerializer(serializers.ModelSerializer):
