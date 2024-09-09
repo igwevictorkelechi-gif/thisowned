@@ -3,9 +3,103 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
+import { useAuth } from "../../../../utils/AuthContext";
 
 function Page() {
+  const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_AUTH_REGISTER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+      console.log("Response status:", response.status);
+      console.log("Response body:", result);
+
+      if (response.ok) {
+        // Reset form data to initial state,
+        setFormData({
+          first_name: "",
+          last_name: "",
+          email: "",
+          password: "",
+        });
+        // Store tokens securely (assuming they're in the result)
+        if (result.access && result.refresh) {
+          localStorage.setItem("accessToken", result.access);
+          localStorage.setItem("refreshToken", result.refresh);
+
+          // Update login state
+          setIsLoggedIn(true);
+          // Trigger a custom event to notify other components
+          window.dispatchEvent(new Event("storage"));
+        } else {
+          console.warn("Access or refresh token missing in the response");
+        }
+
+        Swal.fire({
+          title: "Success!",
+          text: "Account created successfully",
+          icon: "success",
+          confirmButtonColor: "#000000",
+          confirmButtonText: "Close",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Redirect to shop page using Next.js router
+            router.push("/shop");
+          }
+        });
+      } else {
+        // Handle validation errors
+        if (result.email && result.email.length > 0) {
+          throw new Error(result.email[0]);
+        } else {
+          throw new Error("Registration failed. Please try again.");
+        }
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError(err.message || "An error occurred. Please try again.");
+      Swal.fire({
+        title: "Error!",
+        text: err.message || "Registration failed. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div>
       <main className="w-full flex flex-col items-center justify-center px-5 mt-[6rem] my-10">
@@ -30,11 +124,14 @@ function Page() {
               </h3>
             </div>
           </div>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="font-medium">First Name</label>
               <input
                 type="text"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
                 required
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
@@ -43,6 +140,9 @@ function Page() {
               <label className="font-medium">Last Name</label>
               <input
                 type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
                 required
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
@@ -51,6 +151,9 @@ function Page() {
               <label className="font-medium">Email</label>
               <input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 required
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
@@ -59,7 +162,11 @@ function Page() {
               <label className="font-medium">Password</label>
               <input
                 type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
                 required
+                minLength="6"
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
             </div>
@@ -77,8 +184,28 @@ function Page() {
                 <span>Remember me</span>
               </div>
             </div>
-            <button className="w-full px-4 py-2 text-white font-medium bg-black hover:bg-gray-800 rounded-lg duration-150">
-              Register
+            <button
+              type="submit"
+              className={`w-full px-4 py-2 text-white font-medium hover:bg-gray-800 rounded-lg duration-150 
+               flex items-center justify-center  ${
+                 isLoading ? "bg-gray-800 py-2" : "bg-black"
+               }`}
+              disabled={isLoading} // Disable button while loading
+            >
+              {isLoading ? (
+                <div className="dot-spinner">
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                </div>
+              ) : (
+                "Register"
+              )}
             </button>
           </form>
           {/* <button className="w-full flex items-center justify-center gap-x-3 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50 duration-150 active:bg-gray-100">
