@@ -29,6 +29,7 @@ function Navbar() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setIsLoggedIn(false);
+    closeMenu();
     Swal.fire({
       title: "Success!",
       text: "Logout successful",
@@ -55,7 +56,7 @@ function Navbar() {
     };
 
     checkLoginStatus();
-  }, []);
+  }, [setIsLoggedIn]);
   return (
     <header className="pt-4 pb-4 bg-black">
       <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
@@ -153,7 +154,7 @@ function Navbar() {
                   <Search size={23} />
                 </a>
 
-                <Link className="font-medium text-white shadow" href="cart">
+                <Link className="font-medium text-white shadow" href="/../cart">
                   <ShoppingBasket size={23} />
                 </Link>
               </div>
