@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import User, Product, ProductImage, Collection, ProductSet, SizeGuid, Cart
+from .models import User, Product, ProductImage, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
+    Shipping
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -36,4 +37,8 @@ admin.site.register(Collection)
 admin.site.register(ProductSet)
 admin.site.register(SizeGuid)
 admin.site.register(Cart)
+admin.site.register(Order)
+admin.site.register(OrderItem)
+admin.site.register(Payment)
+admin.site.register(Shipping)
 

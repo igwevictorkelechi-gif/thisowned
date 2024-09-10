@@ -11,6 +11,7 @@ router.register(r'users_admin', views.UserAdminViewSet, basename='users_admin')
 router.register(r'collection', views.CollectionViewSet, basename='collection')
 router.register(r'cart', views.CartViewSet, basename='cart')
 router.register(r'register', views.RegisterViewSet, basename='register')
+router.register(r'order', views.OrderViewSet, basename='order')
 
 urlpatterns = [
     path('collection/all/', views.AllCollectionsView.as_view(), name="all_collection"),

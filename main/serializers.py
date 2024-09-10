@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart
+from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
+    Shipping
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -17,10 +18,8 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "price", "currency", "discount", "images", 'size']
 
     def get_images(self, obj):
-        all_images = obj.product_image.all()
-        if all_images:
-            return ProductImageSerializer([all_images.first()], many=True).data
-        return None
+        all_images = obj.product_image.all()[:2]
+        return ProductImageSerializer(all_images, many=True).data
 
     def get_size(self, obj):
         return [size.rating for size in obj.sizes.all()]
@@ -142,3 +141,55 @@ class CartSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity', 'price', 'size']
+
+class PaymentDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ["id", 'amount', 'method', 'status']
+
+class ShippingAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shipping
+        fields = ['address', 'city', 'postal_code', 'country']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, allow_null=True)
+    payment_detail = PaymentDetailsSerializer(many=True)
+    shipping_address = ShippingAddressSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['customer', 'payment_detail', "items", 'shipping_address']
+
+    def create(self, validated_data):
+        # Extract related data
+        items_data = validated_data.pop('items', None)  # Handle if items_data is None
+        payment_data = validated_data.pop('payment_detail')
+        shipping_data = validated_data.pop('shipping_address')
+
+        # Step 1: Create the Order
+        order = Order.objects.create(**validated_data)
+
+        # Step 2: Create Order Items and calculate total
+        total = 0
+        if items_data:
+            for item_data in items_data:
+                OrderItem.objects.create(order=order, **item_data)
+                total += item_data['price'] * item_data['quantity']
+
+        # Update the order total
+        order.total = total
+        order.save()
+
+        # Step 3: Create the Payment
+        Payment.objects.create(order=order, **payment_data)
+
+        # Step 4: Create the Shipping
+        Shipping.objects.create(order=order, **shipping_data)
+
+        return order

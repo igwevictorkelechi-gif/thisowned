@@ -123,3 +123,8 @@ class CartViewSet(viewsets.ModelViewSet):
             cart_data = token_carts
         serializer = self.get_serializer(cart_data, many=True)
         return Response(serializer.data)
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
