@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true); // State to handle loading
+  const [hoveredProductId, setHoveredProductId] = useState(null); // State to track hovered product
 
   useEffect(() => {
     // Fetch the products data from the API
@@ -42,11 +43,17 @@ function Products() {
                   <Link
                     href={`shop/${product.id}`}
                     className="group block overflow-hidden"
+                    onMouseEnter={() => setHoveredProductId(product.id)}
+                    onMouseLeave={() => setHoveredProductId(null)}
                   >
                     <Image
                       width={500}
                       height={500}
-                      src={product.images[0].image}
+                      src={
+                        hoveredProductId === product.id
+                          ? product.images[1].image
+                          : product.images[0].image
+                      }
                       alt={product.name}
                       className="h-[350px] w-full object-cover transition duration-500 group-hover:scale-105 sm:h-[450px] text-white"
                     />
