@@ -8,7 +8,7 @@ import Image from "next/image";
 function ShopDetails({ params }) {
   const [product, setProduct] = useState(null); // Store product data
   const [quantity, setQuantity] = useState(1);
-  const [selectedSizes, setSelectedSizes] = useState([]);
+  const [selectedSize, setSelectedSize] = useState("");
   const [activeTab, setActiveTab] = useState("description");
 
   useEffect(() => {
@@ -43,17 +43,7 @@ function ShopDetails({ params }) {
 
   // Function to handle size selection
   const handleSizeChange = (size) => {
-    setSelectedSizes((prevSelectedSizes) => {
-      if (prevSelectedSizes.includes(size)) {
-        // If the size is already selected, remove it
-        return prevSelectedSizes.filter(
-          (selectedSize) => selectedSize !== size
-        );
-      } else {
-        // If the size is not selected, add it
-        return [...prevSelectedSizes, size];
-      }
-    });
+    setSelectedSize(size);
   };
 
   if (!product) {
@@ -134,7 +124,7 @@ function ShopDetails({ params }) {
                             <label
                               htmlFor={`Size${size.rating}`}
                               className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
-                                selectedSizes.includes(size.rating)
+                                selectedSize.includes(size.rating)
                                   ? "border-red-500 bg-white text-red-500 font-bold"
                                   : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
                               }`}
@@ -145,7 +135,7 @@ function ShopDetails({ params }) {
                                 value={size.rating}
                                 id={`Size${size.rating}`}
                                 className="sr-only"
-                                checked={selectedSizes.includes(size.rating)}
+                                checked={selectedSize === size.rating}
                                 onChange={() => handleSizeChange(size.rating)}
                               />
                               <p className="text-sm font-medium">
@@ -235,9 +225,9 @@ function ShopDetails({ params }) {
                                   />
                                 </svg>
                                 <select className="w-full px-3 py-1 text-sm text-gray-100 bg-black border rounded-lg shadow-sm outline-none appearance-none focus:ring-offset-2 focus:ring-red-500 focus:ring-1">
-                                  {product.size_guide.map((size) => (
-                                    <option key={size.id} value={size.rating}>
-                                      {size.rating}
+                                  {item.size.map((size) => (
+                                    <option key={size} value={size}>
+                                      {size}
                                     </option>
                                   ))}
                                 </select>
