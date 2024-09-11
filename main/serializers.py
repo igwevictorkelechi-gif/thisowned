@@ -1,3 +1,5 @@
+from abc import ABC
+
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
     Shipping
@@ -111,7 +113,7 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ["product", "size", "amount", "is_complete_set", "token"]
+        fields = ["product", "size", "quantity", "token"]
 
     def __init__(self, *args, **kwargs):
         request = kwargs.get('context', {}).get('request')
@@ -146,10 +148,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['product', 'quantity', 'price', 'size']
 
+
 class PaymentDetailsSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Payment
         fields = ["id", 'amount', 'method', 'status']
+
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -157,39 +162,53 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         fields = ['address', 'city', 'postal_code', 'country']
 
 
+class CardDetailSerializer(serializers.Serializer):
+    card_number = serializers.CharField(max_length=50)
+    expiration_month = serializers.CharField(max_length=2)
+    expiration_year = serializers.CharField(max_length=4)
+    security_code = serializers.CharField(max_length=3)
+    name = serializers.CharField(max_length=100)
+
+
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, allow_null=True)
-    payment_detail = PaymentDetailsSerializer(many=True)
-    shipping_address = ShippingAddressSerializer(many=True)
+    items = OrderItemSerializer(many=True, allow_null=True, read_only=True)
+    payment_detail = PaymentDetailsSerializer()
+    shipping_address = ShippingAddressSerializer()
+    billing_address = ShippingAddressSerializer(write_only=True, allow_null=True)
+    card_details = CardDetailSerializer(write_only=True, allow_null=True)
 
     class Meta:
         model = Order
-        fields = ['customer', 'payment_detail', "items", 'shipping_address']
+        fields = ['payment_detail', "items", 'shipping_address', "card_details", "billing_address"]
 
     def create(self, validated_data):
         # Extract related data
-        items_data = validated_data.pop('items', None)  # Handle if items_data is None
         payment_data = validated_data.pop('payment_detail')
         shipping_data = validated_data.pop('shipping_address')
+        card_details = validated_data.pop('card_details')
+        billing_address = validated_data.pop('billing_address')
+        request = self.context.get('request')
+        validated_data["customer"] = request.user
 
-        # Step 1: Create the Order
-        order = Order.objects.create(**validated_data)
+        # Step 1: Create the Payment
+        payment = Payment.objects.create(**payment_data)
 
-        # Step 2: Create Order Items and calculate total
+        # Step 2: Create the Shipping
+        shipping = Shipping.objects.create(**shipping_data)
+
+        items_data = Cart.objects.filter(owner=request.user)
+
+        # Step 3: Create the Order
+        order = Order.objects.create(**validated_data, payment_detail=payment, shipping_address=shipping)
+
+        # Step 4: Create Order Items and calculate total
         total = 0
-        if items_data:
-            for item_data in items_data:
-                OrderItem.objects.create(order=order, **item_data)
-                total += item_data['price'] * item_data['quantity']
+        for item_data in items_data:
+            OrderItem.objects.create(order=order, product=item_data.product, quantity=item_data.quantity,
+                                     size=items_data.size)
+            total += item_data.product.price - (item_data.product.price * (item_data.product.discount/100))
 
-        # Update the order total
         order.total = total
         order.save()
-
-        # Step 3: Create the Payment
-        Payment.objects.create(order=order, **payment_data)
-
-        # Step 4: Create the Shipping
-        Shipping.objects.create(order=order, **shipping_data)
 
         return order
