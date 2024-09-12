@@ -27,9 +27,4 @@
       "dest": "website/wsgi.py"
     }
   ],
-  "functions": {
-    "/website/wsgi.py": {
-      "maxDuration": 30
-    }
-  }
 }

@@ -3,7 +3,7 @@ from abc import ABC
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
     Shipping
-from .payment_gateway import pay_with_card
+# from .payment_gateway import pay_with_card
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
