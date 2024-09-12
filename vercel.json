@@ -28,7 +28,7 @@
     }
   ],
   "functions": {
-    "website/**/*.py": {
+    "website/**/*": {
       "maxDuration": 30
     }
   }
