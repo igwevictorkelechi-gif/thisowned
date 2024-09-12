@@ -69,6 +69,9 @@ class Product(models.Model):
     care = models.TextField()
     delivery_and_return = models.TextField()
 
+    def __str__(self):
+        return self.name
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_image")
@@ -98,7 +101,7 @@ class Cart(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="cart")
     quantity = models.IntegerField()
     size = models.ForeignKey(SizeGuid, on_delete=models.CASCADE, related_name='cart_size')
-    # is_complete_set = models.BooleanField(default=False)
+    is_complete_set = models.BooleanField(default=False)
     token = models.CharField(max_length=200, blank=True, null=True)
 
 
@@ -117,12 +120,13 @@ class Payment(models.Model):
     ], default='pending')
 
     def __str__(self):
-        return f"Payment for Order {self.order.id} - {self.status}"
+        return f"Payment for Order {self.order.id if self.order else 'null'} - {self.status}"
 
 class Shipping(models.Model):
     address = models.TextField()
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
+    state = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     shipped_at = models.DateTimeField(null=True, blank=True)
 

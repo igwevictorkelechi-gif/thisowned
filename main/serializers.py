@@ -3,6 +3,7 @@ from abc import ABC
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
     Shipping
+from .payment_gateway import pay_with_card
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -24,7 +25,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         return ProductImageSerializer(all_images, many=True).data
 
     def get_size(self, obj):
-        return [size.rating for size in obj.sizes.all()]
+        return [[size.id, size.rating] for size in obj.sizes.all()]
 
 
 class ProductSetSerializer(serializers.ModelSerializer):
@@ -146,7 +147,7 @@ class CartSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = ['product', 'quantity', 'price', 'size']
+        fields = ['product', 'quantity', 'size']
 
 
 class PaymentDetailsSerializer(serializers.ModelSerializer):
@@ -159,7 +160,7 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
 class ShippingAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shipping
-        fields = ['address', 'city', 'postal_code', 'country']
+        fields = ['address', 'city', 'postal_code', "state", 'country']
 
 
 class CardDetailSerializer(serializers.Serializer):
@@ -167,7 +168,8 @@ class CardDetailSerializer(serializers.Serializer):
     expiration_month = serializers.CharField(max_length=2)
     expiration_year = serializers.CharField(max_length=4)
     security_code = serializers.CharField(max_length=3)
-    name = serializers.CharField(max_length=100)
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=100)
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -205,10 +207,47 @@ class OrderSerializer(serializers.ModelSerializer):
         total = 0
         for item_data in items_data:
             OrderItem.objects.create(order=order, product=item_data.product, quantity=item_data.quantity,
-                                     size=items_data.size)
-            total += item_data.product.price - (item_data.product.price * (item_data.product.discount/100))
+                                     size=item_data.size)
+            discount_price = ((item_data.product.discount if item_data.product.discount else 0)/100)
+            total += item_data.product.price - (item_data.product.price * discount_price)
 
         order.total = total
         order.save()
+        # if payment.method == "credit_card":
+        #     payload = {
+        #         "cardno": card_details["card_number"],
+        #         "cvv": card_details["security_code"],
+        #         "expirymonth": card_details["expiration_month"],
+        #         "expiryyear": card_details["expiration_year"],
+        #         "amount": str(payment.amount),
+        #         "email": request.user.email,
+        #         "phonenumber": "0902620185",
+        #         "firstname": card_details["first_name"],
+        #         "lastname": card_details["last_name"],
+        #     }
+        #
+        #     print(payload)
+        #
+        #     address = {
+        #         "billingzip": billing_address["postal_code"] if billing_address else shipping.postal_code,
+        #         "billingcity": billing_address["city"] if billing_address else shipping.city,
+        #         "billingaddress": billing_address['address'] if billing_address else shipping.address,
+        #         "billingstate": billing_address["state"] if billing_address else shipping.state,
+        #         "billingcountry": billing_address["country"] if billing_address else shipping.country
+        #     }
+        #     res = pay_with_card(payload, address=address)
+        #     print(res)
+        #     return res
 
         return order
+
+
+class CardPinOrOTPSerializer(serializers.Serializer):
+    tx_ref = serializers.CharField(max_length=100)
+    suggested_auth = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+
+
+class CardValidationSerializer(serializers.Serializer):
+    flw_ref = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
