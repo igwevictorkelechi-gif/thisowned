@@ -28,7 +28,7 @@
     }
   ],
   "functions": {
-    "website/wsgi.py": {
+    "api/**/*.py": {
       "maxDuration": 30
     }
   }
