@@ -213,31 +213,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
         order.total = total
         order.save()
-        # if payment.method == "credit_card":
-        #     payload = {
-        #         "cardno": card_details["card_number"],
-        #         "cvv": card_details["security_code"],
-        #         "expirymonth": card_details["expiration_month"],
-        #         "expiryyear": card_details["expiration_year"],
-        #         "amount": str(payment.amount),
-        #         "email": request.user.email,
-        #         "phonenumber": "0902620185",
-        #         "firstname": card_details["first_name"],
-        #         "lastname": card_details["last_name"],
-        #     }
-        #
-        #     print(payload)
-        #
-        #     address = {
-        #         "billingzip": billing_address["postal_code"] if billing_address else shipping.postal_code,
-        #         "billingcity": billing_address["city"] if billing_address else shipping.city,
-        #         "billingaddress": billing_address['address'] if billing_address else shipping.address,
-        #         "billingstate": billing_address["state"] if billing_address else shipping.state,
-        #         "billingcountry": billing_address["country"] if billing_address else shipping.country
-        #     }
-        #     res = pay_with_card(payload, address=address)
-        #     print(res)
-        #     return res
 
         return order
 
