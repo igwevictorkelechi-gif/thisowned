@@ -124,15 +124,15 @@ function ShopDetails({ params }) {
                             <label
                               htmlFor={`Size${size.rating}`}
                               className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
-                                selectedSize.includes(size.rating)
+                                selectedSize === size.rating
                                   ? "border-red-500 bg-white text-red-500 font-bold"
                                   : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
                               }`}
                             >
                               <input
-                                type="checkbox"
+                                type="radio"
                                 name="SizeOption"
-                                value={size.rating}
+                                value={size.id}
                                 id={`Size${size.rating}`}
                                 className="sr-only"
                                 checked={selectedSize === size.rating}
