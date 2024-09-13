@@ -4,12 +4,14 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import ImageGallery from "../../component/ImageGallery";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 function ShopDetails({ params }) {
   const [product, setProduct] = useState(null); // Store product data
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [activeTab, setActiveTab] = useState("description");
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     // Fetch product details based on the id from params
@@ -25,7 +27,26 @@ function ShopDetails({ params }) {
       }
     };
     fetchProduct();
+    // Generate or retrieve token
+    let storedToken = localStorage.getItem("cartToken");
+    if (!storedToken) {
+      storedToken = generateToken();
+      localStorage.setItem("cartToken", storedToken);
+    }
+    setToken(storedToken);
   }, [params.id]);
+
+  const generateToken = () => {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < 12; i++) {
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length)
+      );
+    }
+    return result;
+  };
 
   const handleQuantityChange = (event) => {
     setQuantity(Number(event.target.value));
@@ -44,6 +65,78 @@ function ShopDetails({ params }) {
   // Function to handle size selection
   const handleSizeChange = (size) => {
     setSelectedSize(size);
+  };
+
+  const addToCart = async () => {
+    if (!selectedSize) {
+      Swal.fire({
+        title: "Error!",
+        text: "Please select a size",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+      // alert("Please select a size");
+      return;
+    }
+
+    const payload = {
+      product: product.id,
+      size: selectedSize,
+      quantity: quantity,
+      token: token,
+    };
+
+    console.log("Request body:", payload);
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_CART_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          title: "Success!",
+          text: "Product added to cart successfully!",
+          icon: "success",
+          confirmButtonColor: "#000000",
+          confirmButtonText: "Close",
+        });
+
+        // alert("Product added to cart successfully!");
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to add product to cart. Please try again.",
+          icon: "error",
+          confirmButtonColor: "#000000",
+          confirmButtonText: "Close",
+        });
+        // alert("Failed to add product to cart. Please try again.");
+        console.log(
+          `Failed to add product to cart: ${
+            data.message || response.statusText
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "An error occurred. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+
+      // alert("An error occurred. Please try again.");
+    }
   };
 
   if (!product) {
@@ -124,7 +217,7 @@ function ShopDetails({ params }) {
                             <label
                               htmlFor={`Size${size.rating}`}
                               className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
-                                selectedSize === size.rating
+                                selectedSize === size.id
                                   ? "border-red-500 bg-white text-red-500 font-bold"
                                   : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
                               }`}
@@ -135,8 +228,8 @@ function ShopDetails({ params }) {
                                 value={size.id}
                                 id={`Size${size.rating}`}
                                 className="sr-only"
-                                checked={selectedSize === size.rating}
-                                onChange={() => handleSizeChange(size.rating)}
+                                checked={selectedSize === size.id}
+                                onChange={() => handleSizeChange(size.id)}
                               />
                               <p className="text-sm font-medium">
                                 {size.rating}
@@ -182,7 +275,10 @@ function ShopDetails({ params }) {
                 </div>
 
                 <div className="mt-12">
-                  <button className="bg-white hover:opacity-95 hover:text-red-500  hover:font-medium text-whte p-3 w-[100%] md:max-w-[52%] shadow-sm rounded-sm">
+                  <button
+                    onClick={addToCart}
+                    className="bg-white hover:opacity-95 hover:text-red-500  hover:font-medium text-whte p-3 w-[100%] md:max-w-[52%] shadow-sm rounded-sm"
+                  >
                     Add to Cart
                   </button>
                 </div>

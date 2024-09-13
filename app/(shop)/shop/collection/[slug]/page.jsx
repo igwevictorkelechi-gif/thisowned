@@ -14,6 +14,7 @@ async function fetchCollections(slug) {
     if (!response.ok) {
       throw new Error("Failed to fetch collections");
     }
+
     return response.json();
   } catch (error) {
     console.error("Error fetching collections:", error);

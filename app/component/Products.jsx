@@ -15,6 +15,7 @@ function Products() {
       .then((response) => response.json())
       .then((data) => {
         setProducts(data);
+        // console.log(data);
         setLoading(false); // Set loading to false after data is fetched
       })
       .catch((error) => {

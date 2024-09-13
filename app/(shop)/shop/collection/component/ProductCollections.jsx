@@ -9,6 +9,7 @@ function ProductCollections({ collections, isAllCollections }) {
 
   useEffect(() => {
     if (collections) {
+      // console.log(collections);
       setLoading(false);
     }
   }, [collections]);
@@ -29,7 +30,7 @@ function ProductCollections({ collections, isAllCollections }) {
               width={500}
               height={500}
               src={
-                hoveredProductId === product.id
+                hoveredProductId === product.id && product.images.length > 1
                   ? product.images[1].image
                   : product.images[0].image
               }
@@ -40,6 +41,8 @@ function ProductCollections({ collections, isAllCollections }) {
             <div className="relative pt-3">
               <h3 className="text-sm group-hover:underline group-hover:underline-offset-4 text-white">
                 {product.name}
+
+                {/* {product.images.length} */}
               </h3>
 
               <p className="mt-2">
