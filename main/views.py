@@ -95,23 +95,12 @@ class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()
 
     def list(self, request, *args, **kwargs):
-        if not self.request.user.is_authenticated:
+        token = request.query_params.get('token', None)
+        if not self.request.user.is_authenticated and not token:
             return Response(
-                {"detail": "Unauthorized: Invalid or missing token."},
+                {"detail": "Unauthorized: Invalid or missing (access or cart) token."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        return super().list(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        if not request.user.is_authenticated and request.data["token"] == '':
-            return Response(
-                {"detail": "Unauthorized: User must be authenticated or token field can not be null"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        return super().create(request, *args, **kwargs)
-
-    @action(detail=False, methods=['get'], url_path=r'token/(?P<token>[^/.]+)')
-    def cart_list_by_token(self, request, token=None):
         token_carts = Cart.objects.filter(token=token)
         if self.request.user and self.request.user.is_authenticated:
             for cart in token_carts:
@@ -123,7 +112,17 @@ class CartViewSet(viewsets.ModelViewSet):
         else:
             cart_data = token_carts
         serializer = self.get_serializer(cart_data, many=True)
-        return Response(serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        token = request.query_params.get('token', None)
+        if not request.user.is_authenticated and not token:
+            return Response(
+                {"detail": "Unauthorized: User must be authenticated or pass a 'token' params in url"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().create(request, *args, **kwargs)
 
 #
 # class OrderViewSet(viewsets.ModelViewSet):

@@ -108,13 +108,12 @@ class CollectionDetailSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(write_only=True, allow_null=True)
     product = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ["product", "size", "quantity", "token"]
+        fields = ["id", "product", "size", "quantity"]
 
     def __init__(self, *args, **kwargs):
         request = kwargs.get('context', {}).get('request')
@@ -137,10 +136,10 @@ class CartSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
+        validated_data["token"] = request.query_params.get('token', '')
         if request and request.user and request.user.is_authenticated:
             validated_data["owner"] = request.user
             validated_data['token'] = ''
-
         return super().create(validated_data)
 
 
