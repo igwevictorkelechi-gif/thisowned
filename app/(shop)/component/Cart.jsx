@@ -81,6 +81,7 @@ function Cart({ setIsCartEmpty }) {
 
   // Calculate total price
   const calculateTotalPrice = () => {
+    if (!Array.isArray(cart)) return 0;
     return cart.reduce(
       (total, item) => total + item.product.price * item.quantity,
       0
@@ -124,65 +125,66 @@ function Cart({ setIsCartEmpty }) {
             ) : (
               <div className="mt-8">
                 <ul className="space-y-6">
-                  {cart.map((item, index) => (
-                    <li key={index} className="flex items-center gap-4">
-                      <Image
-                        width={100}
-                        height={100}
-                        src={item.product.images[0].image}
-                        alt={item.product.name}
-                        className="size-14 rounded object-cover"
-                      />
-                      <div>
-                        <h3 className="text-sm text-gray-100">
-                          {item.product.name}
-                        </h3>
-                        <dl className="mt-0.5 space-y-1 text-[11.2px] text-gray-100">
-                          <div className="flex gap-3">
-                            <dt className="inline">Size:</dt>
-                            <dd className="inline">{item.size.rating}</dd>
-                          </div>
-                          <div className="flex gap-3">
-                            <dt className="inline">Price:</dt>
-                            <dd className="inline">₦{item.product.price}</dd>
-                          </div>
-                        </dl>
-                      </div>
+                  {Array.isArray(cart) &&
+                    cart.map((item, index) => (
+                      <li key={index} className="flex items-center gap-4">
+                        <Image
+                          width={100}
+                          height={100}
+                          src={item.product.images[0].image}
+                          alt={item.product.name}
+                          className="size-14 rounded object-cover"
+                        />
+                        <div>
+                          <h3 className="text-sm text-gray-100">
+                            {item.product.name}
+                          </h3>
+                          <dl className="mt-0.5 space-y-1 text-[11.2px] text-gray-100">
+                            <div className="flex gap-3">
+                              <dt className="inline">Size:</dt>
+                              <dd className="inline">{item.size.rating}</dd>
+                            </div>
+                            <div className="flex gap-3">
+                              <dt className="inline">Price:</dt>
+                              <dd className="inline">₦{item.product.price}</dd>
+                            </div>
+                          </dl>
+                        </div>
 
-                      <div className="flex flex-1 items-center justify-end gap-4 md:gap-5">
-                        <form className="flex flex-row gap-2">
-                          <button
-                            type="button"
-                            // onClick={() => decrementQuantity(item.product.id)}
-                            className="text-white"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            readOnly
-                            className="h-7 w-8 md:w-10 rounded border border-gray-200 bg-black p-0 text-center text-xs text-gray-100"
-                          />
-                          <button
-                            type="button"
-                            // onClick={() => incrementQuantity(item.product.id)}
-                            className="text-white"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </form>
+                        <div className="flex flex-1 items-center justify-end gap-4 md:gap-5">
+                          <form className="flex flex-row gap-2">
+                            <button
+                              type="button"
+                              // onClick={() => decrementQuantity(item.product.id)}
+                              className="text-white"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              readOnly
+                              className="h-7 w-8 md:w-10 rounded border border-gray-200 bg-black p-0 text-center text-xs text-gray-100"
+                            />
+                            <button
+                              type="button"
+                              // onClick={() => incrementQuantity(item.product.id)}
+                              className="text-white"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </form>
 
-                        <button
-                          // onClick={() => removeItem(item.product.id)}
-                          className="text-gray-100 hover:text-red-600"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                          <button
+                            // onClick={() => removeItem(item.product.id)}
+                            className="text-gray-100 hover:text-red-600"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
                 </ul>
 
                 <div className="mt-8 flex justify-end border-t border-gray-400 pt-8">
@@ -202,9 +204,12 @@ function Cart({ setIsCartEmpty }) {
                       </div>
                     </dl>
                     <div className="flex justify-end">
-                      <button className="block rounded bg-white px-10 py-2.5 text-sm text-gray-800 transition hover:bg-gray-100">
+                      <Link
+                        href="checkout"
+                        className="block rounded bg-white px-10 py-2.5 text-sm text-gray-800 transition hover:bg-gray-100"
+                      >
                         Checkout
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
