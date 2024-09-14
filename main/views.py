@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# from .payment_gateway import auth_card, validate_card
+from website.payment_gateway import auth_card, validate_card
 from .serializers import *
 from .models import Product, User, Collection
 
