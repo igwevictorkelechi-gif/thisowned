@@ -90,13 +90,16 @@ function ShopDetails({ params }) {
     console.log("Request body:", payload);
 
     try {
-      const response = await fetch(process.env.NEXT_PUBLIC_CART_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await response.json();
 

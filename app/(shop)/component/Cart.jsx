@@ -3,6 +3,7 @@ import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 // Helper to generate token
 
@@ -57,14 +58,14 @@ function Cart({ setIsCartEmpty }) {
       try {
         // setLoading(true); // Set loading to true before fetching
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_CART_URL}token/${token}/`,
+          `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
           {
             method: "GET",
             headers: mainHeaders,
           }
         );
         const cartData = await response.json();
-        console.log(cartData);
+        // console.log(cartData);
         // setCart(cartData);
         if (response.statusCode !== 401) {
           setCart(cartData);
@@ -78,6 +79,104 @@ function Cart({ setIsCartEmpty }) {
     };
     fetchCartDetails();
   }, [token, setIsCartEmpty]);
+
+  // Helper function to update the quantity directly on the backend
+  const updateQuantity = async (itemId, newQuantity) => {
+    try {
+      // Call API to update the cart item with the new quantity
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${token}`,
+        {
+          method: "PATCH",
+          headers: {
+            ...headers,
+          },
+          body: JSON.stringify({ quantity: newQuantity }), // Send the new quantity directly
+        }
+      );
+
+      if (response.ok) {
+        const updatedItem = await response.json();
+
+        // Find the index of the updated item in the current cart
+        const updatedCart = cart.map((item) =>
+          item.id === updatedItem.id ? updatedItem : item
+        );
+
+        setCart(updatedCart); // Update the cart with the updated item
+      } else {
+        console.error("Failed to update item quantity");
+      }
+    } catch (error) {
+      console.error(`Error updating item quantity in cart:`, error);
+    }
+  };
+
+  // Increment item quantity by adding 1
+  const incrementQuantity = (itemId) => {
+    const item = cart.find((cartItem) => cartItem.id === itemId);
+    const newQuantity = item.quantity + 1;
+    updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
+  };
+
+  // Decrement item quantity by subtracting 1 (but not below 1)
+  const decrementQuantity = (itemId) => {
+    const item = cart.find((cartItem) => cartItem.id === itemId);
+    if (item && item.quantity > 1) {
+      const newQuantity = item.quantity - 1;
+      updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
+    }
+  };
+  // Remove item from cart
+  const removeItem = async (itemId) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${token}`,
+        {
+          method: "DELETE", // Delete item from cart
+          headers: {
+            ...headers,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove item");
+      }
+
+      // Optimistically update UI
+      const updatedCart = cart.filter((item) => item.id !== itemId);
+      setCart(updatedCart); // Update cart state locally
+      setIsCartEmpty(updatedCart.length === 0); // Update cart empty status
+
+      // Only show success alert after successful removal
+      Swal.fire({
+        title: "Success!",
+        text: "Item has been successfully removed from the cart.",
+        icon: "success",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+
+      // No need to call response.json() if no response body
+      if (
+        response.status !== 204 &&
+        response.headers.get("content-length") !== "0"
+      ) {
+        await response.json(); // Only attempt to parse if there is a response body
+      }
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+      // Show error alert
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to remove item from the cart. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+    }
+  };
 
   // Calculate total price
   const calculateTotalPrice = () => {
@@ -138,6 +237,7 @@ function Cart({ setIsCartEmpty }) {
                         <div>
                           <h3 className="text-sm text-gray-100">
                             {item.product.name}
+                            {item.id}
                           </h3>
                           <dl className="mt-0.5 space-y-1 text-[11.2px] text-gray-100">
                             <div className="flex gap-3">
@@ -155,7 +255,7 @@ function Cart({ setIsCartEmpty }) {
                           <form className="flex flex-row gap-2">
                             <button
                               type="button"
-                              // onClick={() => decrementQuantity(item.product.id)}
+                              onClick={() => decrementQuantity(item.id)}
                               className="text-white"
                             >
                               <Minus size={14} />
@@ -169,7 +269,7 @@ function Cart({ setIsCartEmpty }) {
                             />
                             <button
                               type="button"
-                              // onClick={() => incrementQuantity(item.product.id)}
+                              onClick={() => incrementQuantity(item.id)}
                               className="text-white"
                             >
                               <Plus size={14} />
@@ -177,7 +277,7 @@ function Cart({ setIsCartEmpty }) {
                           </form>
 
                           <button
-                            // onClick={() => removeItem(item.product.id)}
+                            onClick={() => removeItem(item.id)}
                             className="text-gray-100 hover:text-red-600"
                           >
                             <Trash2 size={16} />
