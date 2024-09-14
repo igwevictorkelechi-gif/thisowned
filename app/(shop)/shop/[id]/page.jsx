@@ -10,6 +10,9 @@ function ShopDetails({ params }) {
   const [product, setProduct] = useState(null); // Store product data
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedSetItems, setSelectedSetItems] = useState([]); // Track selected set items
+  const [selectedSetSizes, setSelectedSetSizes] = useState({}); // Track selected sizes for each set item
+  const [totalPrice, setTotalPrice] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [token, setToken] = useState("");
 
@@ -139,6 +142,125 @@ function ShopDetails({ params }) {
       });
 
       // alert("An error occurred. Please try again.");
+    }
+  };
+
+  const handleSetItemChange = (item, isChecked) => {
+    setSelectedSetItems((prevSelected) => {
+      if (isChecked) {
+        return [...prevSelected, item];
+      } else {
+        return prevSelected.filter(
+          (selectedItem) => selectedItem.id !== item.id
+        );
+      }
+    });
+
+    // Update total price based on selected items
+    if (isChecked) {
+      setTotalPrice((prevTotal) => prevTotal + item.price);
+    } else {
+      setTotalPrice((prevTotal) => prevTotal - item.price);
+    }
+  };
+  // Function to handle size change for a specific set item
+  const handleSetSizeChange = (itemId, size) => {
+    setSelectedSetSizes((prevSizes) => ({
+      ...prevSizes,
+      [itemId]: size,
+    }));
+  };
+  const addSelectedToCart = async () => {
+    if (selectedSetItems.length === 0) {
+      Swal.fire({
+        title: "Error!",
+        text: "Please select at least one set item.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+      return;
+    }
+
+    const payloads = selectedSetItems
+      .map((item) => {
+        const selectedSize = selectedSetSizes[item.id]; // Get the selected size for this item
+        if (!selectedSize) {
+          Swal.fire({
+            title: "Error!",
+            text: `Please select a size for ${item.name}`,
+            icon: "error",
+            confirmButtonColor: "#000000",
+            confirmButtonText: "Close",
+          });
+          return null; // Skip this item if no size is selected
+        }
+
+        return {
+          product: item.id,
+          size: selectedSize, // Use the selected size for this item
+          quantity: 1,
+          token: token,
+        };
+      })
+      .filter(Boolean); // Remove null items from the payload
+
+    if (payloads.length === 0) {
+      // If all payloads are invalid
+      Swal.fire({
+        title: "Error!",
+        text: "Please select valid sizes for all items.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+      return;
+    }
+
+    try {
+      for (const payload of payloads) {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          Swal.fire({
+            title: "Error!",
+            text: `Failed to add product to cart: ${
+              data.message || response.statusText
+            }`,
+            icon: "error",
+            confirmButtonColor: "#000000",
+            confirmButtonText: "Close",
+          });
+          return;
+        }
+      }
+
+      Swal.fire({
+        title: "Success!",
+        text: "Selected items added to cart successfully!",
+        icon: "success",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+    } catch (error) {
+      console.error("Error adding selected items to cart:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "An error occurred. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
     }
   };
 
@@ -323,10 +445,19 @@ function ShopDetails({ params }) {
                                     clipRule="evenodd"
                                   />
                                 </svg>
-                                <select className="w-full px-3 py-1 text-sm text-gray-100 bg-black border rounded-lg shadow-sm outline-none appearance-none focus:ring-offset-2 focus:ring-red-500 focus:ring-1">
+                                <select
+                                  className="w-full px-3 py-1 text-sm text-gray-100 bg-black border rounded-lg shadow-sm outline-none appearance-none focus:ring-offset-2 focus:ring-red-500 focus:ring-1"
+                                  value={selectedSetSizes[item.id] || ""} // Track selected size for this item
+                                  onChange={(e) =>
+                                    handleSetSizeChange(item.id, e.target.value)
+                                  } // Handle size change
+                                >
+                                  <option value="" disabled>
+                                    Select size
+                                  </option>
                                   {item.size.map((size) => (
-                                    <option key={size} value={size}>
-                                      {size}
+                                    <option key={size} value={size[0]}>
+                                      {size[1]}
                                     </option>
                                   ))}
                                 </select>
@@ -336,6 +467,9 @@ function ShopDetails({ params }) {
                                   type="checkbox"
                                   className="size-4 rounded border-gray-300"
                                   id={`Option${item.id}`}
+                                  onChange={(e) =>
+                                    handleSetItemChange(item, e.target.checked)
+                                  }
                                 />
                                 <p className="text-sm text-gray-200">
                                   ₦{item.price.toLocaleString()}.00
@@ -349,11 +483,15 @@ function ShopDetails({ params }) {
 
                     <div className="my-10">
                       <h1 className="text-white font-bold text-base tracking-wider">
-                        TOTAL PRICE: <span className="ml-10">₦200,604</span>
+                        TOTAL PRICE:{" "}
+                        <span className="ml-10">
+                          ₦{totalPrice.toLocaleString()}
+                        </span>
                       </h1>
                       <button
                         className="bg-white hover:opacity-95 hover:text-red-500 hover:font-medium text-whte p-1.5 w-[100%]
                        md:max-w-[38%] shadow-sm rounded-sm mt-6"
+                        onClick={addSelectedToCart}
                       >
                         Add selected to Cart
                       </button>

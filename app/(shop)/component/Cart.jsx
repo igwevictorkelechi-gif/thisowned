@@ -237,7 +237,6 @@ function Cart({ setIsCartEmpty }) {
                         <div>
                           <h3 className="text-sm text-gray-100">
                             {item.product.name}
-                            {item.id}
                           </h3>
                           <dl className="mt-0.5 space-y-1 text-[11.2px] text-gray-100">
                             <div className="flex gap-3">
