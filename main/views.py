@@ -129,7 +129,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
 
     def create(self, request, *args, **kwargs):
-        from website.payment_gateway import auth_card, validate_card
+        from .payment_gateway import pay_with_card
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = request.data
@@ -174,7 +174,8 @@ class CardAuthenticationViewSet(viewsets.ModelViewSet):
     http_method_names = ["post"]
 
     def create(self, request, *args, **kwargs):
-        from website.payment_gateway import auth_card, validate_card
+        from .payment_gateway import auth_card
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         res = auth_card(**serializer.data)
@@ -187,7 +188,7 @@ class CardValidationViewSet(viewsets.ModelViewSet):
     http_method_names = ["post"]
 
     def create(self, request, *args, **kwargs):
-        from website.payment_gateway import auth_card, validate_card
+        from .payment_gateway import validate_card
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         res = validate_card(**serializer.data)
