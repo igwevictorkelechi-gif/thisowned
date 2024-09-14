@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from website.payment_gateway import auth_card, validate_card
 from .serializers import *
 from .models import Product, User, Collection
 
@@ -124,69 +123,72 @@ class CartViewSet(viewsets.ModelViewSet):
             )
         return super().create(request, *args, **kwargs)
 
-#
-# class OrderViewSet(viewsets.ModelViewSet):
-#     queryset = Order.objects.all()
-#     serializer_class = OrderSerializer
-#
-#     def create(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         data = request.data
-#
-#         # Save the new product using the serializer
-#         # self.perform_create(serializer)
-#
-#         if data["payment_detail.method"] == "credit_card":
-#             payload = {
-#                 "cardno": data["card_details.card_number"],
-#                 "cvv": data["card_details.security_code"],
-#                 "expirymonth": data["card_details.expiration_month"],
-#                 "expiryyear": data["card_details.expiration_year"],
-#                 "amount": str(data["payment_detail.amount"]),
-#                 "email": request.user.email,
-#                 "phonenumber": "0902620185",
-#                 "firstname": data["card_details.first_name"],
-#                 "lastname": data["card_details.last_name"],
-#             }
-#
-#             print(payload)
-#
-#             address = {
-#                 "billingzip": data["billing_address.postal_code"], "billingcity": data["billing_address.city"],
-#                 "billingaddress": data['billing_address.address'],"billingstate": data["billing_address.state"],
-#                 "billingcountry": data["billing_address.country"]
-#             } if data["billing_address.address"] else {
-#                 "billingzip": data["shipping_address.postal_code"], "billingcity": data["shipping_address.city"],
-#                 "billingaddress": data['shipping_address.address'], "billingstate": data["shipping_address.state"],
-#                 "billingcountry": data["shipping_address.country"]
-#             }
-#
-#             res = pay_with_card(payload, address=address)
-#             print(res)
-#
-#             return Response(res, status=status.HTTP_201_CREATED)
-#
-#
-# class CardAuthenticationViewSet(viewsets.ModelViewSet):
-#     queryset = None
-#     serializer_class = CardPinOrOTPSerializer
-#     http_method_names = ["post"]
-#
-#     def create(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         res = auth_card(**serializer.data)
-#         return Response(res, status=status.HTTP_200_OK)
-#
-#
-# class CardValidationViewSet(viewsets.ModelViewSet):
-#     queryset = None
-#     serializer_class = CardValidationSerializer
-#     http_method_names = ["post"]
-#
-#     def create(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         res = validate_card(**serializer.data)
-#         return Response(res, status=status.HTTP_200_OK)
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def create(self, request, *args, **kwargs):
+        from website.payment_gateway import auth_card, validate_card
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = request.data
+
+        # Save the new product using the serializer
+        # self.perform_create(serializer)
+
+        if data["payment_detail.method"] == "credit_card":
+            payload = {
+                "cardno": data["card_details.card_number"],
+                "cvv": data["card_details.security_code"],
+                "expirymonth": data["card_details.expiration_month"],
+                "expiryyear": data["card_details.expiration_year"],
+                "amount": str(data["payment_detail.amount"]),
+                "email": request.user.email,
+                "phonenumber": "0902620185",
+                "firstname": data["card_details.first_name"],
+                "lastname": data["card_details.last_name"],
+            }
+
+            print(payload)
+
+            address = {
+                "billingzip": data["billing_address.postal_code"], "billingcity": data["billing_address.city"],
+                "billingaddress": data['billing_address.address'],"billingstate": data["billing_address.state"],
+                "billingcountry": data["billing_address.country"]
+            } if data["billing_address.address"] else {
+                "billingzip": data["shipping_address.postal_code"], "billingcity": data["shipping_address.city"],
+                "billingaddress": data['shipping_address.address'], "billingstate": data["shipping_address.state"],
+                "billingcountry": data["shipping_address.country"]
+            }
+
+            res = pay_with_card(payload, address=address)
+            print(res)
+
+            return Response(res, status=status.HTTP_201_CREATED)
+
+
+class CardAuthenticationViewSet(viewsets.ModelViewSet):
+    queryset = None
+    serializer_class = CardPinOrOTPSerializer
+    http_method_names = ["post"]
+
+    def create(self, request, *args, **kwargs):
+        from website.payment_gateway import auth_card, validate_card
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        res = auth_card(**serializer.data)
+        return Response(res, status=status.HTTP_200_OK)
+
+
+class CardValidationViewSet(viewsets.ModelViewSet):
+    queryset = None
+    serializer_class = CardValidationSerializer
+    http_method_names = ["post"]
+
+    def create(self, request, *args, **kwargs):
+        from website.payment_gateway import auth_card, validate_card
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        res = validate_card(**serializer.data)
+        return Response(res, status=status.HTTP_200_OK)
