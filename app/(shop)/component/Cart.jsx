@@ -4,81 +4,22 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-
-// Helper to generate token
-
-// Helper to generate token
-function generateRandomToken(length = 12) {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    token += characters[randomIndex];
-  }
-  return token;
-}
-
-// Get token from localStorage or create a new one
-function getToken() {
-  if (typeof window !== "undefined") {
-    let token = localStorage.getItem("cartToken");
-    if (!token) {
-      token = generateRandomToken();
-      localStorage.setItem("cartToken", token);
-    }
-    return token;
-  }
-  return generateRandomToken();
-}
+import { useCart } from "../../utils/CartContext";
 
 function Cart({ setIsCartEmpty }) {
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true); // State to handle loading
-  // const [loading, setLoading] = useState(true); // State to handle loading
-  const token = getToken(); // Retrieve or generate token
+  const { cart, setCart, loading, updateCart, updateCartCount, token } =
+    useCart();
   const [headers, setHeaders] = useState({});
 
   // Fetch cart data from server
   useEffect(() => {
-    setLoading(true); // Set loading to true before fetching
-    // Set headers with accessToken from localStorage
     const accessToken = localStorage.getItem("accessToken");
     const mainHeaders = {
       "Content-Type": "application/json",
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
     };
-
-    if (accessToken) {
-      mainHeaders.Authorization = `Bearer ${accessToken}`;
-    }
-
     setHeaders(mainHeaders);
-
-    const fetchCartDetails = async () => {
-      try {
-        // setLoading(true); // Set loading to true before fetching
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
-          {
-            method: "GET",
-            headers: mainHeaders,
-          }
-        );
-        const cartData = await response.json();
-        // console.log(cartData);
-        // setCart(cartData);
-        if (response.statusCode !== 401) {
-          setCart(cartData);
-          setIsCartEmpty(cartData.length === 0); // Notify parent of cart status
-        }
-      } catch (error) {
-        console.error("Error fetching cart details:", error);
-      } finally {
-        setLoading(false); // Set loading to false after fetching is done
-      }
-    };
-    fetchCartDetails();
-  }, [token, setIsCartEmpty]);
+  }, []);
 
   // Helper function to update the quantity directly on the backend
   const updateQuantity = async (itemId, newQuantity) => {
@@ -104,6 +45,7 @@ function Cart({ setIsCartEmpty }) {
         );
 
         setCart(updatedCart); // Update the cart with the updated item
+        updateCartCount(updatedCart.length);
       } else {
         console.error("Failed to update item quantity");
       }
@@ -148,6 +90,8 @@ function Cart({ setIsCartEmpty }) {
       const updatedCart = cart.filter((item) => item.id !== itemId);
       setCart(updatedCart); // Update cart state locally
       setIsCartEmpty(updatedCart.length === 0); // Update cart empty status
+
+      await updateCart(); // This will fetch the latest cart data and update the context
 
       // Only show success alert after successful removal
       Swal.fire({

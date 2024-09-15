@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { navLinks } from "../constants/ContentConstants";
 import { useAuth } from "../utils/AuthContext";
+import { useCart } from "../utils/CartContext";
 import Swal from "sweetalert2";
 
 function Navbar() {
@@ -12,6 +13,7 @@ function Navbar() {
   const [isChecked, setIsChecked] = useState(false);
   const [collections, setCollections] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const { cartCount } = useCart(); // Get the cart count from context
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -154,8 +156,16 @@ function Navbar() {
                   <Search size={23} />
                 </a>
 
-                <Link className="font-medium text-white shadow" href="/../cart">
-                  <ShoppingBasket size={23} />
+                <Link
+                  className="relatives font-medium text-white shadow"
+                  href="/../cart"
+                >
+                  <span className="relative">
+                    <ShoppingBasket size={23} />
+                    <span className="absolute -top-1 -right-2.5 bg-red-500 text-white rounded-full px-[0.28rem] text-xs">
+                      {cartCount}
+                    </span>
+                  </span>
                 </Link>
               </div>
 

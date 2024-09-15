@@ -5,8 +5,10 @@ import React, { useState, useEffect } from "react";
 import ImageGallery from "../../component/ImageGallery";
 import Image from "next/image";
 import Swal from "sweetalert2";
+import { useCart } from "../../../utils/CartContext";
 
 function ShopDetails({ params }) {
+  const { updateCart } = useCart(); // Use the context to access updateCart function
   const [product, setProduct] = useState(null); // Store product data
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
@@ -115,6 +117,8 @@ function ShopDetails({ params }) {
           confirmButtonText: "Close",
         });
 
+        // Update the cart context
+        updateCart(data); // Assuming the API returns the updated cart
         // alert("Product added to cart successfully!");
       } else {
         Swal.fire({
