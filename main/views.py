@@ -1,9 +1,13 @@
+import json
+
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import *
 from .models import Product, User, Collection
@@ -193,3 +197,27 @@ class CardValidationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         res = validate_card(**serializer.data)
         return Response(res, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+def flutterwave_webhook(request):
+    if request.method == 'POST':
+        payload = json.loads(request.body)
+        event = payload.get('event')
+
+        if event == 'charge.completed':
+            # Process successful payment
+            tx_ref = payload.get('data').get('tx_ref')
+            amount = payload.get('data').get('amount')
+            status_ = payload.get('data').get('status')
+
+            print(payload)
+
+            if status == 'successful':
+                # Mark payment as completed in your database
+                return JsonResponse({"status": "success"}, status=200)
+            else:
+                # Handle failed or pending payment
+                return JsonResponse({"status": "failed"}, status=400)
+
+    return JsonResponse({"status": "invalid request"}, status=400)
