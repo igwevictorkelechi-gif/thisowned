@@ -12,8 +12,6 @@ router.register(r'collection', views.CollectionViewSet, basename='collection')
 router.register(r'cart', views.CartViewSet, basename='cart')
 router.register(r'register', views.RegisterViewSet, basename='register')
 router.register(r'order', views.OrderViewSet, basename='order')
-router.register(r"card_auth", views.CardAuthenticationViewSet, basename="auth_card")
-router.register(r"validate_card", views.CardValidationViewSet, basename="validate_card")
 
 urlpatterns = [
     path('webhook', views.flutterwave_webhook, name="webhook"),

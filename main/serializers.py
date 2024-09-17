@@ -49,7 +49,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ["id", "name", "price", "currency", "discount", "available_size", "details", "care",
+        fields = ["id", "name", "price", "currency", "discount", "details", "care",
                   "delivery_and_return", "images", "complete_set", "size_guide"]
 
     def get_complete_set(self, obj):
@@ -172,27 +172,31 @@ class CardDetailSerializer(serializers.Serializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, allow_null=True, read_only=True)
-    payment_detail = PaymentDetailsSerializer()
-    shipping_address = ShippingAddressSerializer()
-    billing_address = ShippingAddressSerializer(write_only=True, allow_null=True)
-    card_details = CardDetailSerializer(write_only=True, allow_null=True)
+
+    payment_method = serializers.ChoiceField(choices=Payment.method.field.choices, write_only=True)
+    shipping_address = ShippingAddressSerializer(write_only=True)
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0.00, source="total", read_only=True)
+    tx_ref = serializers.CharField(max_length=1000, source="payment_detail.tx_ref", read_only=True)
+    email = serializers.EmailField(source="customer.email")
+    first_name = serializers.CharField(max_length=1000, source="customer.first_name", read_only=True)
+    last_name = serializers.CharField(max_length=1000, source="customer.last_name", read_only=True)
 
     class Meta:
         model = Order
-        fields = ['payment_detail', "items", 'shipping_address', "card_details", "billing_address"]
+        fields = ["payment_method", 'shipping_address', "tx_ref", "amount", "email", "first_name", "last_name"]
 
     def create(self, validated_data):
         # Extract related data
-        payment_data = validated_data.pop('payment_detail')
+        # payment_data = validated_data.pop('payment_detail')
         shipping_data = validated_data.pop('shipping_address')
-        card_details = validated_data.pop('card_details')
-        billing_address = validated_data.pop('billing_address')
+        payment_method = validated_data.pop("payment_method")
+        # card_details = validated_data.pop('card_details')
+        # billing_address = validated_data.pop('billing_address')
         request = self.context.get('request')
         validated_data["customer"] = request.user
 
         # Step 1: Create the Payment
-        payment = Payment.objects.create(**payment_data)
+        payment = Payment.objects.create(method=payment_method)
 
         # Step 2: Create the Shipping
         shipping = Shipping.objects.create(**shipping_data)
@@ -214,14 +218,3 @@ class OrderSerializer(serializers.ModelSerializer):
         order.save()
 
         return order
-
-
-class CardPinOrOTPSerializer(serializers.Serializer):
-    tx_ref = serializers.CharField(max_length=100)
-    suggested_auth = serializers.CharField(max_length=100)
-    value = serializers.CharField(max_length=100)
-
-
-class CardValidationSerializer(serializers.Serializer):
-    flw_ref = serializers.CharField(max_length=100)
-    value = serializers.CharField(max_length=100)

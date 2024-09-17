@@ -23,7 +23,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
 
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -36,8 +35,8 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
     # def get_queryset(self):
-        # Exclude the requesting user
-        # return User.objects.exclude(id=self.request.user.id)
+    # Exclude the requesting user
+    # return User.objects.exclude(id=self.request.user.id)
 
 
 class UserAdminViewSet(viewsets.ModelViewSet):
@@ -132,71 +131,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
-    def create(self, request, *args, **kwargs):
-        from .payment_gateway import pay_with_card
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = request.data
-
-        # Save the new product using the serializer
-        # self.perform_create(serializer)
-
-        if data["payment_detail.method"] == "credit_card":
-            payload = {
-                "cardno": data["card_details.card_number"],
-                "cvv": data["card_details.security_code"],
-                "expirymonth": data["card_details.expiration_month"],
-                "expiryyear": data["card_details.expiration_year"],
-                "amount": str(data["payment_detail.amount"]),
-                "email": request.user.email,
-                "phonenumber": "0902620185",
-                "firstname": data["card_details.first_name"],
-                "lastname": data["card_details.last_name"],
-            }
-
-            print(payload)
-
-            address = {
-                "billingzip": data["billing_address.postal_code"], "billingcity": data["billing_address.city"],
-                "billingaddress": data['billing_address.address'],"billingstate": data["billing_address.state"],
-                "billingcountry": data["billing_address.country"]
-            } if data["billing_address.address"] else {
-                "billingzip": data["shipping_address.postal_code"], "billingcity": data["shipping_address.city"],
-                "billingaddress": data['shipping_address.address'], "billingstate": data["shipping_address.state"],
-                "billingcountry": data["shipping_address.country"]
-            }
-
-            res = pay_with_card(payload, address=address)
-            print(res)
-
-            return Response(res, status=status.HTTP_201_CREATED)
+    def list(self, request, *args, **kwargs):
+        return Response([], status=status.HTTP_200_OK)
 
 
-class CardAuthenticationViewSet(viewsets.ModelViewSet):
-    queryset = None
-    serializer_class = CardPinOrOTPSerializer
-    http_method_names = ["post"]
 
-    def create(self, request, *args, **kwargs):
-        from .payment_gateway import auth_card
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        res = auth_card(**serializer.data)
-        return Response(res, status=status.HTTP_200_OK)
-
-
-class CardValidationViewSet(viewsets.ModelViewSet):
-    queryset = None
-    serializer_class = CardValidationSerializer
-    http_method_names = ["post"]
-
-    def create(self, request, *args, **kwargs):
-        from .payment_gateway import validate_card
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        res = validate_card(**serializer.data)
-        return Response(res, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
@@ -205,19 +144,15 @@ def flutterwave_webhook(request):
         payload = json.loads(request.body)
         event = payload.get('event')
 
-        if event == 'charge.completed':
-            # Process successful payment
-            tx_ref = payload.get('data').get('tx_ref')
-            amount = payload.get('data').get('amount')
-            status_ = payload.get('data').get('status')
+        tx_ref = payload.get('tx_ref')
+        amount = payload.get('amount')
+        status_ = payload.get('status')
 
-            print(payload)
-
-            if status == 'successful':
-                # Mark payment as completed in your database
-                return JsonResponse({"status": "success"}, status=200)
-            else:
-                # Handle failed or pending payment
-                return JsonResponse({"status": "failed"}, status=400)
+        if status_ == 'successful':
+            # Mark payment as completed in your database
+            return JsonResponse({"status": "success"}, status=200)
+        else:
+            # Handle failed or pending payment
+            return JsonResponse({"status": "failed"}, status=400)
 
     return JsonResponse({"status": "invalid request"}, status=400)

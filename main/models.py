@@ -2,6 +2,7 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from shortuuidfield import ShortUUIDField
 
 
 class UserManager(BaseUserManager):
@@ -64,7 +65,6 @@ class Product(models.Model):
     price = models.FloatField()
     currency = models.CharField(max_length=20)
     discount = models.FloatField(null=True, blank=True)
-    available_size = models.TextField()
     details = models.TextField()
     care = models.TextField()
     delivery_and_return = models.TextField()
@@ -106,7 +106,7 @@ class Cart(models.Model):
 
 
 class Payment(models.Model):
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tx_ref = ShortUUIDField()
     method = models.CharField(max_length=50, choices=[
         ('credit_card', 'Credit Card'),
         ('paypal', 'PayPal'),
@@ -121,6 +121,7 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment for Order {self.order.id if self.order else 'null'} - {self.status}"
+
 
 class Shipping(models.Model):
     address = models.TextField()
