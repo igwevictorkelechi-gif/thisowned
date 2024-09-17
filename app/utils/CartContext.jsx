@@ -8,6 +8,7 @@ export const CartProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   const updateCartCount = (count) => {
     setCartCount(count);
@@ -58,6 +59,13 @@ export const CartProvider = ({ children }) => {
         setCart(cartData);
         updateCartCount(cartData.length);
         setIsCartEmpty(cartData.length === 0);
+
+        // Calculate and set total price
+        const total = cartData.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+        setTotalPrice(total);
       }
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -75,6 +83,11 @@ export const CartProvider = ({ children }) => {
     await fetchCartDetails();
   };
 
+  // Function to update total price
+  const updateTotalPrice = (newTotal) => {
+    setTotalPrice(newTotal);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -86,6 +99,8 @@ export const CartProvider = ({ children }) => {
         cartCount,
         updateCartCount,
         token,
+        totalPrice,
+        updateTotalPrice,
       }}
     >
       {children}

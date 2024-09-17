@@ -5,10 +5,19 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useCart } from "../../utils/CartContext";
+import { useRouter } from "next/navigation";
 
 function Cart({ setIsCartEmpty }) {
-  const { cart, setCart, loading, updateCart, updateCartCount, token } =
-    useCart();
+  const router = useRouter();
+  const {
+    cart,
+    setCart,
+    loading,
+    updateCart,
+    updateCartCount,
+    token,
+    updateTotalPrice,
+  } = useCart();
   const [headers, setHeaders] = useState({});
 
   // Fetch cart data from server
@@ -137,6 +146,11 @@ function Cart({ setIsCartEmpty }) {
   // Calculate final total after discount
   const totalAfterDiscount = calculateTotalPrice() - discount;
 
+  const handleProceedToCheckout = () => {
+    const totalPrice = calculateTotalPrice();
+    updateTotalPrice(totalPrice);
+    router.push("/checkout");
+  };
   return (
     <div>
       <section>
@@ -247,12 +261,12 @@ function Cart({ setIsCartEmpty }) {
                       </div>
                     </dl>
                     <div className="flex justify-end">
-                      <Link
-                        href="checkout"
+                      <button
+                        onClick={handleProceedToCheckout}
                         className="block rounded bg-white px-10 py-2.5 text-sm text-gray-800 transition hover:bg-gray-100"
                       >
                         Checkout
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 </div>
