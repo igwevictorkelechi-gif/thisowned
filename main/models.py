@@ -118,6 +118,7 @@ class Payment(models.Model):
         ('completed', 'Completed'),
         ('failed', 'Failed')
     ], default='pending')
+    payload = models.TextField(null=True, blank=True)
 
     def __str__(self):
         order = self.order.first()

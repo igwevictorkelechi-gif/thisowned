@@ -171,7 +171,7 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ["id", 'method', 'status']
+        fields = ["id", 'tx_ref', 'method', 'status', "payload"]
 
 
 class ShippingAddressSerializer(serializers.ModelSerializer):

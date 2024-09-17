@@ -141,15 +141,19 @@ def flutterwave_webhook(request):
         payload = json.loads(request.body)
         event = payload.get('event')
 
-        tx_ref = payload.get('tx_ref')
+        tx_ref = payload.get('txRef')
         amount = payload.get('amount')
         status_ = payload.get('status')
+
+        print(payload)
 
         if status_ == 'successful':
             # Mark payment as completed in your database
             payment = Payment.objects.filter(tx_ref=tx_ref).first()
+            print(payment)
             if payment:
                 payment.status = 'completed'
+                payment.payload = json.dumps(payload)
                 payment.save()
 
             return JsonResponse({"status": "success"}, status=200)
