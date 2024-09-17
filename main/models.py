@@ -120,7 +120,8 @@ class Payment(models.Model):
     ], default='pending')
 
     def __str__(self):
-        return f"Payment for Order {self.order.id if self.order else 'null'} - {self.status}"
+        order = self.order.first()
+        return f"Payment for Order {order.pk}" if order else f"Payment (No Order) - {self.status}"
 
 
 class Shipping(models.Model):
@@ -132,7 +133,8 @@ class Shipping(models.Model):
     shipped_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Shipping for Order {self.order.id}"
+        order = self.order.first()
+        return f"Shipping for Order {order.pk}" if order else "Shipping (No Order)"
 
 
 class Order(models.Model):

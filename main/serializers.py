@@ -143,17 +143,35 @@ class CartSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class OrderItemProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Product
+        fields = ["name"]
+
+
 class OrderItemSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='product.name', read_only=True)
+    image = serializers.SerializerMethodField(read_only=True)
+    size = serializers.CharField(source='size.rating', read_only=True)
+    currency = serializers.CharField(source="product.currency", read_only=True)
+    discount = serializers.CharField(source="product.discount", read_only=True)
+
     class Meta:
         model = OrderItem
-        fields = ['product', 'quantity', 'size']
+        fields = ["name", "image", 'quantity', 'size', "currency", "discount"]
+
+    def get_image(self, obj):
+        image = obj.product.product_image.all().first()
+        return image.image.url
+
 
 
 class PaymentDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ["id", 'amount', 'method', 'status']
+        fields = ["id", 'method', 'status']
 
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
@@ -171,7 +189,7 @@ class CardDetailSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=100)
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class CheckoutSerializer(serializers.ModelSerializer):
 
     payment_method = serializers.ChoiceField(choices=Payment.method.field.choices, write_only=True)
     shipping_address = ShippingAddressSerializer(write_only=True)
@@ -212,9 +230,20 @@ class OrderSerializer(serializers.ModelSerializer):
             OrderItem.objects.create(order=order, product=item_data.product, quantity=item_data.quantity,
                                      size=item_data.size)
             discount_price = ((item_data.product.discount if item_data.product.discount else 0)/100)
-            total += item_data.product.price - (item_data.product.price * discount_price)
+            total += (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
 
         order.total = total
         order.save()
 
         return order
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+    payment_detail = PaymentDetailsSerializer()
+    shipping_address = ShippingAddressSerializer()
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+

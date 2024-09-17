@@ -127,15 +127,12 @@ class CartViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
 
-class OrderViewSet(viewsets.ModelViewSet):
+class CheckoutViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = CheckoutSerializer
 
     def list(self, request, *args, **kwargs):
         return Response([], status=status.HTTP_200_OK)
-
-
-
 
 
 @csrf_exempt
@@ -150,9 +147,19 @@ def flutterwave_webhook(request):
 
         if status_ == 'successful':
             # Mark payment as completed in your database
+            payment = Payment.objects.filter(tx_ref=tx_ref).first()
+            if payment:
+                payment.status = 'completed'
+                payment.save()
+
             return JsonResponse({"status": "success"}, status=200)
         else:
             # Handle failed or pending payment
             return JsonResponse({"status": "failed"}, status=400)
 
     return JsonResponse({"status": "invalid request"}, status=400)
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
