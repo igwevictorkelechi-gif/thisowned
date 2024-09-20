@@ -68,6 +68,7 @@ class Product(models.Model):
     details = models.TextField()
     care = models.TextField()
     delivery_and_return = models.TextField()
+    tags = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -160,7 +161,7 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    size = models.ForeignKey(SizeGuid, on_delete=models.Empty)
+    size = models.ForeignKey(SizeGuid, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"{self.product.name} (x{self.quantity})"

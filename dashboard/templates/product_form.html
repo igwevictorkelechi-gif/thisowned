@@ -1,0 +1,506 @@
+{% extends "dashboard.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'assets/vendors/dropzone/dropzone.min.css' %}" type="text/css" />
+    <link rel="stylesheet" href="{% static 'assets/vendors/choices/choices.min.css' %}" type="text/css" />
+    <script>
+        var images = []
+        {% for item in product.product_image.all %}
+        images.push({'name': '{{item.image.name}}', 'url': '{{item.image.url}}', 'size': {{item.image.size}} })
+        {%endfor%}
+        console.log(images)
+    </script>
+    <style>
+        .choices__inner{
+            background-color: #2A3038;
+            border: none
+        }
+        .choices__input{
+            background-color: #2A3038;
+            color: #ffffff;
+        }
+        .choices__item.choices__item--selectable{
+            background-color: #191c24;
+            border: none
+        }
+        .choices__button{border-left: 1px solid #2A3038 !important;}
+        .choices__list--dropdown{background-color: #2A3038;}
+        .is-focused .choices__inner,.is-open .choices__inner {
+            border-color: #b7b7b7
+        }
+        .sticky-sidebar{
+            position: -webkit-sticky;
+            position: sticky;
+            top: 10px;
+        }
+        #size-guid input{min-width: 60px;}
+        .dropzone a:hover{color: #ffffff}
+    </style>
+{% endblock %}
+{% block content %}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" style="display: none" name="images" multiple="multiple" id="hidden-file-input">
+        <input type="hidden" id="to-remove" name="removed" value="[]">
+        {% if product %}<input type="hidden" name="product_id" value="{{product.id}}">{%endif%}
+        <div class="row g-0">
+            <div class="col-lg-8 pe-lg-2">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Basic information</h6>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="row gx-2">
+                                <div class="col-12 mb-3">
+                                    <label class="form-label" for="product-name">Product name:</label>
+                                    <input class="form-control" id="product-name" name="name" type="text" value="{{product.name}}" required>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label" for="details">Product description:</label>
+                                    <textarea class="form-control" id="details" name="details" rows="6">{{product.details}}</textarea>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label" for="product-care">Product Care:</label>
+                                    <textarea class="form-control" id="product-care" name="care" rows="6">{{product.care}}</textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Add images</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="dropzone dropzone-multiple p-0" id="my-awesome-dropzone" data-dropzone="data-dropzone">
+                          <div class="fallback"><input name="images" type="file" multiple="multiple" /></div>
+                          <div class="dz-message" data-dz-message="data-dz-message"> <img class="me-2" src="../../../assets/img/icons/cloud-upload.svg" width="25" alt="" />Drop your files here</div>
+                          <div class="dz-preview dz-preview-multiple m-0 d-flex flex-column">
+                            <div class="d-flex media mb-3 pb-3 border-bottom btn-reveal-trigger ">
+                                <img class="dz-image" src="../../../assets/img/generic/image-file-2.png" alt="..." data-dz-thumbnail="data-dz-thumbnail" />
+                              <div class="flex-1 d-flex justify-content-between flex-grow-1">
+                                <div>
+                                  <h6 data-dz-name="data-dz-name"></h6>
+                                  <div class="d-flex align-items-center">
+                                    <p class="mb-0 fs--1 text-400 lh-1" data-dz-size="data-dz-size"></p>
+                                    <div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress=""></span></div>
+                                  </div><span class="fs--2 text-danger" data-dz-errormessage="data-dz-errormessage"></span>
+                                </div>
+                                <div class="dropdown font-sans-serif">
+                                    <button id="profile-dropdown" class="btn btn-sm btn-light" data-toggle="dropdown"><i class="mdi mdi-dots-horizontal"></i></button>
+                                    <div class="dropdown-menu dropdown-menu-right sidebar-dropdown preview-list"
+                                      aria-labelledby="profile-dropdown">
+                                        <a class="dropdown-item preview-item" href="#!" data-dz-remove="data-dz-remove">
+                                            <span class="preview-item-content">Remove File</span></a>
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Sizing</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row gx-2">
+                            <div class="col-12 mb-3">
+                                <label class="form-label" for="product-rate">size rating:</label>
+                                <input class="form-control js-choice" id="product-rate" type="text" name="rating" size="1"
+                                       data-options='{"removeItemButton":true,"placeholder":false}' value="{% for size in product.sizes.all %}
+                                       {{size.rating}}{% if not forloop.last %},{% endif %}{% endfor %}" required/>
+                            </div>
+
+                            <label class="form-label" for="size-guid">Size Guid:</label>
+                            <div class="col-12 mb-3" style="overflow: scroll">
+                                <table class="table table-bordered" id="size-guid">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center"> label </th>
+                                        {% for size in product.sizes.all %}
+                                            <th>{{ size.rating }}</th>
+                                        {% endfor %}
+                                        <th class="text-center"> </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% with labels=product.sizes.first.labels|json_decode %}
+                                    {% for label in labels %}
+                                        <tr>
+                                            <td>
+                                                <input class="form-control for-label" name="label" type="text" value="{{ label }}" placeholder="width" required>
+                                            </td>
+                                            {% for size in product.sizes.all %}
+                                                {% with values=size.values|json_decode %}
+                                                <td>
+                                                    <input class="form-control for-label" name="{{size.rating}}" type="text"
+                                                           value="{{ values|get_item:forloop.parentloop.counter0 }}" placeholder="width" required>
+                                                </td>
+                                                {% endwith %}
+                                            {% endfor %}
+                                            <td>
+                                                <a class="btn btn-sm btn-link text-danger" href="#!" data-bs-toggle="tooltip"
+                                                    data-bs-placement="top" aria-label="Remove" data-bs-original-title="Remove">
+                                                    <span class="fs--1 bx bxs-trash"></span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    {% endwith %}
+                                    <tr>
+                                        <td class="text-center">
+                                            <input class="form-control for-label" name="label" type="text" placeholder="width">
+                                        </td>
+                                        {% for size in product.sizes.all %}
+                                            <td>
+                                                <input class="form-control for-label" name="{{size.rating}}" type="text" value="" placeholder="value">
+                                            </td>
+                                        {% endfor %}
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-light" id="add-size">Add</button>
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 ps-lg-2">
+              <div class="sticky-top">
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <h6 class="mb-0">Collections</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row gx-2">
+                      <div class="col-12 mb-3">
+                          <label class="form-label" for="product-category">Select Collection:</label>
+                          <select class="form-control" id="product-category" name="collection">
+                              {% for item in collection %}
+                              <option value="{{item.id}}"{% if product.collection.id == item.id %}selected{%endif%}>{{item.name}}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <h6 class="mb-0">Tags</h6>
+                  </div>
+                  <div class="card-body">
+                      <label class="form-label" for="product-tags">Add a keyword:</label>
+                      <input class="form-control js-choice2" id="product-tags" type="text" name="tags" size="1"
+                             data-options='{"removeItemButton":true,"placeholder":false}' value="{{product.tags}}" />
+                  </div>
+                </div>
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <h6 class="mb-0">Pricing</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row gx-2">
+                      <div class="col-8 mb-3">
+                          <label class="form-label" for="base-price">Base Price: <span data-bs-toggle="tooltip" data-bs-placement="top" title="Product regular price"><span class="bx bxs-help-circle text-primary fs--1 ms-1"></span></span></label>
+                          <input class="form-control price-cal" id="base-price" name="b-price" min="0" value="{{product.price|default:0}}" type="number" required />
+                      </div>
+                      <div class="col-4">
+                          <label class="form-label" for="price-currency">Currency:</label>
+                          <select class="form-control text-1000x" id="price-currency" name="price-currency">
+                              <option value="ngn">NGN</option>
+                              <option value="usd">USD</option>
+                              <option value="eur">EUR</option>
+                          </select>
+                      </div>
+                      <div class="col-12 mb-4">
+                          <label class="form-label" for="discount-percentage">Discount in percentage:</label>
+                          <input class="form-control price-cal" id="discount-percentage" name="discount" type="number" max="100" min="0" step="0" value="{{product.discount|default:0}}"/>
+                      </div>
+                      <div class="col-12">
+                          <label class="form-label" for="final-price">Final price:
+                              <span data-bs-toggle="tooltip" data-bs-placement="top" title="Product final price">
+                                  <span class="bx bxs-help-circle text-primary fs--1 ms-1"></span>
+                              </span>
+                          </label>
+                          <input class="form-control" id="final-price" name="price" disabled="disabled" type="text"
+                                 style="background-color: #191c24"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+    <!--                <div class="card mb-3">-->
+    <!--                  <div class="card-header">-->
+    <!--                    <h6 class="mb-0">Shipping</h6>-->
+    <!--                  </div>-->
+    <!--                  <div class="card-body">-->
+    <!--                    <div class="form-check"><input class="form-check-input p-2" id="vendor-delivery" type="radio" name="product-shipping"><label class="form-check-label fs-0 fw-normal text-700" for="vendor-delivery">Delivered by vendor (you)</label></div>-->
+    <!--                    <div class="form-check"><input class="form-check-input p-2" id="falcon-delivery" type="radio" name="product-shipping"><label class="form-check-label fs-0 fw-normal text-700" for="falcon-delivery">Delivered by FALCON <span class="badge badge-subtle-warning rounded-pill ms-2">Recommended</span></label></div>-->
+    <!--                  </div>-->
+    <!--                </div>-->
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <h6 class="mb-0">Stock status</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-check">
+                        <input class="form-check-input p-2" id="in-stock" type="radio" checked name="stock-status">
+                        <label class="form-check-label fs-0 fw-normal text-700" for="in-stock">In stock</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input p-2" id="unavailable" type="radio" name="stock-status">
+                        <label class="form-check-label fs-0 fw-normal text-700" for="unavailable">Unavailable</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+                <div class="card mt-3">
+                <div class="card-body">
+                  <div class="row justify-content-between align-items-center">
+                    <div class="col-md">
+                      <h5 class="mb-2 mb-md-0">You're almost done!</h5>
+                    </div>
+                    <div class="col-auto">
+                        <a class="btn btn-link text-secondary p-0 mr-3 fw-medium" role="button">Discard</a>
+                        <button class="btn btn-light" role="button">
+                            Add product
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
+{% block script %}
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="{% static 'assets/vendors/choices/choices.min.js' %}"></script>
+    <script src="{% static 'assets/vendors/dropzone/dropzone.min.js' %}"></script>
+    <script>
+    function dropzoneInit() {
+  var merge = window._.merge;
+  var Selector = {
+    DROPZONE: '[data-dropzone]',
+    DZ_ERROR_MESSAGE: '.dz-error-message',
+    DZ_PREVIEW: '.dz-preview',
+    DZ_PROGRESS: '.dz-preview .dz-preview-cover .dz-progress',
+    DZ_PREVIEW_COVER: '.dz-preview .dz-preview-cover'
+  };
+  var ClassName = {
+    DZ_FILE_PROCESSING: 'dz-file-processing',
+    DZ_FILE_COMPLETE: 'dz-file-complete',
+    DZ_COMPLETE: 'dz-complete',
+    DZ_PROCESSING: 'dz-processing'
+  };
+  var DATA_KEY = {
+    OPTIONS: 'options'
+  };
+  var Events = {
+    ADDED_FILE: 'addedfile',
+    REMOVED_FILE: 'removedfile',
+    COMPLETE: 'complete'
+  };
+  var dropzones = document.querySelectorAll(Selector.DROPZONE);
+  !!dropzones.length && dropzones.forEach(function (item) {
+    var userOptions = {}
+    userOptions = userOptions ? userOptions : {};
+    var data = userOptions.data ? userOptions.data : {};
+    var options = merge({
+      url: '/product/add',
+      addRemoveLinks: false,
+      acceptedFiles: 'image/*',
+      previewsContainer: item.querySelector(Selector.DZ_PREVIEW),
+      previewTemplate: item.querySelector(Selector.DZ_PREVIEW).innerHTML,
+      thumbnailWidth: null,
+      thumbnailHeight: null,
+      maxFilesize: 20,
+      maxFiles: 10,
+      autoProcessQueue: false,
+      uploadMultiple:true,
+      parallelUploads: 10,
+      filesizeBase: 1000,
+      init: function init() {
+        var hiddenFileInput = document.getElementById('hidden-file-input');
+        var thisDropzone = this;
+        if (data.length) {
+          data.forEach(function (v) {
+            var mockFile = {
+              name: v.name,
+              size: v.size
+            };
+            thisDropzone.options.addedfile.call(thisDropzone, mockFile);
+            thisDropzone.options.thumbnail.call(thisDropzone, mockFile, "".concat(v.url, "/").concat(v.name));
+          });
+        }
+        thisDropzone.on(Events.ADDED_FILE, function addedfile(file) {
+          if ('maxFiles' in userOptions) {
+            if (userOptions.maxFiles === 1 && item.querySelectorAll(Selector.DZ_PREVIEW_COVER).length > 1) {
+              item.querySelector(Selector.DZ_PREVIEW_COVER).remove();
+            }
+            if (userOptions.maxFiles === 1 && this.files.length > 1) {
+              this.removeFile(this.files[0]);
+            }
+          }
+
+        });
+        $('form').on('submit', function(e) {
+            $('.table tbody tr:last').remove();
+            var dataTransfer = new DataTransfer();
+            dropzone.getAcceptedFiles().forEach(function(file) {
+              dataTransfer.items.add(file);
+            });
+            hiddenFileInput.files = dataTransfer.files;
+        });
+      },
+      error: function error(file, message) {
+        if (file.previewElement) {
+          file.previewElement.classList.add('dz-error');
+          if (typeof message !== 'string' && message.error) {
+            message = message.error;
+          }
+          var _iterator = _createForOfIteratorHelper(file.previewElement.querySelectorAll('[data-dz-errormessage]')),
+            _step;
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var node = _step.value;
+              node.textContent = message;
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+        }
+      }
+    }, userOptions);
+    // eslint-disable-next-line
+    item.querySelector(Selector.DZ_PREVIEW).innerHTML = '';
+    var dropzone = new window.Dropzone(item, options);
+    images.forEach(function(image){
+        var mockFile = { name: image.name, size: image.size };
+        dropzone.emit("addedfile", mockFile);
+        dropzone.emit("thumbnail", mockFile, image.url);
+        dropzone.files.push(mockFile);
+    })
+    var removedFiles = [];
+    dropzone.on(Events.ADDED_FILE, function (file) {
+      if (item.querySelector(Selector.DZ_PREVIEW_COVER)) {
+        item.querySelector(Selector.DZ_PREVIEW_COVER).classList.remove(ClassName.DZ_FILE_COMPLETE);
+      }
+      item.classList.add(ClassName.DZ_FILE_PROCESSING);
+    });
+    dropzone.on(Events.REMOVED_FILE, function (file) {
+      if (item.querySelector(Selector.DZ_PREVIEW_COVER)) {
+        item.querySelector(Selector.DZ_PREVIEW_COVER).classList.remove(ClassName.DZ_PROCESSING);
+      }
+      item.classList.add(ClassName.DZ_FILE_COMPLETE);
+      removedFiles.push(file.name);
+      $('#to-remove').val(JSON.stringify(removedFiles));
+    });
+    dropzone.on(Events.COMPLETE, function () {
+      if (item.querySelector(Selector.DZ_PREVIEW_COVER)) {
+        item.querySelector(Selector.DZ_PREVIEW_COVER).classList.remove(ClassName.DZ_PROCESSING);
+      }
+      item.classList.add(ClassName.DZ_FILE_COMPLETE);
+    });
+    dropzone.on("sendingmultiple", function(file, xhr, formData) {
+        console.log(formData)
+        var data = $('#form-sub').serializeArray();
+        $.each(data, function(key, el) {
+            formData.append(el.name, el.value);
+        });
+        // Add other form data fields here
+    });
+
+  });
+};
+
+const element = document.querySelector('.js-choice');
+const element2 = document.querySelector('.js-choice2');
+const choices = new Choices(element, {
+    removeItemButton: true
+});
+const choices2 = new Choices(element2, {
+    removeItemButton: true
+});
+
+choices.passedElement.element.addEventListener(
+  'addItem',
+  function(event) {
+    console.log(event.detail.value);
+    $('.table thead tr :nth-last-child(2)').after(`<th class="text-center">${event.detail.value}</th>`)
+    $('.table tbody tr :nth-last-child(2)').after(`<td><input class="form-control" type="text" name="${event.detail.value}" placeholder="value" required></td>`)
+    $('.table tbody tr:last').find('input').attr('required', false);
+  },
+  false,
+);
+choices.passedElement.element.addEventListener(
+  'removeItem',
+  function(event) {
+    var headerText = event.detail.value;
+
+    var columnIndex = $('.table th').filter(function() {
+      return $(this).text() === headerText;
+    }).index();
+
+    if (columnIndex !== -1) {
+      $('.table th').eq(columnIndex).remove();
+
+      $('.table tbody tr').each(function() {
+        $(this).find('td').eq(columnIndex).remove();
+      });
+    } else {
+      alert('Column with the header "' + headerText + '" not found.');
+    }
+  },
+  false,
+);
+
+dropzoneInit();
+
+
+</script>
+    <script>
+        $(".form-control.price-cal").on("keydown", function(event) {
+              if (event.key === "-") {event.preventDefault();}
+          });
+          $('#base-price').on('input', function(){
+            value = $(this).val()-($(this).val()*($('#discount-percentage').val()/100))
+            $('#final-price').val(value)
+          })
+          $('#base-price').trigger('input')
+          $('#discount-percentage').on('input', function(e){
+            e.preventDefault()
+            value = $('#base-price').val()-($('#base-price').val()*($(this).val()/100))
+            $('#final-price').val(value)
+          })
+          $(document).on('click', '#add-size', function(){
+            var lastRow = $('.table tbody tr:last').clone();
+            lastRow.find('input').val('');
+            $("tbody tr:last td:last").html(`<a class="btn btn-sm btn-link text-danger" href="#!" data-bs-toggle="tooltip"
+            data-bs-placement="top"aria-label="Remove" data-bs-original-title="Remove"><span class="fs--1 bx bxs-trash"></span></a>`);
+            $('.table tbody tr:last').find('input').attr('required', true);
+            lastRow.find('input').attr('required', false)
+
+            $('.table tbody').append(lastRow)
+          });
+          $(document).on('click', '.table .text-danger', function(){
+            $(this).parent().parent().remove()
+       })
+
+    </script>
+
+{% endblock %}

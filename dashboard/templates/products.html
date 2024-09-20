@@ -1,0 +1,56 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12 grid-magin">
+            <div class="card">
+
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th> # </th>
+                                    <th class="text-center"> Product Image </th>
+                                    <th> Product details </th>
+                                    <th class="text-center"> Action </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                    <tr>
+                                        <td> {{forloop.counter}} </td>
+                                        <td class="text-center">
+                                            <img src="{{product.product_image.all.first.image.url}}"
+                                                style="width: 60px; height: 60px;" alt="">
+                                        </td>
+                                        <td>
+                                            <div class="">
+                                                <p style="font-size: 13px;"> Name : <span
+                                                        style="font-weight: bold;">{{product.name}}</span>
+                                                </p>
+                                                <p style="font-size: 13px;"> Description :
+                                                    <span class="d-inline-block text-truncate" style="max-width: 300px; font-style: italic; font-weight: bold;">
+                                                        {{product.details}}
+                                                    </span>
+                                                </p>
+                                                <p style="font-size: 13px;">Price : <span
+                                                        style="font-weight: bold;">N{{product.price}}</span></p>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'products_form_update' product.id %}" class="btn btn-sm btn-light">Edit</a>
+                                            <button class="btn btn-sm btn-danger ml-4">Delete</button>
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

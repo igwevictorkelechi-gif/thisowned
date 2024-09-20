@@ -1,0 +1,44 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+    <div class="row ">
+        <div class="col-12 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Customers</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>S/N</th>
+                                    <th>Full Name</th>
+                                    <th> email </th>
+                                    <th> Date registered </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in customers %}
+                                    <tr>
+                                        <td>{{forloop.counter}}</td>
+                                        <td>
+
+                                            <span>{{customer.first_name}} {{customer.last_name}}</span>
+
+
+                                        </td>
+                                        <td>{{ customer.email }}</td>
+
+                                        <td> {{ customer.date_joined|date:"d M Y" }} </td>
+
+                                    </tr>
+                                {% endfor %}
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

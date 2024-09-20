@@ -14,7 +14,7 @@ from .models import Product, User, Collection
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().order_by('-id')
     serializer_class = ProductSerializer
 
     def get_serializer_class(self):
@@ -94,7 +94,7 @@ class RegisterViewSet(viewsets.ModelViewSet):
 
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
-    queryset = Cart.objects.all()
+    queryset = Cart.objects.all().order_by('-id')
 
     def list(self, request, *args, **kwargs):
         token = request.query_params.get('token', None)

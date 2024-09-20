@@ -41,3 +41,10 @@ class SupabaseStorage(Storage):
     def url(self, name):
         # Return the public URL for the file
         return f"{self.supabase_url}/storage/v1/object/public/{self.bucket_name}/{name}"
+
+    def size(self, name):
+        response = self.supabase.storage.from_(self.bucket_name).list(path=os.path.dirname(name))
+        file_metadata = next((file for file in response if file['name'] == os.path.basename(name)), None)
+        if file_metadata:
+            return file_metadata['metadata']['size']  # File size in bytes
+        raise FileNotFoundError(f"The file {name} does not exist.")

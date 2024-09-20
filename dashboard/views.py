@@ -1,0 +1,97 @@
+import json
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import user_passes_test
+from django.forms import ValidationError
+from django.contrib.auth import views as auth_views, authenticate, login
+from .forms import CustomAuthenticationForm, CollectionForm
+from main.models import Order, Collection, User, Product, ProductImage, SizeGuid
+
+
+# Custom test function to check if user is an admin
+def admin_check(user):
+    return user.is_staff
+
+
+class CustomLoginView(auth_views.LoginView):
+    template_name = 'login.html'
+    authentication_form = CustomAuthenticationForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(request.GET.get('next', '/dashboard/'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        user = authenticate(self.request, username=form.cleaned_data['username'],
+                            password=form.cleaned_data['password'])
+        if user is not None and user.is_staff:
+            login(self.request, user)
+            return redirect(self.request.GET.get('next', '/dashboard/'))
+        else:
+            form.add_error(None, ValidationError("Only staff members can log in."))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+
+
+@user_passes_test(admin_check, login_url='login/')
+def dashboard(request):
+    return render(request, 'dashboard.html', {'dashboard': True})
+
+
+def orders(request):
+    all_orders = Order.objects.all()
+    return render(request, 'orders.html', {'orders': all_orders})
+
+
+def collections(request):
+    all_collections = Collection.objects.all().order_by('-id')
+    if request.method == 'POST':
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            form.save()
+    return render(request, 'collections.html', {'collections': all_collections})
+
+
+def customers(request):
+    all_customers = User.objects.exclude(is_staff=True).order_by('-id')
+    return render(request, 'customers.html', {'customers': all_customers})
+
+
+def products(request):
+    all_products = Product.objects.all()
+    return render(request, 'products.html', {'products': all_products})
+
+
+def products_form(request, p_id=None):
+    if request.method == 'POST':
+        p, f = request.POST, request.FILES
+        collection = Collection.objects.get(id=p.get('collection'))
+        ap = Product() if not p.get('product_id') else Product.objects.get(id=p.get('product_id'))
+        ap.name, ap.collection, ap.price, ap.care = p.get('name'), collection, p.get('b-price'), p.get('care')
+        ap.currency, ap.discount, ap.details = p.get('price-currency'), p.get('discount'), p.get('details')
+        ap.tags = p.get('tags')
+
+        if p.get('product_id'):
+            for item in ProductImage.objects.filter(image__in=json.loads(p.get('removed'))):
+                item.delete()
+            for item in ap.sizes.all():
+                item.delete()
+        ap.save()
+        for image in f.getlist('images'):
+            ProductImage.objects.create(image=image, product=ap)
+        rating = p.get('rating').split(',')
+        for i, item in enumerate(rating):
+            SizeGuid.objects.create(rating=item, labels=json.dumps(p.getlist('label')),
+                                    values=json.dumps(p.getlist(item)), products=ap)
+        return redirect('products')
+
+    collection = Collection.objects.all().order_by('name')
+
+    if p_id:
+        product = Product.objects.get(id=p_id)
+        return render(request, 'product_form.html', {'collection': collection, 'product': product})
+
+    return render(request, 'product_form.html', {'collection': collection})
