@@ -11,6 +11,7 @@ urlpatterns = [
     path('collections/<int:c_id>', views.collections, name='edit_collection'),
     path('customers/', views.customers, name='customers'),
     path('products/', views.products, name='products'),
+    path('products/<int:p_id>', views.products, name='products'),
     path('products/form/', views.products_form, name='products_form'),
     path('products/form/<int:p_id>', views.products_form, name='products_form_update'),
 ]

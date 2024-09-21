@@ -80,7 +80,11 @@ def customers(request):
     return render(request, 'customers.html', {'customers': all_customers})
 
 
-def products(request):
+def products(request, p_id=None):
+    if p_id and request.method == 'DELETE':
+        product = get_object_or_404(Product, id=p_id)
+        product.delete()
+        return JsonResponse({'status': 'done'})
     all_products = Product.objects.all()
     return render(request, 'products.html', {'products': all_products})
 

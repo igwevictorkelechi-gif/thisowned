@@ -56,6 +56,7 @@
 {% block content %}
     <div class="row">
         <div class="col-12 grid-magin">
+            {% csrf_token %}
             <div id="tableExample3" data-list=''>
                 <div class="card">
                 <div class="card-header d-flex justify-content-between">
@@ -78,7 +79,7 @@
                             </thead>
                             <tbody class="list">
                                 {% for product in products %}
-                                    <tr>
+                                    <tr id="product-{{product.id}}">
                                         <td class="id"> {{forloop.counter}} </td>
                                         <td class="text-center">
                                             <img src="{{product.product_image.all.first.image.url}}"
@@ -100,7 +101,7 @@
                                         </td>
                                         <td class="text-center">
                                             <a href="{% url 'products_form_update' product.id %}" class="btn btn-sm btn-light">Edit</a>
-                                            <button class="btn btn-sm btn-danger ml-4">Delete</button>
+                                            <button id="deleteBtn" class="btn btn-sm btn-danger ml-4" data-id="{{product.id}}">Delete</button>
                                         </td>
 
                                     </tr>
@@ -132,7 +133,7 @@
     // Initialize List.js
     var options = {
       valueNames: ['details', 'id'],
-      page: 3,
+      page: 15,
       pagination: true
     };
 
@@ -179,6 +180,45 @@
       updateCurrentPage(); // Update the current page when user clicks a pagination button
     });
 
+
+    $(document).on('click', '#deleteBtn', function() {
+    var button = $(this);  // Store the clicked button reference
+
+    Swal.fire({
+        title: 'Delete Collection',
+        text: 'Are you sure you want to delete this collection?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#f70909',
+        customClass: {
+            title: 'swal-title',
+            text: 'swal-text',
+        },
+    }).then((result) => {
+        if (result.isConfirmed) {
+             $.ajax({
+                url: `/dashboard/products/${button.attr('data-id')}`,
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': $('input[type=hidden]').val()
+                },
+                success: function(response) {
+                    console.log('Collection deleted successfully');
+                    $('#product-'+button.attr('data-id')).remove()
+                    $('table tbody tr').each(function(index) {
+                        $(this).find('td:first').text(index + 1);
+                    });
+                    Swal.close();
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error deleting product: ' + error);
+                }
+            });
+        }
+    });
+});
 
 </script>
 {% endblock %}
