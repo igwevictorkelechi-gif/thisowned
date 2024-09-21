@@ -1,30 +1,90 @@
 {% extends 'dashboard.html' %}
+{% load static %}
+{% block style %}
+<style>
+    .pagination .page{
+        font-size: 0.875rem;
+        line-height: 1;
+        font-weight: normal;
+        box-shadow: none;
+        border-radius: 0.1875rem;
+        padding: 0.25rem 0.5rem;
+        color: #212529;
+        background-color: #ffffff;
+        border-color: #ffffff;
+        border: 1px solid transparent;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        vertical-align: middle;
+        text-align: center;
+        display: inline-block;
+        user-select: none;
+        margin-left: .25rem;
+        margin-right: .25rem;
+    }
+    [data-list] .sort[data-sort],.table-list .sort[data-sort] {
+    white-space: nowrap;
+    cursor: pointer
+}
+
+[data-list] .sort[data-sort]::after,.table-list .sort[data-sort]::after {
+    content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNyIgaGVpZ2h0PSI5IiB2aWV3Qm94PSIwIDAgNyA5IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNi41MjU1NiAzLjVDNi45NDkzNyAzLjUgNy4xNjEyOCAzLjA2MjUgNi44NTUxOSAyLjc5MTY3TDMuODQxNCAwLjEyNUMzLjY1MzA0IC0wLjA0MTY2NjcgMy4zNDY5NiAtMC4wNDE2NjY3IDMuMTU4NTkgMC4xMjVMMC4xNDQ4MDkgMi43OTE2N0MtMC4xNjEyNzkgMy4wNjI1IDAuMDUwNjI3OSAzLjUgMC40NzQ0NDEgMy41SDYuNTI1NTZaIiBmaWxsPSIjQjZDMkQyIi8+CjxwYXRoIGQ9Ik0wLjQ3NDQ0MiA1LjVDMC4wNTA2MjgyIDUuNSAtMC4xNjEyNzkgNS45Mzc1IDAuMTQ0ODA5IDYuMjA4MzNMMy4xNTg1OSA4Ljg3NUMzLjM0Njk2IDkuMDQxNjcgMy42NTMwNCA5LjA0MTY3IDMuODQxNDEgOC44NzVMNi44NTUxOSA2LjIwODMzQzcuMTYxMjggNS45Mzc1IDYuOTQ5MzcgNS41IDYuNTI1NTYgNS41TDAuNDc0NDQyIDUuNVoiIGZpbGw9IiNCNkMyRDIiLz4KPC9zdmc+Cg==");
+    margin-left: .25rem
+}
+
+[data-list] .sort[data-sort].asc::after,.table-list .sort[data-sort].asc::after {
+    content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNyIgaGVpZ2h0PSI0IiB2aWV3Qm94PSIwIDAgNyA0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMC40NzQ0NDIgMC41MDAwMDFDMC4wNTA2MjgyIDAuNTAwMDAxIC0wLjE2MTI3OSAwLjkzNzUgMC4xNDQ4MDkgMS4yMDgzM0wzLjE1ODU5IDMuODc1QzMuMzQ2OTYgNC4wNDE2NyAzLjY1MzA0IDQuMDQxNjcgMy44NDE0MSAzLjg3NUw2Ljg1NTE5IDEuMjA4MzNDNy4xNjEyOCAwLjkzNzUwMSA2Ljk0OTM3IDAuNTAwMDAxIDYuNTI1NTYgMC41MDAwMDFMMC40NzQ0NDIgMC41MDAwMDFaIiBmaWxsPSIjQjZDMkQyIi8+Cjwvc3ZnPgo=") !important;
+    margin-top: -1px !important
+}
+
+[data-list] .sort[data-sort].desc::after,.table-list .sort[data-sort].desc::after {
+    content: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNyIgaGVpZ2h0PSI0IiB2aWV3Qm94PSIwIDAgNyA0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNi41MjU1NiAzLjVDNi45NDkzNyAzLjUgNy4xNjEyOCAzLjA2MjUgNi44NTUxOSAyLjc5MTY3TDMuODQxNCAwLjEyNUMzLjY1MzA0IC0wLjA0MTY2NjcgMy4zNDY5NiAtMC4wNDE2NjY3IDMuMTU4NTkgMC4xMjVMMC4xNDQ4MDkgMi43OTE2N0MtMC4xNjEyNzkgMy4wNjI1IDAuMDUwNjI3OSAzLjUgMC40NzQ0NDEgMy41SDYuNTI1NTZaIiBmaWxsPSIjQjZDMkQyIi8+Cjwvc3ZnPgo=") !important;
+    margin-top: -1px !important
+}
+
+[data-list] .page,.table-list .page {
+    margin-left: .25rem;
+    margin-right: .25rem;
+}
+
+[data-list] li.active .page,.table-list li.active .page {
+    background-color: rgba(0,0,0,0);
+    color: var(--falcon-primary) !important
+}
+</style>
+{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col-12 grid-magin">
-            <div class="card">
-
+            <div id="tableExample3" data-list=''>
+                <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <input class="search form-control" placeholder="Search" style="max-width: 400px" />
+                    <a href="{% url 'products_form' %}" class="btn btn-light btn-sm ml-3 d-flex align-items-center" type="button">
+                        <span class="bx bx-plus" data-fa-transform="shrink-3 down-2"></span>
+                        <span class="d-none d-sm-inline-block ms-1">New Product</span>
+                    </a>
+                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th> # </th>
+                                    <th class="sort" data-sort="id"> # </th>
                                     <th class="text-center"> Product Image </th>
-                                    <th> Product details </th>
+                                    <th class="text-center sort" data-sort="details"> Product details </th>
                                     <th class="text-center"> Action </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="list">
                                 {% for product in products %}
                                     <tr>
-                                        <td> {{forloop.counter}} </td>
+                                        <td class="id"> {{forloop.counter}} </td>
                                         <td class="text-center">
                                             <img src="{{product.product_image.all.first.image.url}}"
                                                 style="width: 60px; height: 60px;" alt="">
                                         </td>
-                                        <td>
+                                        <td class="details">
                                             <div class="">
                                                 <p style="font-size: 13px;"> Name : <span
                                                         style="font-weight: bold;">{{product.name}}</span>
@@ -50,7 +110,75 @@
                         </table>
                     </div>
                 </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-center mt-3">
+                        <button class="btn btn-sm btn-light me-1 prev" type="button" title="Previous" data-list-pagination="prev">
+                            <span class="bx bx-chevron-left"></span>
+                        </button>
+                        <ul class="pagination mb-0"></ul>
+                        <button class="btn btn-sm btn-light ms-1 next" type="button" title="Next" data-list-pagination="next">
+                            <span class="bx bx-chevron-right"> </span>
+                        </button>
+                      </div>
+                </div>
+            </div>
             </div>
         </div>
     </div>
+{% endblock %}
+{% block script %}
+<script src="{% static 'assets/vendors/list.js/list.min.js' %}"></script>
+<script !src="">
+    // Initialize List.js
+    var options = {
+      valueNames: ['details', 'id'],
+      page: 3,
+      pagination: true
+    };
+
+    var userList = new List('tableExample3', options);
+
+    // Keep track of the current page
+    var currentPage = 1;
+
+    // Function to update the current page when the user clicks on pagination buttons
+    function updateCurrentPage() {
+      var activePage = $('.pagination li.active').text(); // Get the active page number from pagination
+      if (activePage) {
+        currentPage = parseInt(activePage); // Update currentPage variable
+      }
+    }
+
+    // Move to the next page
+    function nextPage() {
+      var totalPages = Math.ceil(userList.items.length / userList.page);
+      updateCurrentPage();
+      console.log(currentPage)
+      console.log(userList.page)
+
+      if (currentPage < totalPages) {
+        userList.show((currentPage * userList.page)+1, userList.page);
+      }
+    }
+
+    // Move to the previous page
+    function prevPage() {
+      updateCurrentPage(); // Ensure currentPage is up-to-date
+
+      if (currentPage > 1) {
+        userList.show((currentPage - 2) * userList.page + 1, userList.page);
+      }
+    }
+
+    // Bind click events for next and previous buttons
+    $('button.next').on('click', nextPage);
+    $('button.prev').on('click', prevPage);
+
+    // Track pagination clicks (if the user clicks on a page number)
+    $('.pagination').on('click', 'li', function () {
+      updateCurrentPage(); // Update the current page when user clicks a pagination button
+    });
+
+
+</script>
 {% endblock %}

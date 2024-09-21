@@ -4,6 +4,7 @@ from supabase import create_client, Client
 from django.conf import settings
 import os
 
+
 class SupabaseStorage(Storage):
     def __init__(self):
         # Initialize Supabase client using credentials from settings
@@ -20,6 +21,7 @@ class SupabaseStorage(Storage):
         return ContentFile(response.content)
 
     def _save(self, name, content):
+        name = name.replace('\\', '/')
         # Save the file to Supabase
         content.open()  # Ensure the content file is open
         response = self.supabase.storage.from_(self.bucket_name).upload(name, content.read())
@@ -35,8 +37,8 @@ class SupabaseStorage(Storage):
             raise Exception(f"Error deleting file: {response.error.message}")
 
     def exists(self, name):
-        response = self.supabase.storage.from_(self.bucket_name).list()
-        return any(file['name'] == name for file in response)
+        response = self.supabase.storage.from_(self.bucket_name).list(path=os.path.dirname(name))
+        return any(file['name'] == os.path.basename(name) for file in response)
 
     def url(self, name):
         # Return the public URL for the file

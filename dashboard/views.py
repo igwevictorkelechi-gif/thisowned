@@ -1,6 +1,7 @@
 import json
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http.response import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
 from django.forms import ValidationError
 from django.contrib.auth import views as auth_views, authenticate, login
@@ -38,7 +39,14 @@ class CustomLoginView(auth_views.LoginView):
 
 @user_passes_test(admin_check, login_url='login/')
 def dashboard(request):
-    return render(request, 'dashboard.html', {'dashboard': True})
+    pending = Order.objects.filter(status="pending").count()
+    total_s = 0
+    revenue = 0
+    for item in Order.objects.filter(status="completed"):
+        revenue += item.total
+        total_s += item.items.all().count()
+
+    return render(request, 'dashboard.html', {'pending': pending, 'total_s': total_s, 'revenue': revenue})
 
 
 def orders(request):
@@ -46,12 +54,24 @@ def orders(request):
     return render(request, 'orders.html', {'orders': all_orders})
 
 
-def collections(request):
+def collections(request, c_id=None):
     all_collections = Collection.objects.all().order_by('-id')
     if request.method == 'POST':
-        form = CollectionForm(request.POST)
+        if c_id:
+            collection = get_object_or_404(Collection, pk=c_id)
+            form = CollectionForm(request.POST, instance=collection)
+        else:
+            form = CollectionForm(request.POST)
         if form.is_valid():
             form.save()
+        return redirect('collections')
+    elif request.method == 'DELETE':
+        collection = get_object_or_404(Collection, pk=c_id)
+        collection.delete()
+        return JsonResponse({'response': 'done'})
+    if c_id:
+        col = get_object_or_404(Collection, pk=c_id)
+        return render(request, 'collections.html', {'collections': all_collections, 'col': col})
     return render(request, 'collections.html', {'collections': all_collections})
 
 

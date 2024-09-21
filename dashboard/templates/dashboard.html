@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="{% static 'assets/vendors/flag-icon-css/css/flag-icon.min.css' %}">
   <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel-2/owl.carousel.min.css' %}">
   <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel-2/owl.theme.default.min.css' %}">
+  <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
   {% block style %}{% endblock %}
   <!-- End plugin css for this page -->
   <!-- Layout styles -->
@@ -85,8 +87,7 @@
           </a>
         </li>
 
-        <li class="nav-item menu-items {% if request.path == '/dashboard/products/' or request.path == '/dashboard/products/form/' %}
-        active{% endif %}">
+        <li class="nav-item menu-items {% if '/dashboard/products/' in request.path %}active{% endif %}">
           <a class="nav-link" href="{% url 'products' %}">
             <span class="menu-icon">
               <i class='bx bx-store'></i>
@@ -95,7 +96,7 @@
           </a>
         </li>
 
-        <li class="nav-item menu-items  {% if request.path == '/dashboard/collections/' %}active{% endif %}">
+        <li class="nav-item menu-items  {% if  '/dashboard/collections/' in request.path %}active{% endif %}">
           <a class="nav-link" href="{% url 'collections' %}">
             <span class="menu-icon">
               <i class='bx bx-collection'></i>
@@ -196,7 +197,7 @@
                     <div class="row">
                       <div class="col-8 col-sm-12 col-xl-8 my-auto">
                         <div class="d-flex d-sm-block d-md-flex align-items-center">
-                          <h2 class="mb-0">20</h2>
+                          <h2 class="mb-0">{{pending}}</h2>
 
                         </div>
 
@@ -215,7 +216,7 @@
                     <div class="row">
                       <div class="col-8 col-sm-12 col-xl-8 my-auto">
                         <div class="d-flex d-sm-block d-md-flex align-items-center">
-                          <h2 class="mb-0">580</h2>
+                          <h2 class="mb-0">{{total_s}}</h2>
                         </div>
                       </div>
                       <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
@@ -232,7 +233,7 @@
                     <div class="row">
                       <div class="col-8 col-sm-12 col-xl-8 my-auto">
                         <div class="d-flex d-sm-block d-md-flex align-items-center">
-                          <h2 class="mb-0">₦32123</h2>
+                          <h2 class="mb-0">₦{{revenue}}</h2>
                         </div>
                       </div>
                       <div class="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
