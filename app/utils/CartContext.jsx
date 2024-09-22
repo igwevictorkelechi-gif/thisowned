@@ -55,7 +55,13 @@ export const CartProvider = ({ children }) => {
       );
       const cartData = await response.json();
 
-      if (response.ok) {
+      console.log(response.status);
+      if (response.status === 401) {
+        // Handle unauthorized status
+        localStorage.removeItem("cartToken");
+        localStorage.removeItem("accessToken");
+      } else if (response.ok) {
+        // If the response is successful
         setCart(cartData);
         updateCartCount(cartData.length);
         setIsCartEmpty(cartData.length === 0);

@@ -14,8 +14,8 @@ const FlutterwavePayment = ({ total, customerInfo }) => {
       name: `${customerInfo.firstName} ${customerInfo.lastName}`,
     },
     customizations: {
-      title: "Payment for clothings",
-      //   description: "Payment for subscription",
+      title: "Thisowned",
+      description: "Payment for items in cart",
       logo: "https://i.ibb.co/L0YYH85/logored.jpg",
     },
   };
