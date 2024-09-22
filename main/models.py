@@ -112,7 +112,7 @@ class Payment(models.Model):
         ('credit_card', 'Credit Card'),
         ('paypal', 'PayPal'),
         ('bank_transfer', 'Bank Transfer')
-    ])
+    ], default='credit_card')
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),
@@ -127,10 +127,13 @@ class Payment(models.Model):
 
 
 class Shipping(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
     address = models.TextField()
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
-    state = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     shipped_at = models.DateTimeField(null=True, blank=True)
 

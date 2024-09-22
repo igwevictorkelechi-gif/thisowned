@@ -175,9 +175,10 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
 
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
+    shipped_at = serializers.DateField(read_only=True)
     class Meta:
         model = Shipping
-        fields = ['address', 'city', 'postal_code', "state", 'country']
+        fields = '__all__'
 
 
 class CardDetailSerializer(serializers.Serializer):
@@ -190,31 +191,29 @@ class CardDetailSerializer(serializers.Serializer):
 
 
 class CheckoutSerializer(serializers.ModelSerializer):
-
-    payment_method = serializers.ChoiceField(choices=Payment.method.field.choices, write_only=True)
     shipping_address = ShippingAddressSerializer(write_only=True)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0.00, source="total", read_only=True)
     tx_ref = serializers.CharField(max_length=1000, source="payment_detail.tx_ref", read_only=True)
-    email = serializers.EmailField(source="customer.email")
+    email = serializers.EmailField(source="customer.email", read_only=True)
     first_name = serializers.CharField(max_length=1000, source="customer.first_name", read_only=True)
     last_name = serializers.CharField(max_length=1000, source="customer.last_name", read_only=True)
 
     class Meta:
         model = Order
-        fields = ["payment_method", 'shipping_address', "tx_ref", "amount", "email", "first_name", "last_name"]
+        fields = ['shipping_address', "tx_ref", "amount", "email", "first_name", "last_name"]
 
     def create(self, validated_data):
         # Extract related data
         # payment_data = validated_data.pop('payment_detail')
         shipping_data = validated_data.pop('shipping_address')
-        payment_method = validated_data.pop("payment_method")
+        # payment_method = validated_data.pop("payment_method")
         # card_details = validated_data.pop('card_details')
         # billing_address = validated_data.pop('billing_address')
         request = self.context.get('request')
         validated_data["customer"] = request.user
 
         # Step 1: Create the Payment
-        payment = Payment.objects.create(method=payment_method)
+        payment = Payment.objects.create()
 
         # Step 2: Create the Shipping
         shipping = Shipping.objects.create(**shipping_data)

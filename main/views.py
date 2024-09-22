@@ -163,7 +163,17 @@ def flutterwave_webhook(request):
 
     return JsonResponse({"status": "invalid request"}, status=400)
 
+
+@csrf_exempt
+def paypal_webhook(request):
+    if request.method == 'POST':
+        payload = json.loads(request.body)
+        print(payload)
+    return JsonResponse({"status": "success"}, status=200)
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
+
 

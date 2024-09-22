@@ -16,6 +16,7 @@ router.register(r'order', views.OrderViewSet, basename='order')
 
 urlpatterns = [
     path('webhook', views.flutterwave_webhook, name="webhook"),
+    path('paypal/webhook', views.paypal_webhook, name="webhook"),
     path('collection/all/', views.AllCollectionsView.as_view(), name="all_collection"),
     path('', include(router.urls)),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
