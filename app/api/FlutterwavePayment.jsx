@@ -1,7 +1,9 @@
 import React from "react";
 import { FlutterWaveButton, closePaymentModal } from "flutterwave-react-v3";
+import { useRouter } from "next/navigation";
 
 const FlutterwavePayment = ({ total, customerInfo }) => {
+  const router = useRouter();
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_TEST_KEY,
     tx_ref: Date.now(),
@@ -25,6 +27,10 @@ const FlutterwavePayment = ({ total, customerInfo }) => {
     callback: (response) => {
       console.log(response);
       closePaymentModal(); // Close payment modal after payment
+      if (response.status === "successful") {
+        // Route to another page after success
+        router.push("success"); // Change '/success' to your desired route
+      }
     },
     onClose: () => {},
   };
