@@ -13,6 +13,7 @@ router.register(r'cart', views.CartViewSet, basename='cart')
 router.register(r'register', views.RegisterViewSet, basename='register')
 router.register(r'checkout', views.CheckoutViewSet, basename='checkout')
 router.register(r'order', views.OrderViewSet, basename='order')
+router.register(r'shipping_rate', views.ShippingRateViewSet, basename='shipping_rate')
 
 urlpatterns = [
     path('webhook', views.flutterwave_webhook, name="webhook"),

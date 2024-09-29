@@ -2,7 +2,9 @@ from abc import ABC
 
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
-    Shipping
+    Shipping, ShippingRate
+
+
 # from .payment_gateway import pay_with_card
 
 
@@ -144,7 +146,6 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class OrderItemProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = ["name"]
@@ -166,9 +167,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return image.image.url
 
 
-
 class PaymentDetailsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Payment
         fields = ["id", 'tx_ref', 'method', 'status', "payload"]
@@ -176,6 +175,7 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
     shipped_at = serializers.DateField(read_only=True)
+
     class Meta:
         model = Shipping
         fields = '__all__'
@@ -228,7 +228,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             OrderItem.objects.create(order=order, product=item_data.product, quantity=item_data.quantity,
                                      size=item_data.size)
-            discount_price = ((item_data.product.discount if item_data.product.discount else 0)/100)
+            discount_price = ((item_data.product.discount if item_data.product.discount else 0) / 100)
             total += (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
 
         order.total = total
@@ -246,3 +246,8 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = "__all__"
 
+
+class ShippingRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingRate
+        fields = '__all__'

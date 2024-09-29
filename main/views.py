@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
+import pycountry
 
 from .serializers import *
 from .models import Product, User, Collection
@@ -171,9 +172,31 @@ def paypal_webhook(request):
         print(payload)
     return JsonResponse({"status": "success"}, status=200)
 
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
 
+class ShippingRateViewSet(viewsets.ModelViewSet):
+    queryset = ShippingRate.objects.all()
+    serializer_class = ShippingRateSerializer
 
+    def list(self, request, *args, **kwargs):
+        country = request.query_params.get('country', None)
+        state = request.query_params.get('state', None)
+        if not country and not state:
+            countries = [rate.country for rate in self.queryset]
+            response = {"status": "country", 'options': countries}
+            return Response(response, status=status.HTTP_200_OK)
+        elif country and not state:
+            pyc = pycountry.countries.get(name=country)
+            states = [state.name for state in pycountry.subdivisions.get(country_code=pyc.alpha_2)]
+            response = {"status": "state", 'options': states}
+            return Response(response, status=status.HTTP_200_OK)
+        else:
+
+            shipping_rate = ShippingRate.objects.get(country=country)
+            serializer = self.get_serializer(shipping_rate, many=False)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
