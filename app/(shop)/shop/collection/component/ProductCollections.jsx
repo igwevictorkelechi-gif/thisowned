@@ -105,7 +105,6 @@ function ProductCollections({ collections, isAllCollections }) {
       ))}
     </ul>
   );
-
   return (
     <div>
       <section>
