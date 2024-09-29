@@ -5,33 +5,79 @@ import React, { useState, useEffect } from "react";
 
 function ProductCollections({ collections, isAllCollections }) {
   const [loading, setLoading] = useState(true);
-  const [hoveredProductId, setHoveredProductId] = useState(null); // State to track hovered product
+  const [hoveredProductId, setHoveredProductId] = useState(null); // State to track hovered product for large screens
+  const [clickedProductId, setClickedProductId] = useState(null); // State to track clicked product for small screens
+  const [isLargeScreen, setIsLargeScreen] = useState(false); // State to check if it's a large screen
 
   useEffect(() => {
     if (collections) {
-      // console.log(collections);
       setLoading(false);
     }
+
+    // Check if the screen size is large
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 640); // For 'sm' breakpoint (640px and above)
+    };
+
+    // Set the initial screen size
+    handleResize();
+
+    // Add event listener to check for window resize
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [collections]);
 
-  //   console.log(collections);
+  // Function to handle the image click for small screens
+  const handleImageClick = (productId) => {
+    if (!isLargeScreen) {
+      // For small screens
+      if (clickedProductId === productId) {
+        // If the image has already been clicked, navigate to the product page
+        window.location.href = `/shop/${productId}`;
+      } else {
+        // Otherwise, toggle the image
+        setClickedProductId(productId);
+      }
+    }
+  };
+
+  // Function to handle the image click for large screens
+  const handleLargeScreenClick = (productId) => {
+    if (isLargeScreen) {
+      // Directly navigate to the product page on large screens
+      window.location.href = `/shop/${productId}`;
+    }
+  };
 
   const renderProducts = (products) => (
     <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {products.map((product) => (
         <li key={product.id}>
-          <Link
-            href={`/shop/${product.id}`}
-            className="group block overflow-hidden"
-            onMouseEnter={() => setHoveredProductId(product.id)}
-            onMouseLeave={() => setHoveredProductId(null)}
+          <div
+            className="group block overflow-hidden cursor-pointer"
+            onClick={() => {
+              isLargeScreen
+                ? handleLargeScreenClick(product.id)
+                : handleImageClick(product.id);
+            }} // Click behavior varies based on screen size
+            onMouseEnter={() =>
+              isLargeScreen && setHoveredProductId(product.id)
+            } // Only allow hover behavior on large screens
+            onMouseLeave={() => isLargeScreen && setHoveredProductId(null)} // Reset hover on large screens
           >
             <Image
               width={500}
               height={500}
               src={
-                hoveredProductId === product.id && product.images.length > 1
-                  ? product.images[1].image
+                (isLargeScreen && hoveredProductId === product.id) ||
+                (!isLargeScreen &&
+                  clickedProductId === product.id &&
+                  product.images.length > 1)
+                  ? product.images[1]?.image // Ensure product.images[1] exists
                   : product.images[0].image
               }
               alt={product.name}
@@ -41,8 +87,6 @@ function ProductCollections({ collections, isAllCollections }) {
             <div className="relative pt-3">
               <h3 className="text-sm group-hover:underline group-hover:underline-offset-4 text-white">
                 {product.name}
-
-                {/* {product.images.length} */}
               </h3>
 
               <p className="mt-2">
@@ -56,7 +100,7 @@ function ProductCollections({ collections, isAllCollections }) {
                 </p>
               )}
             </div>
-          </Link>
+          </div>
         </li>
       ))}
     </ul>

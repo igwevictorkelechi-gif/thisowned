@@ -7,8 +7,8 @@ async function fetchCollections(slug) {
   try {
     const url =
       slug === "all"
-        ? `${process.env.NEXT_PUBLIC_COLLECTION_URL}all`
-        : `${process.env.NEXT_PUBLIC_COLLECTION_URL}${slug}`;
+        ? `${process.env.NEXT_PUBLIC_COLLECTION_URL}all/`
+        : `${process.env.NEXT_PUBLIC_COLLECTION_URL}${slug}/`;
 
     const response = await fetch(url);
     if (!response.ok) {
