@@ -181,6 +181,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 class ShippingRateViewSet(viewsets.ModelViewSet):
     queryset = ShippingRate.objects.all()
     serializer_class = ShippingRateSerializer
+    http_method_names = ['get']
 
     def list(self, request, *args, **kwargs):
         country = request.query_params.get('country', None)
@@ -197,6 +198,6 @@ class ShippingRateViewSet(viewsets.ModelViewSet):
         else:
 
             shipping_rate = ShippingRate.objects.get(country=country)
-            serializer = self.get_serializer(shipping_rate, many=False)
+            serializer = self.get_serializer(shipping_rate, many=False, context={'state': state})
 
             return Response(serializer.data, status=status.HTTP_200_OK)

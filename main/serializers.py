@@ -2,7 +2,7 @@ from abc import ABC
 
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
-    Shipping, ShippingRate
+    Shipping, ShippingRate, ShippingMethod
 
 
 # from .payment_gateway import pay_with_card
@@ -17,10 +17,11 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class ProductListSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
+    discount_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ["id", "name", "price", "currency", "discount", "images", 'size']
+        fields = ["id", "name", "price", "currency", "discount", 'discount_price', "images", 'size']
 
     def get_images(self, obj):
         all_images = obj.product_image.all()[:2]
@@ -28,6 +29,9 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def get_size(self, obj):
         return [[size.id, size.rating] for size in obj.sizes.all()]
+
+    def get_discount_price(self, obj):
+        return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
 
 
 class ProductSetSerializer(serializers.ModelSerializer):
@@ -47,17 +51,21 @@ class SizeGuidSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(source="product_image", many=True, allow_null=True)
     size_guide = SizeGuidSerializer(source="sizes", many=True, allow_null=True)
+    discount_price = serializers.SerializerMethodField()
     complete_set = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ["id", "name", "price", "currency", "discount", "details", "care",
+        fields = ["id", "name", "price", "currency", "discount", "discount_price", "details", "care",
                   "delivery_and_return", "images", "complete_set", "size_guide"]
 
     def get_complete_set(self, obj):
         products = obj.sets.all()
         return [] if products.count() == 0 else ProductSetSerializer(products, many=True).data if products[
             0].products.count() else []
+
+    def get_discount_price(self, obj):
+        return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -192,6 +200,7 @@ class CardDetailSerializer(serializers.Serializer):
 
 class CheckoutSerializer(serializers.ModelSerializer):
     shipping_address = ShippingAddressSerializer(write_only=True)
+    shipping_method = serializers.PrimaryKeyRelatedField(queryset=ShippingMethod.objects.all(), write_only=True)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0.00, source="total", read_only=True)
     tx_ref = serializers.CharField(max_length=1000, source="payment_detail.tx_ref", read_only=True)
     email = serializers.EmailField(source="customer.email", read_only=True)
@@ -200,7 +209,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['shipping_address', "tx_ref", "amount", "email", "first_name", "last_name"]
+        fields = ['shipping_address', 'shipping_method', "tx_ref", "amount", "email", "first_name", "last_name"]
 
     def create(self, validated_data):
         # Extract related data
@@ -231,9 +240,11 @@ class CheckoutSerializer(serializers.ModelSerializer):
             discount_price = ((item_data.product.discount if item_data.product.discount else 0) / 100)
             total += (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
 
+        shipping_rate = ShippingRate.objects.get(country=shipping.country)
+        total += float(shipping_rate.state_base_rate(shipping.state) * order.shipping_method.rate_multiplier)
+
         order.total = total
         order.save()
-
         return order
 
 
@@ -247,7 +258,33 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ShippingMethodSerializer(serializers.ModelSerializer):
+    shipping_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ShippingMethod
+        fields = ['id', 'name', 'delivery_time', 'shipping_price']
+
+    def get_shipping_price(self, obj):
+        return self.context.get('state_base_rate', None) * obj.rate_multiplier
+
+
 class ShippingRateSerializer(serializers.ModelSerializer):
+    method = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+
     class Meta:
         model = ShippingRate
-        fields = '__all__'
+        fields = ["method", "country", "state"]
+
+    def get_method(self, obj):
+        all_methods = ShippingMethod.objects.all()
+        methods = []
+        for method in all_methods:
+            if method.country_included(obj.country):
+                methods.append(method)
+        state_base_rate = obj.state_base_rate(self.context.get('state', None))
+        return ShippingMethodSerializer(methods, many=True, context={"state_base_rate": state_base_rate}).data
+
+    def get_state(self, obj):
+        return self.context.get('state', None)

@@ -135,6 +135,7 @@ class Shipping(models.Model):
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     country = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
     shipped_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -145,29 +146,34 @@ class Shipping(models.Model):
 class ShippingMethod(models.Model):
     name = models.CharField(max_length=100)
     delivery_time = models.CharField(max_length=100)
-    flat_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    rate_multiplier = models.DecimalField(max_digits=10, decimal_places=2)
     free_shipping_threshold = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    country_exceptions = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.delivery_time})"
+
+    def country_included(self, name):
+        return name not in self.country_exceptions
 
     class Meta:
         ordering = ['name']
 
 
 class ShippingRate(models.Model):
-    method = models.ForeignKey(ShippingMethod, on_delete=models.CASCADE)
     country = models.CharField(max_length=100)
-    state = models.CharField(max_length=100, blank=True, null=True)
     base_rate = models.DecimalField(max_digits=10, decimal_places=2)
-    # weight_rate_per_kg = models.DecimalField(max_digits=10, decimal_places=2)
     state_multiplier = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"Rate for {self.method.name} to {self.country} {self.state or ''}"
 
+    def state_base_rate(self, state):
+        multiplier = self.state_multiplier.get(state, 1)
+        return self.base_rate * multiplier
+
     class Meta:
-        ordering = ['country', 'state']
+        ordering = ['country']
 
 
 class Order(models.Model):
@@ -183,6 +189,7 @@ class Order(models.Model):
     ], default='pending')
     payment_detail = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='order')
     shipping_address = models.ForeignKey(Shipping, on_delete=models.CASCADE, related_name="order")
+    shipping_method = models.ForeignKey(ShippingMethod, on_delete=models.PROTECT, related_name='order')
 
     def __str__(self):
         return f"Order {self.id} - {self.customer}"
