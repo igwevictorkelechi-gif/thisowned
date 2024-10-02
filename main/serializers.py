@@ -160,19 +160,11 @@ class OrderItemProductSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='product.name', read_only=True)
-    image = serializers.SerializerMethodField(read_only=True)
     size = serializers.CharField(source='size.rating', read_only=True)
-    currency = serializers.CharField(source="product.currency", read_only=True)
-    discount = serializers.CharField(source="product.discount", read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ["name", "image", 'quantity', 'size', "currency", "discount"]
-
-    def get_image(self, obj):
-        image = obj.product.product_image.all().first()
-        return image.image.url
+        fields = ['product', 'size']
 
 
 class PaymentDetailsSerializer(serializers.ModelSerializer):
@@ -203,7 +195,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
     shipping_method = serializers.PrimaryKeyRelatedField(queryset=ShippingMethod.objects.all(), write_only=True)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0.00, source="total", read_only=True)
     tx_ref = serializers.CharField(max_length=1000, source="payment_detail.tx_ref", read_only=True)
-    email = serializers.EmailField(source="customer.email", read_only=True)
+    email = serializers.EmailField(source="shipping_address.email", read_only=True)
     first_name = serializers.CharField(max_length=1000, source="customer.first_name", read_only=True)
     last_name = serializers.CharField(max_length=1000, source="customer.last_name", read_only=True)
 
@@ -235,10 +227,15 @@ class CheckoutSerializer(serializers.ModelSerializer):
         # Step 4: Create Order Items and calculate total
         total = 0
         for item_data in items_data:
-            OrderItem.objects.create(order=order, product=item_data.product, quantity=item_data.quantity,
-                                     size=item_data.size)
             discount_price = ((item_data.product.discount if item_data.product.discount else 0) / 100)
-            total += (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
+            new_price = (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
+
+            item_dict = {"name": item_data.product.name, "image": item_data.product.product_image.first().image.url,
+                         "currency": item_data.product.currency, "price": new_price}
+
+            OrderItem.objects.create(order=order, product=item_dict, quantity=item_data.quantity,
+                                     size=item_data.size)
+            total += new_price
 
         shipping_rate = ShippingRate.objects.get(country=shipping.country)
         total += float(shipping_rate.state_base_rate(shipping.state) * order.shipping_method.rate_multiplier)

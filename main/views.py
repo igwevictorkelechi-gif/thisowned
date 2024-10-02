@@ -156,6 +156,9 @@ def flutterwave_webhook(request):
                 payment.status = 'completed'
                 payment.payload = json.dumps(payload)
                 payment.save()
+                carts = Cart.objects.filter(owner=payment.order.customer)
+                for cart in carts:
+                    cart.delete()
 
             return JsonResponse({"status": "success"}, status=200)
         else:

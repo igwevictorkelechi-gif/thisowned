@@ -197,9 +197,10 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    # product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.JSONField()
     quantity = models.PositiveIntegerField()
     size = models.ForeignKey(SizeGuid, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"{self.product.name} (x{self.quantity})"
+        return f"{self.product['name']} (x{self.quantity})"
