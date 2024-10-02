@@ -31,8 +31,8 @@ function CheckoutPage() {
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState("");
   const [shippingMethods, setShippingMethods] = useState([]);
-  const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // Default to 0 or a predefined shipping value
-
+  // const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // Default to 0 or a predefined shipping value
+  const [selectedShippingPrice, setSelectedShippingPrice] = useState(null);
   // Fetch countries when component mounts
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}`)
@@ -99,7 +99,17 @@ function CheckoutPage() {
 
   const checkFormValidity = () => {
     const { firstName, lastName, email, phone, city, address } = formData;
-    return firstName && lastName && email && phone && city && address;
+    return (
+      firstName &&
+      lastName &&
+      email &&
+      phone &&
+      city &&
+      address &&
+      selectedCountry &&
+      selectedState &&
+      selectedShippingPrice
+    );
   };
 
   const handleProceedToPayment = () => {
@@ -207,6 +217,7 @@ function CheckoutPage() {
                             className="w-full rounded-md bg-black border border-gray-500 p-3 text-sm text-gray-400 outline-none appearance-none"
                             value={selectedCountry || ""}
                             onChange={(e) => setSelectedCountry(e.target.value)}
+                            required
                           >
                             <option disabled value="">
                               Select Country
@@ -229,6 +240,7 @@ function CheckoutPage() {
                             value={selectedState || ""}
                             onChange={(e) => setSelectedState(e.target.value)}
                             disabled={!states.length}
+                            required
                           >
                             <option disabled value="">
                               Select State
@@ -295,7 +307,7 @@ function CheckoutPage() {
                       {dataloading ? (
                         <p>Loading shipping methods...</p>
                       ) : shippingMethods.length > 0 ? (
-                        <ul className="flex flex-col md:flex-row items-center gap-5 w-full mt-[-0.45rem] mb-4">
+                        <ul className="flex flex-col md:flex-row items-center gap-5 w-full mt-[-0.45rem] mb-5 lg:mb-20">
                           {shippingMethods.map((item, idx) => (
                             <li key={item.id} className="w-full">
                               <label
@@ -313,7 +325,7 @@ function CheckoutPage() {
                                     setSelectedShippingPrice(
                                       item.shipping_price
                                     )
-                                  }
+                                  } // Set the shipping price
                                 />
                                 <div className="w-full p-4 cursor-pointer rounded-lg border border-gray-500 bg-black shadow-sm ring-red-500 peer-checked:ring-1 duration-200">
                                   <div className="pl-7">
@@ -333,7 +345,7 @@ function CheckoutPage() {
                       )}
                     </div>
 
-                    {paymentloading ? (
+                    {/* {paymentloading ? (
                       <div className="w-full flex justify-center items-center py-10">
                         <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
                           <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
@@ -356,7 +368,7 @@ function CheckoutPage() {
                           Pay Now
                         </button>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
@@ -453,7 +465,11 @@ function CheckoutPage() {
                     <div className="flex justify-between">
                       <dt>Shipping</dt>
                       <dd className="font-semibold tracking-wider">
-                        ₦{selectedShippingPrice}.00
+                        {selectedShippingPrice !== null ? (
+                          <p>₦ {selectedShippingPrice.toFixed(2)}</p>
+                        ) : (
+                          <p className="text-xs">₦0.00</p>
+                        )}
                       </dd>
                     </div>
                   </dl>
@@ -467,6 +483,36 @@ function CheckoutPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 lg:gap-16 px-4 py-16 sm:px-6 lg:px-[12rem] -mt-[5rem] lg:-mt-[11rem]">
+          <div className="lg:col-span-2">
+            {paymentloading ? (
+              <div className="w-full flex justify-center items-center">
+                <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
+                  <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
+                </div>
+              </div>
+            ) : showPaymentOptions ? (
+              <div className="w-full">
+                <FlutterwavePayment
+                  total={totalPrice + selectedShippingPrice}
+                  customerInfo={formData}
+                />
+                <PaypalPayment total={totalPrice + selectedShippingPrice} />
+              </div>
+            ) : (
+              <div className="w-full mx-auto max-w-screen-xl">
+                <button
+                  onClick={handleProceedToPayment}
+                  className="inline-block w-full rounded-lg bg-white px-5 py-3 font-medium text-black text-center cursor-pointer"
+                >
+                  Pay Now
+                </button>
+              </div>
+            )}
+          </div>
+          <div>Hello</div>
         </div>
       </section>
     </div>
