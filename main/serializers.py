@@ -231,7 +231,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
             new_price = (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
 
             item_dict = {"name": item_data.product.name, "image": item_data.product.product_image.first().image.url,
-                         "currency": item_data.product.currency, "price": new_price}
+                         "currency": item_data.product.currency, "price": new_price, 'id': item_data.product.id}
 
             OrderItem.objects.create(order=order, product=item_dict, quantity=item_data.quantity,
                                      size=item_data.size)

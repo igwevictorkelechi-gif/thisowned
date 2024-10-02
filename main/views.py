@@ -156,7 +156,7 @@ def flutterwave_webhook(request):
                 payment.status = 'completed'
                 payment.payload = json.dumps(payload)
                 payment.save()
-                carts = Cart.objects.filter(owner=payment.order.customer)
+                carts = Cart.objects.filter(owner=payment.order.first().customer)
                 for cart in carts:
                     cart.delete()
 
@@ -179,6 +179,17 @@ def paypal_webhook(request):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
+    def list(self, request, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            return Response(
+                {"detail": "Unauthorized: Invalid or missing access token."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        order = Order.objects.filter(customer=request.user)
+        serializer = self.get_serializer(order, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ShippingRateViewSet(viewsets.ModelViewSet):
