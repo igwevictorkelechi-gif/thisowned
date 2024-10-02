@@ -140,17 +140,29 @@ function Cart({ setIsCartEmpty }) {
     );
   };
 
-  // Calculate discount
-  const discount = cart.discount || 0;
+  // Calculate total discount from cart items
+  const calculateTotalDiscount = () => {
+    if (!Array.isArray(cart)) return 0;
+    return cart.reduce(
+      (totalDiscount, item) =>
+        totalDiscount + (item.product.discount || 0) * item.quantity,
+      0
+    );
+  };
 
-  // Calculate final total after discount
-  const totalAfterDiscount = calculateTotalPrice() - discount;
-
+  // Handle proceed to checkout
   const handleProceedToCheckout = () => {
     const totalPrice = calculateTotalPrice();
     updateTotalPrice(totalPrice);
     router.push("/checkout");
   };
+
+  // Calculate final total after discount
+  const totalBeforeDiscount = calculateTotalPrice();
+  const totalDiscount = calculateTotalDiscount();
+  const totalAfterDiscount =
+    totalBeforeDiscount - Math.min(totalDiscount, totalBeforeDiscount);
+
   return (
     <div>
       <section>
@@ -203,7 +215,23 @@ function Cart({ setIsCartEmpty }) {
                             </div>
                             <div className="flex gap-3">
                               <dt className="inline">Price:</dt>
-                              <dd className="inline">₦{item.product.price}</dd>
+                              <dd className="inline">
+                                {item.product.discount && (
+                                  <span>
+                                    {" "}
+                                    ₦{item.product.discount_price}.00
+                                  </span>
+                                )}
+                                <span
+                                  className={
+                                    item.product.discount
+                                      ? "line-through ml-1"
+                                      : ""
+                                  }
+                                >
+                                  ₦{item.product.price}.00
+                                </span>
+                              </dd>
                             </div>
                           </dl>
                         </div>
@@ -250,7 +278,7 @@ function Cart({ setIsCartEmpty }) {
                       <div className="flex justify-between">
                         <dt>Discount</dt>
                         <dd className="font-semibold tracking-wider">
-                          -₦{discount}
+                          {totalDiscount.toFixed(2)}
                         </dd>
                       </div>
                       <div className="flex justify-between text-base">
