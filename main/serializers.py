@@ -164,7 +164,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['product', 'size']
+        fields = ['product', 'size', 'quantity']
 
 
 class PaymentDetailsSerializer(serializers.ModelSerializer):
@@ -201,7 +201,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['shipping_address', 'shipping_method', "tx_ref", "amount", "email", "first_name", "last_name"]
+        fields = ['id', 'shipping_address', 'shipping_method', "tx_ref", "amount", "email", "first_name", "last_name"]
 
     def create(self, validated_data):
         # Extract related data
