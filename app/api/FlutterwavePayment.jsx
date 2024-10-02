@@ -2,11 +2,12 @@ import React from "react";
 import { FlutterWaveButton, closePaymentModal } from "flutterwave-react-v3";
 import { useRouter } from "next/navigation";
 
-const FlutterwavePayment = ({ total, customerInfo }) => {
+const FlutterwavePayment = ({ total, customerInfo, tx_ref }) => {
   const router = useRouter();
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_TEST_KEY,
-    tx_ref: Date.now(),
+    // tx_ref: Date.now(),
+    tx_ref: tx_ref,
     amount: total,
     currency: "NGN",
     payment_options: "card,mobilemoney,ussd",

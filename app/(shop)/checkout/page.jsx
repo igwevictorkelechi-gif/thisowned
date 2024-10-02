@@ -23,6 +23,7 @@ function CheckoutPage() {
     postcode: "",
     address: "",
   });
+  const [headers, setHeaders] = useState({});
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
   const [paymentloading, setPaymentLoading] = useState(false); // State to handle loading
   const [dataloading, setdataLoading] = useState(false); // State to handle loading
@@ -31,8 +32,10 @@ function CheckoutPage() {
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState("");
   const [shippingMethods, setShippingMethods] = useState([]);
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState("");
   // const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // Default to 0 or a predefined shipping value
   const [selectedShippingPrice, setSelectedShippingPrice] = useState(null);
+  const [txRef, setTxRef] = useState(null); // State to hold the transaction reference
   // Fetch countries when component mounts
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}`)
@@ -72,7 +75,7 @@ function CheckoutPage() {
         `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${selectedCountry}&state=${selectedState}`
       );
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       setShippingMethods(data.method);
       setdataLoading(false);
     } catch (error) {
@@ -112,14 +115,17 @@ function CheckoutPage() {
     );
   };
 
-  const handleProceedToPayment = () => {
-    if (checkFormValidity()) {
-      setPaymentLoading(true); // Start loading
-      setTimeout(() => {
-        setPaymentLoading(false); // Stop loading after 3 seconds
-        setShowPaymentOptions(true); // Show payment options
-      }, 1000);
-    } else {
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    const mainHeaders = {
+      "Content-Type": "application/json",
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    };
+    setHeaders(mainHeaders);
+  }, []);
+
+  const handleProceedToPayment = async () => {
+    if (!checkFormValidity()) {
       Swal.fire({
         title: "Error!",
         text: "Please fill in all required fields before proceeding with payment.",
@@ -127,6 +133,73 @@ function CheckoutPage() {
         confirmButtonColor: "#000000",
         confirmButtonText: "Close",
       });
+      return;
+    }
+
+    setPaymentLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_CHECKOUT_URL}`, {
+        method: "POST",
+        headers: headers, // Use the headers from state
+        body: JSON.stringify({
+          shipping_address: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            postal_code: formData.postcode,
+            country: selectedCountry,
+            state: selectedState,
+          },
+          shipping_method: selectedShippingMethod,
+        }),
+      });
+
+      // Check the response type and handle errors
+      const contentType = response.headers.get("content-type");
+      let errorMessage = "An unexpected error occurred. Please try again.";
+
+      if (!response.ok) {
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          const textResponse = await response.text();
+          console.error("Server response:", textResponse);
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Handle successful response
+      const result = await response.json();
+      console.log("API response:", result);
+
+      // Extract tx_ref from the response
+      const { tx_ref } = result;
+
+      // Set tx_ref in state
+      setTxRef(tx_ref);
+
+      setTimeout(() => {
+        setPaymentLoading(false);
+        setShowPaymentOptions(true);
+      }, 1000);
+    } catch (error) {
+      // console.error("API error:", error);com
+      Swal.fire({
+        title: "Error!",
+        text:
+          error.message ||
+          "There was an issue processing your request. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      });
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -139,7 +212,7 @@ function CheckoutPage() {
       </header>
 
       <section>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-16 px-4 py-16 sm:px-6 lg:px-[12rem]">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-16 px-4 py-16 sm:px-10 xl:px-[12rem]">
           <div className="lg:col-span-2">
             <div className="mx-auto max-w-screen-xl">
               <div className="grid grid-cols-1 gap-x-16 gap-y-8">
@@ -321,11 +394,12 @@ function CheckoutPage() {
                                   // defaultChecked={idx === 0}
                                   name="shipping_method"
                                   className="sr-only peer"
-                                  onChange={() =>
+                                  onChange={() => {
                                     setSelectedShippingPrice(
                                       item.shipping_price
-                                    )
-                                  } // Set the shipping price
+                                    ); // Set the shipping price
+                                    setSelectedShippingMethod(item.id); // Set the selected shipping method
+                                  }}
                                 />
                                 <div className="w-full p-4 cursor-pointer rounded-lg border border-gray-500 bg-black shadow-sm ring-red-500 peer-checked:ring-1 duration-200">
                                   <div className="pl-7">
@@ -497,6 +571,7 @@ function CheckoutPage() {
               <div className="w-full">
                 <FlutterwavePayment
                   total={totalPrice + selectedShippingPrice}
+                  tx_ref={txRef}
                   customerInfo={formData}
                 />
                 <PaypalPayment total={totalPrice + selectedShippingPrice} />
