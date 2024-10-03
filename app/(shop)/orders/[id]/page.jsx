@@ -200,7 +200,7 @@ export default function OrderDetailsPage({ params }) {
                       <span className="capitalize">
                         {items[0].product.currency}:
                       </span>{" "}
-                      {items[0].product.price}
+                      {items[0].product.price.toFixed(2)}
                     </p>
                   </div>
                 </div>

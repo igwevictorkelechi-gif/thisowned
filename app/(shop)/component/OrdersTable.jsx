@@ -115,7 +115,7 @@ function OrdersTable() {
                     {item.product?.name ?? "Unknown Product"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    ₦{item.product?.price ?? "Unknown Price"}
+                    ₦{item.product?.price.toFixed(2) ?? "Unknown Price"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {item.quantity ?? 1}

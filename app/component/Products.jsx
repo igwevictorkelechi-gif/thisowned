@@ -116,7 +116,7 @@ function Products() {
 
                       <p className="mt-2">
                         <span className="tracking-wider text-white">
-                          ₦{product.price.toLocaleString()} NGN
+                          ₦{product.price.toFixed(2)} NGN
                         </span>
                       </p>
                     </div>

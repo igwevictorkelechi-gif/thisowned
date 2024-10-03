@@ -92,8 +92,8 @@ function ProductCollections({ collections, isAllCollections }) {
               </h3>
 
               <p className="mt-2">
-                <span className="tracking-wider text-white">
-                  {product.price.toLocaleString()} {product.currency}
+                <span className="tracking-wider text-white capitalize">
+                  {product.price.toFixed(2)} {product.currency}
                 </span>
               </p>
               {product.discount > 0 && (

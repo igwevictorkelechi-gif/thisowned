@@ -92,7 +92,7 @@ function ShopDetails({ params }) {
       token: token,
     };
 
-    console.log("Request body:", payload);
+    // console.log("Request body:", payload);
 
     try {
       const response = await fetch(
@@ -174,6 +174,7 @@ function ShopDetails({ params }) {
       [itemId]: size,
     }));
   };
+
   const addSelectedToCart = async () => {
     if (selectedSetItems.length === 0) {
       Swal.fire({
@@ -234,6 +235,8 @@ function ShopDetails({ params }) {
           }
         );
         const data = await response.json();
+        // Update the cart context
+        updateCart(data); // Assuming the API returns the updated cart
 
         if (!response.ok) {
           Swal.fire({
@@ -268,6 +271,7 @@ function ShopDetails({ params }) {
     }
   };
 
+  // SPIN LOADER
   if (!product) {
     return (
       <div className="bg-black">
@@ -550,9 +554,40 @@ function ShopDetails({ params }) {
 
             {/* Tab content */}
             <div className="mt-7 text-white text-sm">
-              {activeTab === "description" && <p>{product.details}</p>}
-              {activeTab === "delivery" && <p>{product.delivery_and_return}</p>}
-              {activeTab === "care" && <p>{product.care}</p>}
+              {activeTab === "description" && (
+                <div>
+                  <ul>
+                    {product.details.split("\r\n").map((detail, index) => (
+                      <li key={index}>{detail}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {activeTab === "delivery" && (
+                <div>
+                  <ul>
+                    {product.delivery_and_return
+                      .split("\r\n")
+                      .map((detail, index) => (
+                        <li key={index}>{detail}</li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+
+              {activeTab === "care" && (
+                <div>
+                  <p>
+                    {product.care.split("\r\n").map((line, index) => (
+                      <span key={index}>
+                        {line}
+                        <br />
+                      </span>
+                    ))}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </>
