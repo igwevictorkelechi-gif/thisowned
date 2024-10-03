@@ -1,8 +1,12 @@
 import React from "react";
 import { FlutterWaveButton, closePaymentModal } from "flutterwave-react-v3";
 import { useRouter } from "next/navigation";
+import { useCart } from "../utils/CartContext";
 
 const FlutterwavePayment = ({ total, customerInfo, tx_ref }) => {
+  const { updateCart } = useCart(); // Get the updateCart function from context
+  // const { updateCart } = useCart();
+  console.log("updateCart function:", updateCart);
   const router = useRouter();
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_TEST_KEY,
@@ -25,12 +29,24 @@ const FlutterwavePayment = ({ total, customerInfo, tx_ref }) => {
 
   const fwConfig = {
     ...config,
-    callback: (response) => {
-      console.log(response);
+    callback: async (response) => {
       closePaymentModal(); // Close payment modal after payment
       if (response.status === "successful") {
-        // Route to another page after success
-        router.push("success"); // Change '/success' to your desired route
+        try {
+          await updateCart(); // Ensure cart is updated before routing
+          // console.log("Cart updated successfully");
+
+          // First, navigate to the success page
+          // router.push("/success"); // Route to '/success'
+          window.location.href = `success`;
+
+          // Then force the page to reload after navigating
+          // setTimeout(() => {
+          //   window.location.reload();
+          // }, 1000); // Adding a delay to ensure the routing happens before reload
+        } catch (error) {
+          console.error("Error updating cart:", error);
+        }
       }
     },
     onClose: () => {},

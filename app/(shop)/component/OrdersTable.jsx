@@ -1,30 +1,88 @@
+"use client";
+import { Grid2x2Check } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function OrdersTable() {
-  const tableItems = [
-    {
-      name: "MALFUNCTION SWEATPANTS GREY MARL",
-      price: "300",
-      quantity: "4",
-      size: "2XL",
-      status: "pending",
-    },
-    {
-      name: "MALFUNCTION SWEATPANTS BLACK",
-      price: "180",
-      quantity: "2",
-      size: "M",
-      status: "success",
-    },
-    {
-      name: "MALFUNCTION SWEATPANTS BLACK",
-      price: "600",
-      quantity: "8",
-      size: "S",
-      status: "cancelled",
-    },
-  ];
+  const [orders, setOrders] = useState([]); // Orders as an array
+  const [headers, setHeaders] = useState({});
+  const [loading, setLoading] = useState(true); // Add loading state
+  const [error, setError] = useState(null); // Add error state
+
+  // Fetch cart data with access token
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    const mainHeaders = {
+      "Content-Type": "application/json",
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    };
+    setHeaders(mainHeaders);
+
+    // Fetch the orders data
+
+    fetch(`${process.env.NEXT_PUBLIC_ORDERS_URL}`, {
+      method: "GET",
+      headers: mainHeaders,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Fetched orders data:", data); // Log the fetched data
+        setOrders(data); // Set orders array
+        setLoading(false); // Set loading to false after data is fetched
+      })
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+        setError("Error fetching orders data. Please try again later.");
+        setLoading(false); // Set loading to false even on error
+      });
+  }, []);
+
+  // Display error if there's an issue fetching the data
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
+
+  // Show loading spinner when data is being fetched
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="flex-col gap-4 w-full flex items-center justify-center">
+          <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
+            <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="bg-black">
+        <div className="flex flex-col items-center text-center justify-center py-16 text-white">
+          <Grid2x2Check size={40} />
+
+          <p className="text-gray-100 text-2xl md:text-3xl font-semibold my-6 tracking-wider">
+            No orders found.
+          </p>
+
+          <Link
+            href="shop"
+            className="block rounded bg-gray-100 text-center py-2.5 px-14 text-sm text-red-600 font-semibold transition hover:bg-gray-200 mt-1"
+          >
+            Continue shopping
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate total items before rendering to use as counter
+  let totalItemCounter = 1;
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-14">
@@ -47,41 +105,54 @@ function OrdersTable() {
             </tr>
           </thead>
           <tbody className="text-white divide-y">
-            {tableItems.map((item, idx) => (
-              <tr key={idx}>
-                <td className="pl-4 py-4 whitespace-nowrap">{idx + 1}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">₦{item.price}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{item.quantity}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{item.size}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {item.status === "cancelled" ? (
-                    <span
-                      className="inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5
-                text-white"
+            {orders.map((order) =>
+              order.items.map((item, itemIdx) => (
+                <tr key={`${order.id}-${itemIdx}`}>
+                  <td className="pl-4 py-4 whitespace-nowrap">
+                    {totalItemCounter++}.
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.product?.name ?? "Unknown Product"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    ₦{item.product?.price ?? "Unknown Price"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.quantity ?? 1}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.size ?? "Unknown Size"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {order.status === "cancelled" ? (
+                      <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-white">
+                        <p className="whitespace-nowrap text-xs">Cancelled</p>
+                      </span>
+                    ) : order.status === "completed" ? (
+                      <span className="inline-flex items-center justify-center rounded-full bg-green-500 px-2 py-0.5 text-white">
+                        <p className="whitespace-nowrap text-xs">Success</p>
+                      </span>
+                    ) : order.status === "processing" ? (
+                      <span className="inline-flex items-center justify-center rounded-full bg-orange-500 px-2 py-0.5 text-orange-100">
+                        <p className="whitespace-nowrap text-xs">Processing</p>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center justify-center rounded-full bg-yellow-300 px-2 py-0.5 text-yellow-900">
+                        <p className="whitespace-nowrap text-xs">Pending</p>
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 md:px-2 py-4 whitespace-nowrap">
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="bg-white text-black px-3 py-1 border-none rounded-sm"
                     >
-                      <p className="whitespace-nowrap text-sm">Cancelled</p>
-                    </span>
-                  ) : item.status === "success" ? (
-                    <span className="inline-flex items-center justify-center rounded-full bg-green-500 px-2 py-0.5 text-white">
-                      <p className="whitespace-nowrap text-sm">Success</p>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center justify-center rounded-full bg-yellow-300 px-2 py-0.5 text-yellow-800">
-                      <p className="whitespace-nowrap text-sm">Pending</p>
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 md:px-2 py-4 whitespace-nowrap">
-                  <Link
-                    href="orders/244"
-                    className="bg-white text-black px-3 py-1 border-none rounded-sm"
-                  >
-                    View Details
-                  </Link>
-                </td>
-              </tr>
-            ))}
+                      View Details
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

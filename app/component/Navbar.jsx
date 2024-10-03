@@ -13,7 +13,7 @@ function Navbar() {
   const [isChecked, setIsChecked] = useState(false);
   const [collections, setCollections] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useAuth();
-  const { cartCount } = useCart(); // Get the cart count from context
+  const { cartCount, updateCart } = useCart(); // Get the cart count from context
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -27,11 +27,13 @@ function Navbar() {
     setIsChecked(!isChecked);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setIsLoggedIn(false);
     closeMenu();
+    // Await the cart update before showing the success message
+    await updateCart(); // Fetch the latest cart data and update the context
     Swal.fire({
       title: "Success!",
       text: "Logout successful",
@@ -138,6 +140,17 @@ function Navbar() {
                     )}
                   </ul>
                 </li>
+                {isLoggedIn && (
+                  <li>
+                    <Link
+                      className="text-gray-200 transition hover:text-white"
+                      href={"/../orders"}
+                    >
+                      ORDERS
+                    </Link>
+                  </li>
+                )}
+
                 <li>
                   <Link
                     className="text-gray-200 transition hover:text-white"
@@ -263,7 +276,19 @@ function Navbar() {
                 )}
               </div>
             </details>
-
+            {isLoggedIn && (
+              <li
+                className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
+              >
+                <Link
+                  href={"/../orders"}
+                  className="w-full block"
+                  onClick={() => closeMenu()}
+                >
+                  ORDERS
+                </Link>
+              </li>
+            )}
             <li
               className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
             >

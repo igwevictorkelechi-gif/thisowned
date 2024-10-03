@@ -175,7 +175,7 @@ function CheckoutPage() {
 
       // Handle successful response
       const result = await response.json();
-      console.log("API response:", result);
+      // console.log("API response:", result);
 
       // Extract tx_ref from the response
       const { tx_ref } = result;
@@ -380,7 +380,7 @@ function CheckoutPage() {
                       {dataloading ? (
                         <p>Loading shipping methods...</p>
                       ) : shippingMethods.length > 0 ? (
-                        <ul className="flex flex-col md:flex-row items-center gap-5 w-full mt-[-0.45rem] mb-5 lg:mb-20">
+                        <ul className="flex flex-col md:flex-row items-center gap-5 w-full mt-[-0.45rem] mb-5 lg:mb-8">
                           {shippingMethods.map((item, idx) => (
                             <li key={item.id} className="w-full">
                               <label
@@ -559,7 +559,7 @@ function CheckoutPage() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 lg:gap-16 px-4 py-16 sm:px-6 lg:px-[12rem] -mt-[5rem] lg:-mt-[11rem]">
+        <div className="grid lg:grid-cols-3 lg:gap-16 px-4 py-16 sm:px-6 lg:px-[12rem] -mt-[5rem] lg:-mt-[8rem]">
           <div className="lg:col-span-2">
             {paymentloading ? (
               <div className="w-full flex justify-center items-center">
@@ -587,7 +587,6 @@ function CheckoutPage() {
               </div>
             )}
           </div>
-          <div>Hello</div>
         </div>
       </section>
     </div>

@@ -1,9 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
 function ProductCollections({ collections, isAllCollections }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [hoveredProductId, setHoveredProductId] = useState(null); // State to track hovered product for large screens
   const [clickedProductId, setClickedProductId] = useState(null); // State to track clicked product for small screens
@@ -37,7 +39,7 @@ function ProductCollections({ collections, isAllCollections }) {
       // For small screens
       if (clickedProductId === productId) {
         // If the image has already been clicked, navigate to the product page
-        window.location.href = `/shop/${productId}`;
+        router.push(`/shop/${productId}`);
       } else {
         // Otherwise, toggle the image
         setClickedProductId(productId);
@@ -49,7 +51,7 @@ function ProductCollections({ collections, isAllCollections }) {
   const handleLargeScreenClick = (productId) => {
     if (isLargeScreen) {
       // Directly navigate to the product page on large screens
-      window.location.href = `/shop/${productId}`;
+      router.push(`/shop/${productId}`);
     }
   };
 
