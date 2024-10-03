@@ -1,13 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowLeftCircle } from "lucide-react";
+import { ArrowLeftCircle, BadgeInfo, Info } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 export default function OrderDetailsPage({ params }) {
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const searchParams = useSearchParams();
+  const itemId = searchParams.get("itemId");
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -17,7 +20,19 @@ export default function OrderDetailsPage({ params }) {
         );
         if (!response.ok) throw new Error("Failed to fetch order details");
         const data = await response.json();
-        setOrderDetails(data);
+        // Find the specific item from the URL query
+        const selectedItem = data.items.find(
+          (item) => item.product.id === parseInt(itemId)
+        );
+
+        if (!selectedItem) {
+          throw new Error("Item not found in order");
+        }
+
+        setOrderDetails({
+          ...data,
+          items: [selectedItem], // Only include the selected item
+        });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -25,8 +40,10 @@ export default function OrderDetailsPage({ params }) {
       }
     };
 
-    fetchOrderDetails();
-  }, [params.id]);
+    if (itemId) {
+      fetchOrderDetails();
+    }
+  }, [params.id, itemId]);
 
   if (loading) {
     return (
@@ -42,9 +59,20 @@ export default function OrderDetailsPage({ params }) {
 
   if (error) {
     return (
-      <div className="bg-black min-h-screen">
-        <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-14">
-          <div className="text-red-500 text-center">{error}</div>
+      <div className="bg-black">
+        <div className="flex flex-col items-center text-center justify-center py-16 text-red-500">
+          <BadgeInfo size={55} />
+
+          <p className="text-white text-2xl md:text-3xl font-semibold my-8">
+            {error}
+          </p>
+
+          <Link
+            href="../../orders"
+            className="block rounded bg-gray-100 text-center py-3 px-10 text-sm text-red-600 font-semibold transition hover:bg-gray-200 mt-2"
+          >
+            Back to orders
+          </Link>
         </div>
       </div>
     );
@@ -146,38 +174,37 @@ export default function OrderDetailsPage({ params }) {
           {/* Order Items */}
           <div className="flow-root rounded-lg border border-gray-600 py-3 shadow-sm">
             <h2 className="text-xl font-semibold text-white px-3 mb-4">
-              Order Items
+              Order Item
             </h2>
             <div className="space-y-4">
-              {items.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 p-3 border-t border-gray-600"
-                >
+              {items[0] && (
+                <div className="flex items-center gap-4 p-3 border-t border-gray-600">
                   <Image
-                    src={item.product.image}
-                    alt={item.product.name}
+                    src={items[0].product.image}
+                    alt={items[0].product.name}
                     className="w-16 h-16 object-cover rounded"
                     width={100}
                     height={100}
                   />
                   <div className="flex-1">
                     <h3 className="text-white font-medium">
-                      {item.product.name}
+                      {items[0].product.name}
                     </h3>
-                    <p className="text-gray-400 text-sm">Size: {item.size}</p>
                     <p className="text-gray-400 text-sm">
-                      Quantity: {item.quantity}
+                      Size: {items[0].size}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      Quantity: {items[0].quantity}
                     </p>
                     <p className="text-white text-sm">
                       <span className="capitalize">
-                        {item.product.currency}:
+                        {items[0].product.currency}:
                       </span>{" "}
-                      {item.product.price}
+                      {items[0].product.price}
                     </p>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

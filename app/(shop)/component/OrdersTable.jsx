@@ -144,7 +144,7 @@ function OrdersTable() {
                   </td>
                   <td className="px-4 md:px-2 py-4 whitespace-nowrap">
                     <Link
-                      href={`/orders/${order.id}`}
+                      href={`/orders/${order.id}?itemId=${item.product.id}`}
                       className="bg-white text-black px-3 py-1 border-none rounded-sm"
                     >
                       View Details
