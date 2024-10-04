@@ -21367,8 +21367,48 @@ div.tagsinput {
 
 
 
+.choices__inner {
+  background-color: #2A3038 !important;
+  border: none !important
+}
 
+.choices__input {
+  background-color: #2A3038 !important;
+  color: #ffffff !important;
+}
 
-.choices__inner{
+.choices__item.choices__item--selectable {
+  background-color: #191c24 !important;
+  border: none !important
+}
 
+.choices__button {
+  border-left: 1px solid #2A3038 !important;
+}
+
+.choices__list--dropdown {
+  background-color: #2A3038 !important;
+}
+
+.is-focused .choices__inner,
+.is-open .choices__inner {
+  border-color: #b7b7b7 !important
+}
+
+.sticky-sidebar {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 10px !important;
+}
+
+#size-guid input {
+  min-width: 60px !important;
+}
+
+.dropzone a:hover {
+  color: #ffffff !important
+}
+
+.choices__item.is-highlighted {
+  background-color: #2A3038 !important;
 }

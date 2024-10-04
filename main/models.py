@@ -147,8 +147,8 @@ class ShippingMethod(models.Model):
     name = models.CharField(max_length=100)
     delivery_time = models.CharField(max_length=100)
     rate_multiplier = models.DecimalField(max_digits=10, decimal_places=2)
-    free_shipping_threshold = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    country_exceptions = models.JSONField(default=dict, blank=True)
+    free_shipping_threshold = models.IntegerField(blank=True, null=True)
+    country_exceptions = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.delivery_time})"

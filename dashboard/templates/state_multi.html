@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+{% load static %}
+{% load custom_filters %}
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Thisowned Admin</title>
+
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <!-- ICON CSS  -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{% static 'assets/images/logodark.png' %}" />
+    <link rel="stylesheet" href="{% static 'assets/vendors/choices/choices.min.css' %}" type="text/css" />
+
+    
+</head>
+
+<body>
+    <div class="container-scroller">
+        
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_navbar.html -->
+            
+            <!-- partial -->
+            <div class="main-panel pt-0">
+                <div class="content-wrapper">
+                    <div class="container">
+                        <h4 class="card-title">State multiple for {{rate.country}}</h4>
+                        <form class="forms-sample mt-5" action="" method="post">
+                            {% csrf_token %}
+                            {% all_state rate.country as state_list %}
+                            {% for state in state_list %}
+                            <div class="row gx-2 flex-between-center mb-3 align-items-center">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0 text-600">{{state}}</h6>
+                                </div>
+                                <div class="col-sm-9">
+                                    <div class="d-flex justify-content-around align-items-center">
+                                        <h6 class="mb-0 text-700">
+                                            <input type="number" class="form-control text-white" name="{{state}}" step="0.1" min="0" max="9999999.9"
+                                                   value="{{ rate.state_multiplier|get_dict_item:state }}" required>
+                                        </h6>
+                                        <div class="btn btn-sm btn-link text-danger price-value" >
+                                            {{ rate.state_multiplier|get_dict_item:state|multiply:rate.base_rate }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="d-flex justify-content-center">
+                                <button type="submit" class="btn btn-light p-2 w-100 mt-3" style="max-width: 300px;">Save</button>
+                            </div>
+                            
+                        </form>
+                    </div>
+                    
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                <footer class="footer">
+                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright ©
+                            Thisowned
+                            2024</span>
+
+                    </div>
+                </footer>
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+
+            <!-- Button trigger modal -->
+
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- End plugin js for this page -->
+    <!-- inject:js -->
+    <script src="{% static 'assets/js/off-canvas.js' %}"></script>
+    <script src="{% static 'assets/js/hoverable-collapse.js' %}"></script>
+    <script src="{% static 'assets/js/misc.js' %}"></script>
+    <script src="{% static 'assets/js/settings.js' %}"></script>
+
+    <!-- endinject -->
+    <!-- Custom js for this page -->
+    <script src="{% static 'assets/js/dashboard.js' %}"></script>
+    <!-- End custom js for this page -->
+
+    <script>
+        price = {{rate.base_rate}}
+        $('input').on('input', function(){
+            console.log($(this).val())
+            $(this).parent().parent().find('.price-value').html(price * $(this).val())
+        })
+    </script>
+
+</body>
+
+</html>
+

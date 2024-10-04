@@ -2,7 +2,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from main.models import Collection
+from main.models import Collection, ShippingMethod
 
 
 class CustomAuthenticationForm(AuthenticationForm):

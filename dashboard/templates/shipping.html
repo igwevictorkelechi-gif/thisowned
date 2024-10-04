@@ -1,0 +1,193 @@
+{% extends 'dashboard.html' %}
+{% load custom_filters %}
+{% block style %}
+    <style>
+        #s-rate tr.view select, #s-rate tr.view input, #s-rate tr.view .update-item{
+            display: none;
+        }
+        #s-rate tr.edit td span, #s-rate tr.edit .edit-item{
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="card-title">Shipping Methods</h4>
+        </div>
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th> Name </th>
+                            <th> Rate Multiplier </th>
+                            <th> All Countries </th>
+                            <th> Except </th>
+
+                            <th class="text-center"> Action </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in shipping_method %}
+                        <tr>
+                            <td>
+                                <div>
+                                    <span
+                                        style="font-weight: bold;font-size: 13px;">{{item.name}}</span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div>
+                                    <span
+                                        style="font-weight: bold;font-size: 13px;">{{item.rate_multiplier}}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span
+                                        style="font-weight: bold;font-size: 13px;">True</span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div>
+                                    <span class="d-inline-block text-truncate" style="max-width: 200px; font-weight: bold;font-size: 13px">
+                                        {{item.country_exceptions}}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                <a href="{% url 'shipping_method_' item.id %}" data-popup="yes" title="Edit current Shipping Method" class="btn btn-sm btn-light">Edit</a>
+                                <button id="deleteBtn"
+                                    class="btn btn-sm btn-danger ml-4">Delete</button>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+                <a class="btn btn-link" href="{% url 'shipping_method' %}" data-popup="yes">
+                    <span class="bx bx-plus me-1" data-fa-transform="shrink-3"></span>Add new shipping method
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">Shipping regions and Rate</h4>
+        </div>
+        <div class="card-body">
+            <table class="table" id="s-rate">
+                <thead>
+                    <tr>
+                        <th>Regions</th>
+                        <th>Price</th>
+                        <th class="text-center">State multipler</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in shipping_rate %}
+                    <tr class="view">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="edit-rate" value="{{item.id}}">
+                            <td>
+                                <select class="form-control text-white" required name="country">
+                                    <option>Select a Rigion</option>
+                                    {% available_countries item.country as country_list %}
+                                    {% for country in country_list %}
+                                    <option value="{{country}}" {% if item.country == country %} selected {% endif %}>{{country}}</option>
+                                    {% endfor %}
+                                </select>
+                                <span style="font-size: 13px;">{{item.country}}</span>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control text-white" required value="{{item.base_rate}}" name="base_rate">
+                                <span style="font-size: 13px;">{{item.base_rate}}</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'state_multi_' item.id %}" data-popup="yes" title="State multipler form" class="btn btn-sm btn-light">
+                                    <i class="bx bx-show m-0" style="font-size: 15px;"></i>
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a class="btn btn-link edit-item">Edit</a>
+                                <button class="btn btn-sm btn-light update-item">Save</button>
+                                <a href="" class="btn btn-link delete">Remove</a>
+                            </td>
+                        </form>
+
+                    </tr>
+                    {% endfor %}
+
+                    <tr>
+                        <form action="" method="post">
+                            <input type="hidden" name="add-rate" value="">
+                            {% csrf_token %}
+                            <td>
+                                <select id="single-select" class="form-control text-white" required name="country">
+                                    <option>Select an option</option>
+                                    {% available_countries as country_list %}
+                                    {% for country in country_list %}
+                                    <option value="{{country}}" {% if item.country == country %} selected {% endif %}>{{country}}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control text-white" required name="base_rate">
+                            </td>
+                            <td></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-light">Add</button>
+                            </td>
+                        </form>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- <button class="btn btn-link" id="add-region">
+                <span class="bx bx-plus me-1" data-fa-transform="shrink-3"></span>Add new shipping region
+            </button> -->
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $('a[data-popup="yes"]').on('click', function(event) {
+            event.preventDefault(); // Prevent the default action of the link
+
+            // Get the href (URL) of the clicked link
+            var url = $(this).attr('href');
+
+            // Set popup window features
+            var windowFeatures = "width=600,height=400,scrollbars=yes,resizable=yes";
+
+            // Open the popup window
+            var popupWindow = window.open(url, 'popupWindow', windowFeatures);
+
+            // Set up an interval to check if the popup was closed
+            var popupInterval = setInterval(function() {
+                if (popupWindow.closed) {
+                    clearInterval(popupInterval); // Stop the interval
+
+                    // Check if the popup window was closed without cancel
+                    if (window.shouldRefresh) {
+                        location.reload(); // Refresh the parent page if no cancel action
+                    }
+                }
+            }, 500);
+        });
+
+
+        $(document).on('click', '.edit-item', function(){
+            $(this).parent().parent().attr('class', 'edit');
+        });
+
+    </script>
+{% endblock %}

@@ -186,7 +186,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 {"detail": "Unauthorized: Invalid or missing access token."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        order = Order.objects.filter(customer=request.user)
+        order = Order.objects.filter(customer=request.user).order_by('-id')
         serializer = self.get_serializer(order, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -206,7 +206,7 @@ class ShippingRateViewSet(viewsets.ModelViewSet):
             return Response(response, status=status.HTTP_200_OK)
         elif country and not state:
             pyc = pycountry.countries.get(name=country)
-            states = [state.name for state in pycountry.subdivisions.get(country_code=pyc.alpha_2)]
+            states = sorted([state.name for state in pycountry.subdivisions.get(country_code=pyc.alpha_2)])
             response = {"status": "state", 'options': states}
             return Response(response, status=status.HTTP_200_OK)
         else:

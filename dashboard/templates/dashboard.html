@@ -114,6 +114,15 @@
           </a>
         </li>
 
+         <li class="nav-item menu-items {% if request.path == '/dashboard/shipping/' %}active{% endif %}">
+              <a class="nav-link" href="{% url 'shipping' %}">
+                  <span class="menu-icon">
+                  <i class='bx bx-package'></i>
+                  </span>
+                  <span class="menu-title">Shipping</span>
+              </a>
+          </li>
+
 
         <li class="nav-item menu-items">
           <a class="nav-link" href="{% url 'logout' %}">

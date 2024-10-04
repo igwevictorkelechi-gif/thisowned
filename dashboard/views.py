@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.forms import ValidationError
 from django.contrib.auth import views as auth_views, authenticate, login
 from .forms import CustomAuthenticationForm, CollectionForm
-from main.models import Order, Collection, User, Product, ProductImage, SizeGuid
+from main.models import Order, Collection, User, Product, ProductImage, SizeGuid, ShippingMethod, ShippingRate
 
 
 # Custom test function to check if user is an admin
@@ -50,7 +50,7 @@ def dashboard(request):
 
 
 def orders(request):
-    all_orders = Order.objects.all()
+    all_orders = Order.objects.all().order_by('-id')
     return render(request, 'orders.html', {'orders': all_orders})
 
 
@@ -119,3 +119,54 @@ def products_form(request, p_id=None):
         return render(request, 'product_form.html', {'collection': collection, 'product': product})
 
     return render(request, 'product_form.html', {'collection': collection})
+
+
+def shipping(request):
+    if request.method == 'POST':
+        data = request.POST
+        if 'add-rate' in data:
+            ShippingRate.objects.create(country=data['country'], base_rate=data['base_rate'])
+        elif 'edit-rate' in data:
+            edit_data = ShippingRate.objects.get(id=data['edit-rate'])
+            edit_data.country, edit_data.base_rate = data['country'], data['base_rate']
+            edit_data.save()
+    ship_method = ShippingMethod.objects.all()
+    ship_rate = ShippingRate.objects.all()
+    return render(request, 'shipping.html', {"shipping_method": ship_method, 'shipping_rate': ship_rate})
+
+
+def shipping_method(request, method_id=None):
+    if method_id:
+        method_data = ShippingMethod.objects.get(id=method_id)
+        if request.method == "POST":
+            post = request.POST
+            free_shipping_threshold = float(post.get('free_shipping')) if post.get('free_shipping') else None
+            method_data.name, method_data.free_shipping_threshold = post['name'], free_shipping_threshold
+            method_data.rate_multiplier, method_data.delivery_time = post['rate_multiplier'], post['delivery_time']
+            method_data.country_exceptions = post.getlist('country_exceptions')
+            method_data.save()
+        return render(request, 'shipping_method.html', {'method_data': method_data, "redirect": True})
+    if request.method == "POST":
+        post = request.POST
+        free_shipping_threshold = float(post.get('free_shipping')) if post.get('free_shipping') else None
+        ShippingMethod.objects.create(name=post['name'], delivery_time=post['delivery_time'],
+                                      free_shipping_threshold=free_shipping_threshold,
+                                      rate_multiplier=post['rate_multiplier'],
+                                      country_exceptions=post.getlist('country_exceptions'))
+        return render(request, 'shipping_method.html', {"redirect": True})
+    return render(request, 'shipping_method.html')
+
+
+def state_multi(request, rate_id):
+    rate = ShippingRate.objects.get(id=rate_id)
+    if request.method == 'POST':
+        data = request.POST
+        state_multiplier = {}
+        for key, value in data.items():
+            if key != 'csrfmiddlewaretoken' and float(value) != float(1):
+                state_multiplier[key] = float(value)
+        rate.state_multiplier = state_multiplier
+        rate.save()
+
+    return render(request, 'state_multi.html', {'rate': rate})
+

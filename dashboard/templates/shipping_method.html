@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+{% load static %}
+{% load custom_filters %}
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Thisowned Admin</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{%  static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{%  static 'assets/vendors/css/vendor.bundle.base.css' %}">
+    <!-- endinject -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{%  static 'assets/css/style.css' %}">
+    <!-- ICON CSS  -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{%  static 'assets/images/logodark.png' %}" />
+    <link rel="stylesheet" href="{%  static 'assets/vendors/choices/choices.min.css' %}" type="text/css" />
+
+    
+</head>
+
+<body>
+    <div class="container-scroller">
+        
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_navbar.html -->
+            
+            <!-- partial -->
+            <div class="main-panel pt-0">
+                <div class="content-wrapper">
+                    <div class="container">
+                        <h4 class="card-title">{%if method_data%}Edit{%else%}Add{% endif %} Shipping Methods</h4>
+                        <form action="" method="post" class="forms-sample mt-5">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" class="form-control text-white" name="name" value="{{method_data.name}}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Delivery time</label>
+                                <input type="text" class="form-control text-white" name="delivery_time" value="{{method_data.delivery_time}}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Rate multiplier</label>
+                                <input type="number" class="form-control text-white" name="rate_multiplier" value="{{method_data.rate_multiplier|default:1.00}}"
+                                       step="0.01" min="0" max="99999999.99" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Free shipping threshold</label>
+                                <input type="number" class="form-control text-white" name="free_shipping" value="{{method_data.free_shipping_threshold}}"
+                                step="0.01">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Is all countres</label>
+                                <input type="checkbox" checked class="text-white">
+                            </div>
+
+                            <div class="form-group">
+                                <label>exceptions</label>
+                                <select id="multi-select" class="choices" multiple name="country_exceptions">
+                                    {% all_countries as country_list %}
+                                    {% for country in country_list %}
+                                    <option value="{{country}}" {% if country in method_data.country_exceptions %} selected {% endif %}>
+                                        {{country}}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-light p-2 w-100 mt-3">Save</button>
+
+                        </form>
+                    </div>
+                    
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                <footer class="footer">
+                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright ©
+                            Thisowned
+                            2024</span>
+
+                    </div>
+                </footer>
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+
+            <!-- Button trigger modal -->
+
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="{%  static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- endinject -->
+    <!-- inject:js -->
+    <script src="{%  static 'assets/js/off-canvas.js' %}"></script>
+    <script src="{%  static 'assets/js/hoverable-collapse.js' %}"></script>
+    <script src="{%  static 'assets/js/misc.js' %}"></script>
+    <script src="{%  static 'assets/js/settings.js' %}"></script>
+
+    <!-- endinject -->
+
+    <script src="{%  static 'assets/vendors/choices/choices.min.js' %}"></script>
+    <script>
+        const multipleSelect = new Choices('#multi-select', {
+            removeItemButton: true, // Option to remove selected items
+            maxItemCount: 5,        // Set a maximum number of items to select
+            searchResultLimit: 5,   // Limit the number of search results
+            renderChoiceLimit: 5    // Limit how many options are displayed at once
+        });
+
+    </script>
+</body>
+
+</html>
+
