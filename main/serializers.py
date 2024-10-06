@@ -1,11 +1,37 @@
-from abc import ABC
-
+import requests
+from bs4 import BeautifulSoup
+from django.core.cache import cache
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
     Shipping, ShippingRate, ShippingMethod
 
 
-# from .payment_gateway import pay_with_card
+def price_converter(source_currency, target_currency):
+    cached = cache.get(f'{source_currency}-{target_currency}', None)
+    if cached:
+        return cached
+    response = requests.get(
+        f"https://www.xe.com/currencyconverter/convert/?Amount=1&From={source_currency}&To={target_currency}")
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    text1 = soup.find(class_="faded-digits").previous_sibling
+    text2 = soup.find(class_="faded-digits").get_text(strip=True)
+    if not text1 and text2:
+        return 1
+    rate = "{}{}".format(text1, text2).replace(',', '')
+    result = 1 * float(rate)
+    cache.set(f'{source_currency}-{target_currency}', result, timeout=60 * 15)
+
+    return result
+
+
+currency_dict = {
+    "USD": "$",  # United States Dollar
+    "EUR": "€",  # Euro
+    "GBP": "£",  # British Pound Sterling
+    "INR": "₹",  # Indian Rupee
+    "NGN": "₦"
+}
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -32,6 +58,19 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def get_discount_price(self, obj):
         return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.method == "GET":
+            target_currency = request.query_params.get('code', None)
+            if target_currency and target_currency.upper() != data['currency'].upper():
+                pass
+                base_price = price_converter(data['currency'].upper(), target_currency.upper())
+                data['price'], data['currency'] = round((data['price'] * base_price), 2), target_currency.lower()
+                data["discount_price"] = round((data["discount_price"] * base_price), 2)
+            data["symbol"] = currency_dict.get(target_currency.upper(), data['currency'].upper())
+        return data
 
 
 class ProductSetSerializer(serializers.ModelSerializer):
@@ -66,6 +105,20 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_discount_price(self, obj):
         return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.method == "GET":
+            target_currency = request.query_params.get('code', None)
+            if target_currency and target_currency.upper() != data['currency'].upper():
+                pass
+                base_price = price_converter(data['currency'].upper(), target_currency.upper())
+                data['price'], data['currency'] = round((data['price'] * base_price), 2), target_currency.lower()
+                data["discount_price"] = round((data["discount_price"] * base_price), 2)
+            data["symbol"] = currency_dict.get(target_currency.upper(), data['currency'].upper())
+        return data
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -130,7 +183,7 @@ class CartSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if request and request.method == 'GET':
-            self.fields['product'] = ProductListSerializer()
+            self.fields['product'] = ProductListSerializer(context={'request': request})
             self.fields['size'] = SizeGuidSerializer()
         elif request and request.method == 'POST':
             self.fields['product'] = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
@@ -165,6 +218,18 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['product', 'size', 'quantity']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.method == "GET":
+            target_currency = request.query_params.get('code', None)
+            if target_currency and target_currency.upper() != data['product']["currency"].upper():
+                base_price = price_converter(data['product']['currency'].upper(), target_currency.upper())
+                data['product']['price'] = round((base_price * data['product']['price']), 2)
+                data['product']['currency'] = target_currency.lower()
+            data["product"]["symbol"] = currency_dict.get(target_currency.upper(), data['product']["currency"].upper())
+        return data
 
 
 class PaymentDetailsSerializer(serializers.ModelSerializer):
