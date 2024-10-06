@@ -1,7 +1,6 @@
-import json, requests
+import json
 
 from django.http import JsonResponse
-from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -9,7 +8,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 import pycountry
-from bs4 import BeautifulSoup
 
 from .serializers import *
 from .models import Product, User, Collection

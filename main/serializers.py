@@ -1,5 +1,3 @@
-import requests
-from bs4 import BeautifulSoup
 from django.core.cache import cache
 from rest_framework import serializers
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
@@ -7,6 +5,8 @@ from .models import Product, ProductImage, User, Collection, ProductSet, SizeGui
 
 
 def price_converter(source_currency, target_currency):
+    import requests
+    from bs4 import BeautifulSoup
     cached = cache.get(f'{source_currency}-{target_currency}', None)
     if cached:
         return cached
