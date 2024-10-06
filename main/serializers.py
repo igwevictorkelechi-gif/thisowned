@@ -63,7 +63,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == "GET":
-            target_currency = request.query_params.get('code', None)
+            target_currency = request.query_params.get('code', data['currency'])
             if target_currency and target_currency.upper() != data['currency'].upper():
                 pass
                 base_price = price_converter(data['currency'].upper(), target_currency.upper())
@@ -110,7 +110,7 @@ class ProductSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == "GET":
-            target_currency = request.query_params.get('code', None)
+            target_currency = request.query_params.get('code', data['currency'])
             if target_currency and target_currency.upper() != data['currency'].upper():
                 pass
                 base_price = price_converter(data['currency'].upper(), target_currency.upper())
@@ -223,7 +223,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         request = self.context.get('request')
         if request and request.method == "GET":
-            target_currency = request.query_params.get('code', None)
+            target_currency = request.query_params.get('code', data['product']["currency"])
             if target_currency and target_currency.upper() != data['product']["currency"].upper():
                 base_price = price_converter(data['product']['currency'].upper(), target_currency.upper())
                 data['product']['price'] = round((base_price * data['product']['price']), 2)
