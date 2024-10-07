@@ -171,7 +171,7 @@ class ShippingRate(models.Model):
 
     def state_base_rate(self, state):
         multiplier = self.state_multiplier.get(state, 1)
-        return self.base_rate * multiplier
+        return float(self.base_rate) * multiplier
 
     class Meta:
         ordering = ['country']
@@ -182,6 +182,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    currency = models.CharField(max_length=3, default='ngn')
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),
         ('processing', 'Processing'),

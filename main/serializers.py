@@ -260,6 +260,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
     shipping_address = ShippingAddressSerializer(write_only=True)
     shipping_method = serializers.PrimaryKeyRelatedField(queryset=ShippingMethod.objects.all(), write_only=True)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0.00, source="total", read_only=True)
+    currency = serializers.CharField(max_length=3, read_only=True)
     tx_ref = serializers.CharField(max_length=1000, source="payment_detail.tx_ref", read_only=True)
     email = serializers.EmailField(source="shipping_address.email", read_only=True)
     first_name = serializers.CharField(max_length=1000, source="customer.first_name", read_only=True)
@@ -267,7 +268,8 @@ class CheckoutSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'shipping_address', 'shipping_method', "tx_ref", "amount", "email", "first_name", "last_name"]
+        fields = ['id', 'shipping_address', 'shipping_method', "tx_ref", "amount", "currency",
+                  "email", "first_name", "last_name"]
 
     def create(self, validated_data):
         # Extract related data
@@ -278,6 +280,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
         # billing_address = validated_data.pop('billing_address')
         request = self.context.get('request')
         validated_data["customer"] = request.user
+        target_currency = request.query_params.get('code', 'NGN').upper()
 
         # Step 1: Create the Payment
         payment = Payment.objects.create()
@@ -301,14 +304,32 @@ class CheckoutSerializer(serializers.ModelSerializer):
 
             OrderItem.objects.create(order=order, product=item_dict, quantity=item_data.quantity,
                                      size=item_data.size)
-            total += new_price
+            source_currency = item_data.product.currency.upper()
+            print(source_currency, target_currency)
+
+            total += new_price if source_currency == target_currency else \
+                (price_converter(source_currency, target_currency) * new_price)
 
         shipping_rate = ShippingRate.objects.get(country=shipping.country)
-        total += float(shipping_rate.state_base_rate(shipping.state) * order.shipping_method.rate_multiplier)
+        shipping_price = float(shipping_rate.state_base_rate(shipping.state) * order.shipping_method.rate_multiplier)
+        total += shipping_price if target_currency == 'NGN' else \
+            (price_converter('NGN', target_currency) * shipping_price)
 
         order.total = total
+        order.currency = target_currency.lower()
         order.save()
         return order
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        source_currency = data["currency"].upper()
+        if 'USD' != source_currency:
+            base_price = price_converter(source_currency, 'USD')
+            data['amount_usd'] = base_price * data['amount']
+        else:
+            data['amount_usd'] = data['amount']
+        return data
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -329,7 +350,17 @@ class ShippingMethodSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'delivery_time', 'shipping_price']
 
     def get_shipping_price(self, obj):
-        return self.context.get('state_base_rate', None) * obj.rate_multiplier
+        return self.context.get('state_base_rate', None) * float(obj.rate_multiplier)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        target_currency = request.query_params.get('code', None)
+        if target_currency and target_currency.upper() != 'NGN':
+            data['shipping_price'] = price_converter('NGN', target_currency.upper()) * data["shipping_price"]
+        data["symbol"] = currency_dict[target_currency.upper() if target_currency else 'NGN']
+        data['currency'] = target_currency.upper() if target_currency else 'NGN'
+        return data
 
 
 class ShippingRateSerializer(serializers.ModelSerializer):
@@ -347,7 +378,8 @@ class ShippingRateSerializer(serializers.ModelSerializer):
             if method.country_included(obj.country):
                 methods.append(method)
         state_base_rate = obj.state_base_rate(self.context.get('state', None))
-        return ShippingMethodSerializer(methods, many=True, context={"state_base_rate": state_base_rate}).data
+        return ShippingMethodSerializer(methods, many=True, context={
+            "state_base_rate": state_base_rate, 'request': self.context.get('request')}).data
 
     def get_state(self, obj):
         return self.context.get('state', None)

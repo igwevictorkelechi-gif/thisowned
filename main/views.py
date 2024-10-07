@@ -212,6 +212,6 @@ class ShippingRateViewSet(viewsets.ModelViewSet):
         else:
 
             shipping_rate = ShippingRate.objects.get(country=country)
-            serializer = self.get_serializer(shipping_rate, many=False, context={'state': state})
+            serializer = self.get_serializer(shipping_rate, many=False, context={'state': state, "request": request})
 
             return Response(serializer.data, status=status.HTTP_200_OK)
