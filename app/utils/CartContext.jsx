@@ -1,5 +1,7 @@
 "use client";
+
 import { createContext, useState, useEffect, useContext } from "react";
+import { useCurrency } from "./CurrencyContext";
 
 const CartContext = createContext();
 
@@ -9,6 +11,32 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
   const [totalPrice, setTotalPrice] = useState(0);
+  const { currency } = useCurrency();
+
+  // Updated to handle nested product structure
+  const calculateTotalPrice = (cartItems) => {
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0)
+      return 0;
+
+    return cartItems.reduce((sum, item) => {
+      // Check for nested product structure
+      if (!item || !item.product) return sum;
+
+      const price =
+        parseFloat(
+          item.product.discount
+            ? item.product.discount_price
+            : item.product.price
+        ) || 0;
+      const quantity = parseInt(item.quantity) || 0;
+
+      if (price === 0 || quantity === 0) {
+        console.warn("Invalid cart item:", item);
+      }
+
+      return sum + price * quantity;
+    }, 0);
+  };
 
   const updateCartCount = (count) => {
     setCartCount(count);
@@ -40,7 +68,14 @@ export const CartProvider = ({ children }) => {
 
   const token = getToken();
 
+  useEffect(() => {
+    const newTotal = calculateTotalPrice(cart);
+    setTotalPrice(newTotal);
+  }, [cart]);
+
   const fetchCartDetails = async () => {
+    if (!currency) return;
+
     setLoading(true);
     const accessToken = localStorage.getItem("accessToken");
     const headers = {
@@ -50,48 +85,65 @@ export const CartProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
+        `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}&code=${currency}`,
         { method: "GET", headers }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const cartData = await response.json();
 
-      console.log(response.status);
+      // Validate cart data structure
+      if (!Array.isArray(cartData)) {
+        console.error("Invalid cart data format:", cartData);
+        throw new Error("Invalid cart data format");
+      }
+
+      // Validate each cart item has the required nested structure
+      const validatedCart = cartData.filter((item) => {
+        const isValid =
+          item &&
+          typeof item === "object" &&
+          item.product &&
+          "price" in item.product &&
+          "quantity" in item;
+
+        if (!isValid) {
+          console.warn("Invalid cart item filtered out:", item);
+        }
+
+        return isValid;
+      });
+
       if (response.status === 401) {
-        // Handle unauthorized status
         localStorage.removeItem("cartToken");
         localStorage.removeItem("accessToken");
-      } else if (response.ok) {
-        // If the response is successful
-        setCart(cartData);
-        updateCartCount(cartData.length);
-        setIsCartEmpty(cartData.length === 0);
-
-        // Calculate and set total price
-        const total = cartData.reduce(
-          (sum, item) => sum + item.price * item.quantity,
-          0
-        );
-        setTotalPrice(total);
+      } else {
+        setCart(validatedCart);
+        updateCartCount(validatedCart.length);
+        setIsCartEmpty(validatedCart.length === 0);
+        const newTotal = calculateTotalPrice(validatedCart);
+        setTotalPrice(newTotal);
       }
     } catch (error) {
       console.error("Error fetching cart:", error);
+      setCart([]);
+      setTotalPrice(0);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCartDetails();
-  }, [token]);
+    if (currency) {
+      fetchCartDetails();
+    }
+  }, [currency, token]);
 
-  // Helper to update cart
   const updateCart = async () => {
     await fetchCartDetails();
-  };
-
-  // Function to update total price
-  const updateTotalPrice = (newTotal) => {
-    setTotalPrice(newTotal);
   };
 
   return (
@@ -106,7 +158,8 @@ export const CartProvider = ({ children }) => {
         updateCartCount,
         token,
         totalPrice,
-        updateTotalPrice,
+        calculateTotalPrice,
+        currency,
       }}
     >
       {children}

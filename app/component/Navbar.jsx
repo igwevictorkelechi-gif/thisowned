@@ -7,6 +7,7 @@ import { navLinks } from "../constants/ContentConstants";
 import { useAuth } from "../utils/AuthContext";
 import { useCart } from "../utils/CartContext";
 import Swal from "sweetalert2";
+import { useCurrency } from "../utils/CurrencyContext";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,6 +15,7 @@ function Navbar() {
   const [collections, setCollections] = useState([]);
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const { cartCount, updateCart } = useCart(); // Get the cart count from context
+  // const [currency, setCurrency] = useState("USD"); // Default currency is 'USD'
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -61,6 +63,13 @@ function Navbar() {
 
     checkLoginStatus();
   }, [setIsLoggedIn]);
+
+  const { currency, updateCurrency } = useCurrency();
+
+  const handleCurrencyChange = (e) => {
+    const selectedCurrency = e.target.value;
+    updateCurrency(selectedCurrency);
+  };
   return (
     <header className="pt-4 pb-4 bg-black">
       <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
@@ -180,6 +189,24 @@ function Navbar() {
                     </span>
                   </span>
                 </Link>
+
+                <div className="hidden md:block">
+                  <select
+                    name="currency"
+                    id="currency"
+                    className="w-full rounded-md border py-0.5 border-gray-500 text-gray-300 sm:text-sm bg-black"
+                    onChange={handleCurrencyChange}
+                    value={currency} // Controlled component
+                  >
+                    <option disabled value="" className="text-white">
+                      Currency
+                    </option>
+                    <option value="USD">USD</option>
+                    <option value="NGN">NGN</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
               </div>
 
               <div className="block md:hidden">

@@ -6,6 +6,7 @@ import ImageGallery from "../../component/ImageGallery";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import { useCart } from "../../../utils/CartContext";
+import { useCurrency } from "../../../utils/CurrencyContext";
 
 function ShopDetails({ params }) {
   const { updateCart } = useCart(); // Use the context to access updateCart function
@@ -17,29 +18,59 @@ function ShopDetails({ params }) {
   const [totalPrice, setTotalPrice] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [token, setToken] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { currency } = useCurrency();
 
   useEffect(() => {
-    // Fetch product details based on the id from params
+    let mounted = true;
+
     const fetchProduct = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_PRODUCTS_URL}${params.id}`
+          `${process.env.NEXT_PUBLIC_PRODUCTS_URL}${params.id}/?code=${currency}`
         );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch product");
+        }
+
         const data = await response.json();
-        setProduct(data); // Store the fetched product data
+        if (mounted) {
+          setProduct(data);
+          // Reset selections when currency changes
+          setSelectedSize("");
+          setSelectedSetItems([]);
+          setSelectedSetSizes({});
+          // Recalculate total price if needed
+          setTotalPrice(data.price * quantity);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
-    fetchProduct();
-    // Generate or retrieve token
+
+    // Get or generate token
     let storedToken = localStorage.getItem("cartToken");
     if (!storedToken) {
       storedToken = generateToken();
       localStorage.setItem("cartToken", storedToken);
     }
     setToken(storedToken);
-  }, [params.id]);
+
+    // Only fetch if we have a currency
+    if (currency) {
+      fetchProduct();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [currency, params.id, quantity]);
 
   const generateToken = () => {
     const characters =
@@ -271,6 +302,21 @@ function ShopDetails({ params }) {
     }
   };
 
+  // Show loading state while fetching new data
+  if (loading) {
+    return (
+      <div className="bg-black">
+        <div className="flex justify-center items-center py-20">
+          <div className="flex-col gap-4 w-full flex items-center justify-center">
+            <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
+              <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // SPIN LOADER
   if (!product) {
     return (
@@ -334,7 +380,7 @@ function ShopDetails({ params }) {
                   {product.name}
                 </h1>
                 <p className="font-light text-[1.3rem] mt-4 text-white">
-                  ₦{product.price.toLocaleString()}.00
+                  {product.symbol} {product.price.toFixed(2)}
                 </p>
 
                 <div className="mt-6 flex items-center gap-6">
@@ -480,7 +526,7 @@ function ShopDetails({ params }) {
                                   }
                                 />
                                 <p className="text-sm text-gray-200">
-                                  ₦{item.price.toLocaleString()}.00
+                                  {item.symbol} {item.price.toFixed(2)}
                                 </p>
                               </div>
                             </div>
@@ -492,9 +538,7 @@ function ShopDetails({ params }) {
                     <div className="my-10">
                       <h1 className="text-white font-bold text-base tracking-wider">
                         TOTAL PRICE:{" "}
-                        <span className="ml-10">
-                          ₦{totalPrice.toLocaleString()}
-                        </span>
+                        <span className="ml-10">{totalPrice.toFixed(2)}</span>
                       </h1>
                       <button
                         className="bg-white hover:opacity-95 hover:text-red-500 hover:font-medium text-whte p-1.5 w-[100%]

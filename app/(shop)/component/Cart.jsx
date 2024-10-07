@@ -131,37 +131,55 @@ function Cart({ setIsCartEmpty }) {
     }
   };
 
-  // Calculate total price
+  const symbol = cart.length > 0 ? cart[0].product.symbol : ""; // Get symbol from the first item
+
   const calculateTotalPrice = () => {
     if (!Array.isArray(cart)) return 0;
-    return cart.reduce(
-      (total, item) => total + item.product.price * item.quantity,
-      0
-    );
+
+    return cart.reduce((total, item) => {
+      // Check if the item has a discount
+      const price = item.product.discount
+        ? item.product.discount_price
+        : item.product.price;
+      return total + price * item.quantity;
+    }, 0);
   };
 
-  // Calculate total discount from cart items
+  // Function to calculate total discount
   const calculateTotalDiscount = () => {
     if (!Array.isArray(cart)) return 0;
-    return cart.reduce(
-      (totalDiscount, item) =>
-        totalDiscount + (item.product.discount || 0) * item.quantity,
-      0
-    );
+
+    return cart.reduce((total, item) => {
+      // Calculate discount amount for each item
+      const discountAmount =
+        (item.product.discount / 100) * item.product.price * item.quantity;
+      return total + discountAmount;
+    }, 0);
   };
+
+  // Get the total discount
+  const totalDiscount = calculateTotalDiscount();
+
+  // Calculate totals
+  const carttotal = parseFloat(calculateTotalPrice().toFixed(2)); // Use toFixed to handle precision
+  // console.log(totalBeforeDiscount);
+
+  // const totalDiscount = parseFloat(calculateTotalDiscount().toFixed(2)); // Use toFixed for discount
+  // console.log(totalDiscount);
+
+  // Calculate total after applying the discount
+  // const totalAfterDiscount = parseFloat(
+  //   (
+  //     totalBeforeDiscount - Math.min(totalDiscount, totalBeforeDiscount)
+  //   ).toFixed(2)
+  // ); // Use toFixed to ensure precision
+
+  // console.log(totalAfterDiscount); // This should show a properly rounded value
 
   // Handle proceed to checkout
   const handleProceedToCheckout = () => {
-    const totalPrice = calculateTotalPrice();
-    updateTotalPrice(totalPrice);
     router.push("/checkout");
   };
-
-  // Calculate final total after discount
-  const totalBeforeDiscount = calculateTotalPrice();
-  const totalDiscount = calculateTotalDiscount();
-  const totalAfterDiscount =
-    totalBeforeDiscount - Math.min(totalDiscount, totalBeforeDiscount);
 
   return (
     <div>
@@ -219,7 +237,8 @@ function Cart({ setIsCartEmpty }) {
                                 {item.product.discount && (
                                   <span>
                                     {" "}
-                                    ₦{item.product.discount_price}.00
+                                    {item.product.symbol}{" "}
+                                    {item.product.discount_price.toFixed(2)}
                                   </span>
                                 )}
                                 <span
@@ -229,7 +248,8 @@ function Cart({ setIsCartEmpty }) {
                                       : ""
                                   }
                                 >
-                                  ₦{item.product.price}.00
+                                  {item.product.symbol}{" "}
+                                  {item.product.price.toFixed(2)}
                                 </span>
                               </dd>
                             </div>
@@ -278,13 +298,15 @@ function Cart({ setIsCartEmpty }) {
                       <div className="flex justify-between">
                         <dt>Discount</dt>
                         <dd className="font-semibold tracking-wider">
+                          {symbol}
                           {totalDiscount.toFixed(2)}
                         </dd>
                       </div>
                       <div className="flex justify-between text-base">
                         <dt>Total</dt>
                         <dd className="font-semibold tracking-wider">
-                          ₦{totalAfterDiscount.toFixed(2)}
+                          {symbol}
+                          {carttotal.toFixed(2)}
                         </dd>
                       </div>
                     </dl>

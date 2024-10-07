@@ -1,29 +1,55 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import ProductCollections from "../component/ProductCollections";
+import { useCurrency } from "../../../../utils/CurrencyContext";
 
-// Fetch data server-side
+// Move fetch function inside the component to use dynamic currency
+function CollectionsPage({ params }) {
+  const [collections, setCollections] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { currency } = useCurrency();
 
-async function fetchCollections(slug) {
-  try {
-    const url =
-      slug === "all"
-        ? `${process.env.NEXT_PUBLIC_COLLECTION_URL}all/`
-        : `${process.env.NEXT_PUBLIC_COLLECTION_URL}${slug}/`;
+  useEffect(() => {
+    if (!currency) return;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Failed to fetch collections");
+    async function fetchCollections() {
+      try {
+        setLoading(true);
+        const url =
+          params?.slug === "all"
+            ? `${process.env.NEXT_PUBLIC_COLLECTION_URL}all/?code=${currency}`
+            : `${process.env.NEXT_PUBLIC_COLLECTION_URL}${params?.slug}/?code=${currency}`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch collections");
+        }
+
+        const data = await response.json();
+        setCollections(data);
+      } catch (error) {
+        console.error("Error fetching collections:", error);
+        setCollections(null);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    return response.json();
-  } catch (error) {
-    console.error("Error fetching collections:", error);
-    return null;
-  }
-}
+    fetchCollections();
+  }, [currency, params?.slug]);
 
-async function page({ params }) {
-  const collections = await fetchCollections(params?.slug);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20 bg-black">
+        <div className="flex-col gap-4 w-full flex items-center justify-center">
+          <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
+            <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto bg-black">
       <header className="text-center pt-10 pb-2">
@@ -43,4 +69,4 @@ async function page({ params }) {
   );
 }
 
-export default page;
+export default CollectionsPage;

@@ -92,8 +92,10 @@ function ProductCollections({ collections, isAllCollections }) {
               </h3>
 
               <p className="mt-2">
-                <span className="tracking-wider text-white capitalize">
-                  {product.price.toFixed(2)} {product.currency}
+                <span className="tracking-wider text-white">
+                  {product.symbol}
+                  {product.price.toFixed(2)}{" "}
+                  <span className="uppercase">{product.currency}</span>
                 </span>
               </p>
               {product.discount > 0 && (

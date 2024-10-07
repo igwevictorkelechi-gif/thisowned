@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+import { useCurrency } from "../utils/CurrencyContext";
 
 function Products() {
   const router = useRouter();
@@ -10,32 +11,36 @@ function Products() {
   const [hoveredProductId, setHoveredProductId] = useState(null); // State to track hovered product for large screens
   const [clickedProductId, setClickedProductId] = useState(null); // State to track clicked product for small screens
   const [isLargeScreen, setIsLargeScreen] = useState(false); // State to check if it's a large screen
+  const { currency } = useCurrency();
 
   useEffect(() => {
-    // Fetch the products data from the API
-    fetch(process.env.NEXT_PUBLIC_PRODUCTS_URL)
-      .then((response) => response.json())
-      .then((data) => {
-        setProducts(data);
-        setLoading(false); // Set loading to false after data is fetched
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        setLoading(false); // Set loading to false in case of error
-      });
+    if (!currency) return;
 
-    // Check if the screen size is large
-    const handleResize = () => {
-      setIsLargeScreen(window.innerWidth >= 640); // For 'sm' breakpoint (640px and above)
+    // console.log("Fetching products with currency:", currency);
+
+    const fetchProducts = () => {
+      setLoading(true);
+      fetch(`${process.env.NEXT_PUBLIC_PRODUCTS_URL}?code=${currency}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setProducts(data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching products:", error);
+          setLoading(false);
+        });
     };
 
-    // Set the initial screen size
+    fetchProducts();
+  }, [currency]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 640);
+    };
     handleResize();
-
-    // Add event listener to check for window resize
     window.addEventListener("resize", handleResize);
-
-    // Cleanup event listener on component unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -116,7 +121,9 @@ function Products() {
 
                       <p className="mt-2">
                         <span className="tracking-wider text-white">
-                          ₦{product.price.toFixed(2)} NGN
+                          {product.symbol}
+                          {product.price.toFixed(2)}{" "}
+                          <span className="uppercase">{product.currency}</span>
                         </span>
                       </p>
                     </div>

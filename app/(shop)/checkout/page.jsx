@@ -14,6 +14,9 @@ function CheckoutPage() {
     isCartEmpty, // Whether cart is empty
     totalPrice,
   } = useCart();
+
+  console.log(totalPrice);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -202,6 +205,8 @@ function CheckoutPage() {
       setPaymentLoading(false);
     }
   };
+
+  const symbol = cart.length > 0 ? cart[0].product.symbol : ""; // Get symbol from the first item
 
   return (
     <div className="mx-auto bg-black">
@@ -488,7 +493,8 @@ function CheckoutPage() {
                           <div>
                             <dt className="inline">Price:</dt>
                             <dd className="inline ml-1.5">
-                              ₦{item.product.price}.00
+                              {item.product.symbol}
+                              {item.product.price.toFixed(2)}
                             </dd>
                           </div>
                         </dl>
@@ -532,7 +538,7 @@ function CheckoutPage() {
                     <div className="flex justify-between">
                       <dt>Subtotal</dt>
                       <dd className="font-semibold tracking-wider">
-                        ₦{totalPrice}.00
+                        ₦{totalPrice.toFixed(2)}
                       </dd>
                     </div>
 
@@ -540,7 +546,10 @@ function CheckoutPage() {
                       <dt>Shipping</dt>
                       <dd className="font-semibold tracking-wider">
                         {selectedShippingPrice !== null ? (
-                          <p>₦ {selectedShippingPrice.toFixed(2)}</p>
+                          <p>
+                            {symbol}
+                            {selectedShippingPrice.toFixed(2)}
+                          </p>
                         ) : (
                           <p className="text-xs">₦0.00</p>
                         )}
@@ -550,7 +559,8 @@ function CheckoutPage() {
                   <div className="flex justify-between text-lg pt-3 text-gray-50">
                     <dt className="font-semibold">Total</dt>
                     <dd className="font-semibold tracking-wider">
-                      ₦{totalPrice + selectedShippingPrice}.00
+                      {symbol}
+                      {(totalPrice + selectedShippingPrice).toFixed(2)}
                     </dd>
                   </div>
                 </div>
