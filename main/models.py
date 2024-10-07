@@ -63,6 +63,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='products')
     price = models.FloatField()
+    ng_price = models.IntegerField(default=0)
     currency = models.CharField(max_length=20)
     discount = models.FloatField(null=True, blank=True)
     details = models.TextField()

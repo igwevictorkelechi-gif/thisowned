@@ -64,7 +64,8 @@ class AllCollectionsView(APIView):
     def get(self, request):
         query_sets = [x.products.all() for x in Collection.objects.all()]
         combined_list = [item for qs in query_sets for item in qs]
-        response = {"name": "all", "products": ProductListSerializer(combined_list, many=True, allow_null=True).data}
+        response = {"name": "all", "products": ProductListSerializer(combined_list, many=True, allow_null=True,
+                                                                     context={"request": request}).data}
         return Response(response, status=status.HTTP_200_OK)
 
 

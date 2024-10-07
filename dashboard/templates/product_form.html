@@ -223,8 +223,16 @@
                           </select>
                       </div>
                       <div class="col-12 mb-4">
-                          <label class="form-label" for="discount-percentage">Discount in percentage:</label>
-                          <input class="form-control price-cal" id="discount-percentage" name="discount" type="number" max="100" min="0" step="0" value="{{product.discount|default:0}}"/>
+                          <div class="row">
+                              <div class="col-6">
+                                <label class="form-label" for="NG-price">NG price <span data-bs-toggle="tooltip" data-bs-placement="top" title="Product price for Nigeria   "><span class="bx bxs-help-circle text-primary fs--1 ms-1"></span></span></label>
+                                <input class="form-control price-cal" id="NG-price" name="ng-price" type="number" min="0" step="0" value="{{product.ng_price|default:0}}" required/>
+                              </div>
+                              <div class="col-6">
+                                <label class="form-label" for="discount-percentage">Discount</label>
+                                <input class="form-control price-cal" id="discount-percentage" name="discount" type="number" max="100" min="0" step="0" value="{{product.discount|default:0}}"/>
+                              </div>
+                            </div>
                       </div>
                       <div class="col-12">
                           <label class="form-label" for="final-price">Final price:
@@ -479,14 +487,24 @@ dropzoneInit();
           });
           $('#base-price').on('input', function(){
             value = $(this).val()-($(this).val()*($('#discount-percentage').val()/100))
-            $('#final-price').val(value)
+            valueb = $("#NG-price").val()-( $("#NG-price").val()*($('#discount-percentage').val()/100))
+            $('#final-price').val(`${value} B - ${valueb} NG`)
           })
+
+          $("#NG-price").on("input", function(){
+            value = $(this).val()-($(this).val()*($('#discount-percentage').val()/100))
+            valueb = $("#base-price").val()-( $("#base-price").val()*($('#discount-percentage').val()/100))
+            $('#final-price').val(`${valueb} B - ${value} NG`)
+          })
+
           $('#base-price').trigger('input')
           $('#discount-percentage').on('input', function(e){
             e.preventDefault()
             value = $('#base-price').val()-($('#base-price').val()*($(this).val()/100))
-            $('#final-price').val(value)
+            valueb = $('#NG-price').val()-($('#NG-price').val()*($(this).val()/100))
+            $('#final-price').val(`${value} B - ${valueb} NG`)
           })
+
           $(document).on('click', '#add-size', function(){
             var lastRow = $('.table tbody tr:last').clone();
             lastRow.find('input').val('');
