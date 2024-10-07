@@ -100,8 +100,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_complete_set(self, obj):
         products = obj.sets.all()
-        return [] if products.count() == 0 else ProductSetSerializer(products, many=True).data if products[
-            0].products.count() else []
+        request = self.context.get('request')
+        return [] if products.count() == 0 else ProductSetSerializer(
+            products, many=True, context={'request': request}).data if products[0].products.count() else []
 
     def get_discount_price(self, obj):
         return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
