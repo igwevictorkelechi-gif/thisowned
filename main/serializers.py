@@ -305,7 +305,6 @@ class CheckoutSerializer(serializers.ModelSerializer):
             OrderItem.objects.create(order=order, product=item_dict, quantity=item_data.quantity,
                                      size=item_data.size)
             source_currency = item_data.product.currency.upper()
-            print(source_currency, target_currency)
 
             total += new_price if source_currency == target_currency else \
                 (price_converter(source_currency, target_currency) * new_price)
@@ -326,7 +325,7 @@ class CheckoutSerializer(serializers.ModelSerializer):
         source_currency = data["currency"].upper()
         if 'USD' != source_currency:
             base_price = price_converter(source_currency, 'USD')
-            data['amount_usd'] = base_price * data['amount']
+            data['amount_usd'] = str(base_price * float(data['amount']))
         else:
             data['amount_usd'] = data['amount']
         return data

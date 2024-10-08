@@ -147,7 +147,7 @@ class Shipping(models.Model):
 class ShippingMethod(models.Model):
     name = models.CharField(max_length=100)
     delivery_time = models.CharField(max_length=100)
-    rate_multiplier = models.DecimalField(max_digits=10, decimal_places=2)
+    rate_multiplier = models.FloatField()
     free_shipping_threshold = models.IntegerField(blank=True, null=True)
     country_exceptions = models.JSONField(default=list, blank=True)
 
