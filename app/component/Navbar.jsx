@@ -172,10 +172,36 @@ function Navbar() {
               </ul>
             </nav>
 
-            <div className="flex items-center gap-7">
-              <div className="flex gap-6">
-                <a className="font-medium text-white shadow" href="#">
-                  <Search size={23} />
+            <div className="flex items-center gap-6 md:gap-7">
+              <div className="flex items-center gap-1 md:gap-6">
+                <div className="md:hidden">
+                  <select
+                    name="currency"
+                    id="currency"
+                    className="rounded-md border border-gray-500 text-gray-300 text-xs
+                     bg-black font-semibold w-[80%]"
+                    onChange={handleCurrencyChange}
+                    value={currency} // Controlled component
+                  >
+                    <option
+                      disabled
+                      value=""
+                      className="text-white font-semibold"
+                    >
+                      Currency
+                    </option>
+                    <option value="USD">USD</option>
+                    <option value="NGN">NGN</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+
+                <a
+                  className="font-medium text-white shadow hidden md:block"
+                  href="#"
+                >
+                  <Search className="size-5 md:size-6" />
                 </a>
 
                 <Link
@@ -183,9 +209,9 @@ function Navbar() {
                   href="/../cart"
                 >
                   <span className="relative">
-                    <ShoppingBasket size={23} />
-                    <span className="absolute -top-1 -right-2.5 bg-red-500 text-white rounded-full px-[0.28rem] text-xs">
-                      {cartCount}
+                    <ShoppingBasket className="size-5 md:size-6" />
+                    <span className="absolute -top-1.5 md:-top-1 -right-2.5 bg-red-500 text-white rounded-full px-[0.29rem] md:px-[0.28rem] text-xs">
+                      {/* {cartCount} */}0
                     </span>
                   </span>
                 </Link>
