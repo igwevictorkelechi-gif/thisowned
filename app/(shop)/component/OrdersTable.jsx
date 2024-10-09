@@ -1,5 +1,5 @@
 "use client";
-import { Grid2x2Check } from "lucide-react";
+import { Grid2x2Check, MoveLeft, MoveRight } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useCurrency } from "../../utils/CurrencyContext";
@@ -10,6 +10,10 @@ function OrdersTable() {
   const [loading, setLoading] = useState(true); // Add loading state
   const [error, setError] = useState(null); // Add error state
   const { currency } = useCurrency();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Number of orders to show per page
 
   // Fetch cart data with access token
   useEffect(() => {
@@ -49,6 +53,7 @@ function OrdersTable() {
 
     fetchOrders();
   }, [currency]); // Added currency to the dependency array
+
   // Display error if there's an issue fetching the data
   if (error) {
     return <p className="text-red-500">{error}</p>;
@@ -72,11 +77,9 @@ function OrdersTable() {
       <div className="bg-black">
         <div className="flex flex-col items-center text-center justify-center py-16 text-white">
           <Grid2x2Check size={40} />
-
           <p className="text-gray-100 text-2xl md:text-3xl font-semibold my-6 tracking-wider">
             No orders found.
           </p>
-
           <Link
             href="shop"
             className="block rounded bg-gray-100 text-center py-2.5 px-14 text-sm text-red-600 font-semibold transition hover:bg-gray-200 mt-1"
@@ -88,8 +91,21 @@ function OrdersTable() {
     );
   }
 
-  // Calculate total items before rendering to use as counter
-  let totalItemCounter = 1;
+  // Calculate total items and pages before rendering
+  const totalOrders = orders.reduce(
+    (acc, order) => acc + order.items.length,
+    0
+  );
+  const totalPages = Math.ceil(totalOrders / itemsPerPage);
+
+  // Get current orders to display
+  const currentOrders = orders
+    .reduce((acc, order) => {
+      return acc.concat(
+        order.items.map((item) => ({ ...item, orderId: order.id }))
+      );
+    }, [])
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-14">
@@ -112,57 +128,88 @@ function OrdersTable() {
             </tr>
           </thead>
           <tbody className="text-white divide-y">
-            {orders.map((order) =>
-              order.items.map((item, itemIdx) => (
-                <tr key={`${order.id}-${itemIdx}`}>
-                  <td className="pl-4 py-4 whitespace-nowrap">
-                    {totalItemCounter++}.
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {item.product?.name ?? "Unknown Product"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {item.product?.symbol}
-                    {item.product?.price.toFixed(2) ?? "Unknown Price"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {item.quantity ?? 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {item.size ?? "Unknown Size"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {order.status === "cancelled" ? (
-                      <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-white">
-                        <p className="whitespace-nowrap text-xs">Cancelled</p>
-                      </span>
-                    ) : order.status === "completed" ? (
-                      <span className="inline-flex items-center justify-center rounded-full bg-green-500 px-2 py-0.5 text-white">
-                        <p className="whitespace-nowrap text-xs">Success</p>
-                      </span>
-                    ) : order.status === "processing" ? (
-                      <span className="inline-flex items-center justify-center rounded-full bg-orange-500 px-2 py-0.5 text-orange-100">
-                        <p className="whitespace-nowrap text-xs">Processing</p>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center justify-center rounded-full bg-yellow-300 px-2 py-0.5 text-yellow-900">
-                        <p className="whitespace-nowrap text-xs">Pending</p>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 md:px-2 py-4 whitespace-nowrap">
-                    <Link
-                      href={`/orders/${order.id}?itemId=${item.product.id}`}
-                      className="bg-white text-black px-3 py-1 border-none rounded-sm"
-                    >
-                      View Details
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
+            {currentOrders.map((item, itemIdx) => (
+              <tr key={`${item.orderId}-${itemIdx}`}>
+                <td className="pl-4 py-4 whitespace-nowrap">
+                  {(currentPage - 1) * itemsPerPage + itemIdx + 1}.
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.product?.name ?? "Unknown Product"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.product?.symbol}
+                  {item.product?.price.toFixed(2) ?? "Unknown Price"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.quantity ?? 1}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.size ?? "Unknown Size"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.orderId.status === "cancelled" ? (
+                    <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-white">
+                      <p className="whitespace-nowrap text-xs">Cancelled</p>
+                    </span>
+                  ) : item.orderId.status === "completed" ? (
+                    <span className="inline-flex items-center justify-center rounded-full bg-green-500 px-2 py-0.5 text-white">
+                      <p className="whitespace-nowrap text-xs">Success</p>
+                    </span>
+                  ) : item.orderId.status === "processing" ? (
+                    <span className="inline-flex items-center justify-center rounded-full bg-orange-500 px-2 py-0.5 text-orange-100">
+                      <p className="whitespace-nowrap text-xs">Processing</p>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-center rounded-full bg-yellow-300 px-2 py-0.5 text-yellow-900">
+                      <p className="whitespace-nowrap text-xs">Pending</p>
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 md:px-2 py-4 whitespace-nowrap">
+                  <Link
+                    href={`/orders/${item.orderId}?itemId=${item.product.id}`}
+                    className="bg-white text-black px-3 py-1 border-none rounded-sm"
+                  >
+                    View Details
+                  </Link>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-between items-center mt-10 px-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className={`flex items-center gap-x-3 ${
+            currentPage === 1
+              ? "cursor-not-allowed text-gray-400"
+              : "text-white hover:text-gray-200 hover:opacity-80"
+          }`}
+        >
+          <MoveLeft size={18} />
+          Previous
+        </button>
+        <span className="text-white">
+          Page <span className="text-red-500 font-semibold">{currentPage}</span>{" "}
+          of {totalPages}
+        </span>
+
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          disabled={currentPage === totalPages}
+          className={`flex items-center gap-x-3 ${
+            currentPage === totalPages
+              ? "cursor-not-allowed text-gray-400"
+              : "text-white hover:text-gray-200 hover:opacity-80"
+          }`}
+        >
+          Next
+          <MoveRight size={18} />
+        </button>
       </div>
     </div>
   );
