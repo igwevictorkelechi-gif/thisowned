@@ -6,6 +6,7 @@ import { useCart } from "../../utils/CartContext";
 import Swal from "sweetalert2";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { useCurrency } from "../../utils/CurrencyContext";
 
 function CheckoutPage() {
   const {
@@ -15,7 +16,7 @@ function CheckoutPage() {
     totalPrice,
   } = useCart();
 
-  console.log(totalPrice);
+  // console.log(totalPrice);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -39,6 +40,7 @@ function CheckoutPage() {
   // const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // Default to 0 or a predefined shipping value
   const [selectedShippingPrice, setSelectedShippingPrice] = useState(null);
   const [txRef, setTxRef] = useState(null); // State to hold the transaction reference
+  const { currency } = useCurrency();
   // Fetch countries when component mounts
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}`)
@@ -75,9 +77,15 @@ function CheckoutPage() {
     try {
       setdataLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${selectedCountry}&state=${selectedState}`
+        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${selectedCountry}&state=${selectedState}&code=${currency}`
       );
       const data = await response.json();
+
+      // const payment currency = data.method[0]?.currency || 'USD'; // Fallback to 'USD' if not available
+
+      // Optionally, use this currency in some way
+      // console.log("Currency from the first method:", firstCurrency);
+
       // console.log(data);
       setShippingMethods(data.method);
       setdataLoading(false);
@@ -87,13 +95,26 @@ function CheckoutPage() {
     }
   };
 
-  // Trigger the fetch when a state is selected
+  // Separate useEffect for currency changes
   useEffect(() => {
-    if (selectedState) {
+    if (!currency) return;
+
+    // Reset selected shipping method and price when currency changes
+    setSelectedShippingMethod("");
+    setSelectedShippingPrice(null);
+
+    if (shippingMethods.length > 0 && selectedState && selectedCountry) {
+      // If we already have shipping methods, refetch when currency changes
       fetchShippingMethods(selectedState);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedState]);
+  }, [currency]); // Only depend on currency changes
+
+  // Original useEffect for state selection
+  useEffect(() => {
+    if (selectedState && selectedCountry) {
+      fetchShippingMethods(selectedState);
+    }
+  }, [selectedState, selectedCountry]); // Remove currency dependency from here
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -538,7 +559,8 @@ function CheckoutPage() {
                     <div className="flex justify-between">
                       <dt>Subtotal</dt>
                       <dd className="font-semibold tracking-wider">
-                        ₦{totalPrice.toFixed(2)}
+                        {symbol}
+                        {totalPrice.toFixed(2)}
                       </dd>
                     </div>
 
@@ -551,7 +573,7 @@ function CheckoutPage() {
                             {selectedShippingPrice.toFixed(2)}
                           </p>
                         ) : (
-                          <p className="text-xs">₦0.00</p>
+                          <p className="text-xs">{symbol}0.00</p>
                         )}
                       </dd>
                     </div>
@@ -583,6 +605,7 @@ function CheckoutPage() {
                   total={totalPrice + selectedShippingPrice}
                   tx_ref={txRef}
                   customerInfo={formData}
+                  currency={currency}
                 />
                 <PaypalPayment total={totalPrice + selectedShippingPrice} />
               </div>

@@ -3,7 +3,7 @@ import { FlutterWaveButton, closePaymentModal } from "flutterwave-react-v3";
 import { useRouter } from "next/navigation";
 import { useCart } from "../utils/CartContext";
 
-const FlutterwavePayment = ({ total, customerInfo, tx_ref }) => {
+const FlutterwavePayment = ({ total, customerInfo, tx_ref, currency }) => {
   const { updateCart } = useCart(); // Get the updateCart function from context
   // const { updateCart } = useCart();
   console.log("updateCart function:", updateCart);
@@ -13,7 +13,7 @@ const FlutterwavePayment = ({ total, customerInfo, tx_ref }) => {
     // tx_ref: Date.now(),
     tx_ref: tx_ref,
     amount: total,
-    currency: "NGN",
+    currency: currency,
     payment_options: "card,mobilemoney,ussd",
     customer: {
       email: customerInfo.email,

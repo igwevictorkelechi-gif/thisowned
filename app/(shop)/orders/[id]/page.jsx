@@ -4,6 +4,7 @@ import { ArrowLeftCircle, BadgeInfo, Info } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { useCurrency } from "../../../utils/CurrencyContext";
 
 export default function OrderDetailsPage({ params }) {
   const [orderDetails, setOrderDetails] = useState(null);
@@ -11,15 +12,32 @@ export default function OrderDetailsPage({ params }) {
   const [error, setError] = useState(null);
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId");
+  const { currency } = useCurrency();
 
   useEffect(() => {
+    if (!currency || !itemId) return;
+
     const fetchOrderDetails = async () => {
       try {
+        setLoading(true);
+        const accessToken = localStorage.getItem("accessToken");
+        const headers = {
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        };
+
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_ORDERS_URL}${params.id}`
+          `${process.env.NEXT_PUBLIC_ORDERS_URL}${params.id}?code=${currency}`,
+          {
+            method: "GET",
+            headers,
+          }
         );
+
         if (!response.ok) throw new Error("Failed to fetch order details");
+
         const data = await response.json();
+
         // Find the specific item from the URL query
         const selectedItem = data.items.find(
           (item) => item.product.id === parseInt(itemId)
@@ -34,16 +52,15 @@ export default function OrderDetailsPage({ params }) {
           items: [selectedItem], // Only include the selected item
         });
       } catch (err) {
+        console.error("Error fetching order details:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    if (itemId) {
-      fetchOrderDetails();
-    }
-  }, [params.id, itemId]);
+    fetchOrderDetails();
+  }, [currency, params.id, itemId]); // Added currency to dependencies
 
   if (loading) {
     return (
@@ -197,7 +214,7 @@ export default function OrderDetailsPage({ params }) {
                       Quantity: {items[0].quantity}
                     </p>
                     <p className="text-white text-sm">
-                      <span className="capitalize">
+                      <span className="uppercase">
                         {items[0].product.currency}:
                       </span>{" "}
                       {items[0].product.price.toFixed(2)}

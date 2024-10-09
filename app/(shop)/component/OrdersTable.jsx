@@ -2,46 +2,53 @@
 import { Grid2x2Check } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { useCurrency } from "../../utils/CurrencyContext";
 
 function OrdersTable() {
   const [orders, setOrders] = useState([]); // Orders as an array
   const [headers, setHeaders] = useState({});
   const [loading, setLoading] = useState(true); // Add loading state
   const [error, setError] = useState(null); // Add error state
+  const { currency } = useCurrency();
 
   // Fetch cart data with access token
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const mainHeaders = {
-      "Content-Type": "application/json",
-      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-    };
-    setHeaders(mainHeaders);
+    if (!currency) return;
 
-    // Fetch the orders data
+    async function fetchOrders() {
+      const accessToken = localStorage.getItem("accessToken");
+      const mainHeaders = {
+        "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      };
+      setHeaders(mainHeaders);
 
-    fetch(`${process.env.NEXT_PUBLIC_ORDERS_URL}`, {
-      method: "GET",
-      headers: mainHeaders,
-    })
-      .then((response) => {
+      try {
+        setLoading(true);
+        const url = `${process.env.NEXT_PUBLIC_ORDERS_URL}?code=${currency}`;
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: mainHeaders,
+        });
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Fetched orders data:", data); // Log the fetched data
-        setOrders(data); // Set orders array
-        setLoading(false); // Set loading to false after data is fetched
-      })
-      .catch((error) => {
+
+        const data = await response.json();
+        console.log("Fetched orders data:", data);
+        setOrders(data);
+      } catch (error) {
         console.error("Error fetching orders:", error);
         setError("Error fetching orders data. Please try again later.");
-        setLoading(false); // Set loading to false even on error
-      });
-  }, []);
+      } finally {
+        setLoading(false);
+      }
+    }
 
+    fetchOrders();
+  }, [currency]); // Added currency to the dependency array
   // Display error if there's an issue fetching the data
   if (error) {
     return <p className="text-red-500">{error}</p>;
@@ -115,7 +122,8 @@ function OrdersTable() {
                     {item.product?.name ?? "Unknown Product"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    ₦{item.product?.price.toFixed(2) ?? "Unknown Price"}
+                    {item.product?.symbol}
+                    {item.product?.price.toFixed(2) ?? "Unknown Price"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {item.quantity ?? 1}
