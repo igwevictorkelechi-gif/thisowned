@@ -37,6 +37,7 @@
         }
         #size-guid input{min-width: 60px;}
         .dropzone a:hover{color: #ffffff}
+        .dz-preview.dz-preview-multiple{overflow-x: scroll}
     </style>
 {% endblock %}
 {% block content %}
@@ -217,9 +218,9 @@
                       <div class="col-4">
                           <label class="form-label" for="price-currency">Currency:</label>
                           <select class="form-control text-1000x" id="price-currency" name="price-currency">
-                              <option value="NGN">NGN</option>
-                              <option value="USD">USD</option>
-                              <option value="EUR">EUR</option>
+                              <option value="NGN" {% if product.currency == 'NGN' %}selected {%endif%}>NGN</option>
+                              <option value="USD" {% if product.currency == 'USD' %}selected {%endif%}>USD</option>
+                              <option value="EUR" {% if product.currency == 'EUR' %}selected {%endif%}>EUR</option>
                           </select>
                       </div>
                       <div class="col-12 mb-4">
