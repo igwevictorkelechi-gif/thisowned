@@ -179,7 +179,7 @@ function Navbar() {
                     name="currency"
                     id="currency"
                     className="rounded-md border border-gray-500 text-gray-300 text-xs
-                     bg-black font-semibold w-[80%]"
+                     bg-black font-semibold w-[80%] py-0.5"
                     onChange={handleCurrencyChange}
                     value={currency} // Controlled component
                   >
