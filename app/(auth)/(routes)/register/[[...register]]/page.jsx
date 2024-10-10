@@ -107,11 +107,11 @@ function Page() {
           <div className="text-center pb-4">
             <Link className="flex items-center justify-center" href="/">
               <Image
-                src="/logofullred.png"
+                src="/logo.png"
                 width={100}
                 height={100}
                 style={{
-                  width: "10rem",
+                  width: "8rem",
                   height: "3rem",
                   objectFit: "contain",
                 }}
