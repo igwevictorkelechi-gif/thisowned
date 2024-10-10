@@ -80,11 +80,11 @@ function Navbar() {
           <div className="flex-1 md:flex md:items-center">
             <Link className="block" href="/">
               <Image
-                src="/logofull.png"
+                src="/logo.png"
                 width={100}
                 height={100}
                 style={{
-                  width: "10rem",
+                  width: "8rem",
                   height: "3rem",
                   objectFit: "contain",
                 }}

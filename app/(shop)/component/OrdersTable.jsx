@@ -41,11 +41,13 @@ function OrdersTable() {
         }
 
         const data = await response.json();
-        console.log("Fetched orders data:", data);
+        // console.log("Fetched orders data:", data);
         setOrders(data);
       } catch (error) {
-        console.error("Error fetching orders:", error);
-        setError("Error fetching orders data. Please try again later.");
+        // console.error("Error fetching orders:", error);
+        setError(
+          "Error fetching order data. Please try again later or log out and try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -56,7 +58,7 @@ function OrdersTable() {
 
   // Display error if there's an issue fetching the data
   if (error) {
-    return <p className="text-red-500">{error}</p>;
+    return <p className="text-red-500 text-lg text-center">{error}</p>;
   }
 
   // Show loading spinner when data is being fetched

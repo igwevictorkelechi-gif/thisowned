@@ -82,7 +82,7 @@ function Products() {
               </div>
             </div>
           ) : (
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-8 grid gap-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
               {products.map((product) => (
                 <li key={product.id}>
                   <div
