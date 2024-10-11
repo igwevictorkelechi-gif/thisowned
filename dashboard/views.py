@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http.response import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
 from django.forms import ValidationError
+from django.core.paginator import Paginator
 from django.contrib.auth import views as auth_views, authenticate, login
 from .forms import CustomAuthenticationForm, CollectionForm
 from main.models import Order, Collection, User, Product, ProductImage, SizeGuid, ShippingMethod, ShippingRate
@@ -51,7 +52,10 @@ def dashboard(request):
 
 def orders(request):
     all_orders = Order.objects.all().order_by('-id')
-    return render(request, 'orders.html', {'orders': all_orders})
+    paginator = Paginator(all_orders, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'orders.html', {'orders': page_obj})
 
 
 def collections(request, c_id=None):
@@ -124,12 +128,17 @@ def products_form(request, p_id=None):
 def shipping(request):
     if request.method == 'POST':
         data = request.POST
+        print(data["model"])
         if 'add-rate' in data:
             ShippingRate.objects.create(country=data['country'], base_rate=data['base_rate'])
         elif 'edit-rate' in data:
             edit_data = ShippingRate.objects.get(id=data['edit-rate'])
             edit_data.country, edit_data.base_rate = data['country'], data['base_rate']
             edit_data.save()
+        elif 'model' in data and data["model"] == "shipping method":
+            ShippingMethod.objects.get(id=data['id']).delete()
+        elif 'model' in data and data["model"] == "shipping rate":
+            ShippingRate.objects.get(id=data['id']).delete()
     ship_method = ShippingMethod.objects.all()
     ship_rate = ShippingRate.objects.all()
     return render(request, 'shipping.html', {"shipping_method": ship_method, 'shipping_rate': ship_rate})
