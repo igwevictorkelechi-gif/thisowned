@@ -40,9 +40,14 @@ function OrdersTable() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        // console.log("Fetched orders data:", data);
-        setOrders(data);
+        if (response.status === 401) {
+          localStorage.removeItem("cartToken");
+          localStorage.removeItem("accessToken");
+        } else {
+          const data = await response.json();
+          // console.log("Fetched orders data:", data);
+          setOrders(data);
+        }
       } catch (error) {
         // console.error("Error fetching orders:", error);
         setError(

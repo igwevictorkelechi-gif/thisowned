@@ -7,7 +7,7 @@ const rajdhani = Rajdhani({ subsets: ["latin"], weight: "400" });
 
 export const metadata = {
   title: "Thisowned",
-  description: "",
+  description: "See it touch it obtain it.",
   icons: {
     icon: "/logodark.png",
   },

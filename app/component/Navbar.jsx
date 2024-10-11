@@ -72,8 +72,8 @@ function Navbar() {
   };
   return (
     <header className="pt-4 pb-4 bg-black">
-      <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest">
-        THANK U FOR SUPPORTING INDEPENDENT BRANDS ★
+      <h1 className="text-center text-white mb-4 md:mb-0 text-xs md:text-base tracking-widest uppercase">
+        See it touch it obtain it ★
       </h1>
       <div className="mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex items-center justify-between">
