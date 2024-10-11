@@ -211,7 +211,7 @@ function Navbar() {
                   <span className="relative">
                     <ShoppingBasket className="size-5 md:size-6" />
                     <span className="absolute -top-1.5 md:-top-1 -right-2.5 bg-red-500 text-white rounded-full px-[0.29rem] md:px-[0.28rem] text-xs">
-                      {/* {cartCount} */}0
+                      {cartCount}
                     </span>
                   </span>
                 </Link>
