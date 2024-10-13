@@ -9,10 +9,10 @@ function Footer() {
         <div className="lg:flex lg:items-center lg:justify-between">
           <div className="flex justify-center sm:justify-start">
             <Image
-              src="/logo.png"
-              width={120}
-              height={120}
-              style={{ width: "9rem", height: "auto" }}
+              src="/thisowned-logo.png"
+              width={100}
+              height={100}
+              style={{ width: "13rem", height: "auto" }}
               alt="logo"
             />
           </div>
