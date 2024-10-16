@@ -56,8 +56,12 @@ function Page() {
         confirmButtonText: "Close",
       }).then((result) => {
         if (result.isConfirmed) {
-          // Redirect to shop page using Next.js router
-          router.push("shop");
+          // Check if there's a 'from' parameter in the URL
+          const params = new URLSearchParams(window.location.search);
+          const from = params.get("from");
+
+          // Redirect to the 'from' page or default to shop
+          router.push(from || "/shop");
         }
       });
     } catch (err) {

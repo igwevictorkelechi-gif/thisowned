@@ -39,9 +39,21 @@ function ShopDetails({ params }) {
         if (mounted) {
           setProduct(data);
           // Reset selections when currency changes
-          setSelectedSize("");
+          // setSelectedSize("");
           setSelectedSetItems([]);
           setSelectedSetSizes({});
+
+          // Automatically select the first available size
+          const firstAvailableSize = data.size_guide.find(
+            (size) => size.is_available
+          );
+
+          console.log(firstAvailableSize);
+
+          if (firstAvailableSize) {
+            setSelectedSize(firstAvailableSize.id);
+          }
+
           // Recalculate total price if needed
           setTotalPrice(data.price * quantity);
         }
@@ -410,7 +422,7 @@ function ShopDetails({ params }) {
                                 checked={selectedSize === size.id}
                                 onChange={() => handleSizeChange(size.id)}
                               />
-                              <p className="text-sm font-medium">
+                              <p className="text-sm font-medium uppercase">
                                 {size.rating}
                               </p>
                             </label>

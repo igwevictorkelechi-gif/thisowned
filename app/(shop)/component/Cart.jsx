@@ -23,6 +23,7 @@ function Cart({ setIsCartEmpty }) {
   // Fetch cart data from server
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
+
     const mainHeaders = {
       "Content-Type": "application/json",
       ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
@@ -178,7 +179,23 @@ function Cart({ setIsCartEmpty }) {
 
   // Handle proceed to checkout
   const handleProceedToCheckout = () => {
-    router.push("/checkout");
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (!accessToken) {
+      // Redirect to login page with a 'from' parameter
+      Swal.fire({
+        title: "Error!",
+        text: "Please login to checkout",
+        icon: "info",
+        confirmButtonColor: "#000000",
+        confirmButtonText: "Close",
+      }).then(() => {
+        router.push(`/login?from=${encodeURIComponent("/cart")}`);
+        return;
+      });
+    } else {
+      router.push("/checkout");
+    }
   };
 
   return (
@@ -234,13 +251,12 @@ function Cart({ setIsCartEmpty }) {
                             <div className="flex gap-3">
                               <dt className="inline">Price:</dt>
                               <dd className="inline">
-                                {item.product.discount && (
+                                {item.product.discount ? (
                                   <span>
-                                    {" "}
-                                    {item.product.symbol}{" "}
+                                    {item.product.symbol}
                                     {item.product.discount_price.toFixed(2)}
                                   </span>
-                                )}
+                                ) : null}
                                 <span
                                   className={
                                     item.product.discount
@@ -248,7 +264,7 @@ function Cart({ setIsCartEmpty }) {
                                       : ""
                                   }
                                 >
-                                  {item.product.symbol}{" "}
+                                  {item.product.symbol}
                                   {item.product.price.toFixed(2)}
                                 </span>
                               </dd>
