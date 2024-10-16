@@ -104,14 +104,14 @@ class CartViewSet(viewsets.ModelViewSet):
                 {"detail": "Unauthorized: Invalid or missing (access or cart) token."},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        token_carts = Cart.objects.filter(token=token)
+        token_carts = Cart.objects.filter(token=token).order_by('-id')
         if self.request.user and self.request.user.is_authenticated:
             for cart in token_carts:
                 if not cart.owner:
                     cart.owner = self.request.user
                     cart.token = ''
                     cart.save()
-            cart_data = Cart.objects.filter(owner=self.request.user)
+            cart_data = Cart.objects.filter(owner=self.request.user).order_by('-id')
         else:
             cart_data = token_carts
         serializer = self.get_serializer(cart_data, many=True)

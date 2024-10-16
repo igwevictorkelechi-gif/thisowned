@@ -1,3 +1,4 @@
+import pycountry
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -33,6 +34,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     email = models.EmailField(unique=True)
+    # country = models.CharField(max_length=100, choices=[(item.name, item.name) for item in pycountry.countries],
+    #                            default='Nigeria')
     # phone_number = models.CharField(max_length=20, blank=True, null=True)
     is_online = models.BooleanField(default=False)
     # profile_picture = models.ImageField(upload_to='profile_pictures/', default='profile_pictures/default.png')
