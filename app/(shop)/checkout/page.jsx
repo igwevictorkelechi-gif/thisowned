@@ -479,55 +479,58 @@ function CheckoutPage() {
               <h1 className="text-2xl text-gray-300 font-semibold">
                 Order summary
               </h1>
-              <ul className="space-y-6 border-t border-b border-gray-600 py-5">
-                {!loading && !isCartEmpty ? (
-                  cart.map((item, index) => (
-                    <li key={index} className="flex items-center gap-5">
-                      <div className="relative inline-block">
-                        <Image
-                          src={item.product.images[0].image}
-                          alt={item.product.name}
-                          className="size-14 rounded object-cover"
-                          width={100}
-                          height={100}
-                        />
+              <div className="relative">
+                <ul
+                  className="space-y-6 border-t border-b border-gray-600 py-5 max-h-64 overflow-y-auto
+              scrollbar scrollbar-w-2 scrollbar-track-gray-700 scrollbar-thumb-gray-400 
+              hover:scrollbar-thumb-gray-300 transition-colors duration-200"
+                  data-lenis-prevent
+                >
+                  {!loading && !isCartEmpty ? (
+                    cart.map((item, index) => (
+                      <li key={index} className="flex items-center gap-5">
+                        <div className="relative inline-block">
+                          <Image
+                            src={item.product.images[0].image}
+                            alt={item.product.name}
+                            className="size-14 rounded object-cover"
+                            width={100}
+                            height={100}
+                          />
+                          <span className="absolute -top-2 right-1 bg-red-600 text-white text-[0.60rem] font-semibold px-1.5 py-0.5 rounded-full">
+                            {item.quantity}
+                          </span>
+                        </div>
 
-                        {/* Badge */}
-                        <span className="absolute  -top-2 right-1 bg-red-600 text-white text-[0.60rem] font-semibold px-1.5 py-0.5 rounded-full">
-                          {item.quantity}
-                        </span>
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm text-gray-200 font-semibold">
-                          {item.product.name}
-                        </h3>
-
-                        <dl className="mt-1 space-y-0.5 text-xs text-gray-300">
-                          <div>
-                            <dt className="inline">Size:</dt>
-                            <dd className="inline ml-1.5">
-                              {item.size.rating}
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt className="inline">Price:</dt>
-                            <dd className="inline ml-1.5">
-                              {item.product.symbol}
-                              {item.product.price.toFixed(2)}
-                            </dd>
-                          </div>
-                        </dl>
-                      </div>
-                    </li>
-                  ))
-                ) : (
-                  <p className="text-gray-400 text-center">
-                    {loading ? "Loading your cart..." : "Your cart is empty"}
-                  </p>
-                )}
-              </ul>
+                        <div>
+                          <h3 className="text-sm text-gray-200 font-semibold">
+                            {item.product.name}
+                          </h3>
+                          <dl className="mt-1 space-y-0.5 text-xs text-gray-300">
+                            <div>
+                              <dt className="inline">Size:</dt>
+                              <dd className="inline ml-1.5">
+                                {item.size.rating}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="inline">Price:</dt>
+                              <dd className="inline ml-1.5">
+                                {item.product.symbol}
+                                {item.product.price.toFixed(2)}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-center">
+                      {loading ? "Loading your cart..." : "Your cart is empty"}
+                    </p>
+                  )}
+                </ul>
+              </div>
 
               <div className="mt-8 flex justify-end pt-4">
                 <div className="w-screen space-y-4">

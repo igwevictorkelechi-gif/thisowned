@@ -36,6 +36,15 @@ body {
   scroll-behavior: smooth;
 } */
 
+/* .scroll-container {
+  position: relative;
+}
+
+.scroll-container ul:hover {
+  touch-action: none;
+  scroll-snap-type: y mandatory;
+} */
+
 /* From Uiverse.io by JulanDeAlb */
 .hamburger {
   cursor: pointer;
