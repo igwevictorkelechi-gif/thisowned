@@ -40,81 +40,123 @@ function CheckoutPage() {
   // const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // Default to 0 or a predefined shipping value
   const [selectedShippingPrice, setSelectedShippingPrice] = useState(null);
   const [txRef, setTxRef] = useState(null); // State to hold the transaction reference
+  const [totalInUsd, setTotalInUsd] = useState(null); // State to hold the usd total transaction reference
+  const [total, setTotal] = useState(null); // State to hold the total reference
   const { currency } = useCurrency();
-  // Fetch countries when component mounts
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "country") {
-          setCountries(data.options);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching countries:", error);
-      });
-  }, []);
 
-  // Fetch states when country changes
+  // Reset everything when currency changes
   useEffect(() => {
-    if (selectedCountry) {
-      fetch(
-        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${selectedCountry}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.status === "state") {
-            setStates(data.options);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching states:", error);
-        });
+    if (!currency) return;
+
+    // Reset all form data and selections
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      postcode: "",
+    });
+
+    // Reset all location data
+    setCountries([]);
+    setStates([]);
+    setShippingMethods([]);
+    setSelectedCountry("");
+    setSelectedState("");
+
+    // Reset shipping selections
+    setSelectedShippingMethod("");
+    setSelectedShippingPrice(null);
+
+    // Reset payment state
+    setShowPaymentOptions(false);
+    setTxRef("");
+    setTotalInUsd(null);
+    setTotal(null);
+
+    // Fetch fresh countries data
+    fetchCountries();
+  }, [currency]);
+
+  // Fetch countries function
+  const fetchCountries = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}`
+      );
+      const data = await response.json();
+      if (data.status === "country") {
+        setCountries(data.options);
+      }
+    } catch (error) {
+      console.error("Error fetching countries:", error);
     }
-  }, [selectedCountry]);
+  };
 
-  const fetchShippingMethods = async (selectedState) => {
+  // Fetch states function
+  const fetchStates = async (country) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${country}`
+      );
+      const data = await response.json();
+      if (data.status === "state") {
+        setStates(data.options);
+      }
+    } catch (error) {
+      console.error("Error fetching states:", error);
+    }
+  };
+
+  // Fetch shipping methods
+  const fetchShippingMethods = async (state) => {
     try {
       setdataLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${selectedCountry}&state=${selectedState}&code=${currency}`
+        `${process.env.NEXT_PUBLIC_AUTH_SHIPPING_URL}?country=${selectedCountry}&state=${state}&code=${currency}`
       );
       const data = await response.json();
-
-      // const payment currency = data.method[0]?.currency || 'USD'; // Fallback to 'USD' if not available
-
-      // Optionally, use this currency in some way
-      // console.log("Currency from the first method:", firstCurrency);
-
-      // console.log(data);
       setShippingMethods(data.method);
-      setdataLoading(false);
     } catch (error) {
       console.error("Error fetching shipping methods:", error);
+    } finally {
       setdataLoading(false);
     }
   };
 
-  // Separate useEffect for currency changes
+  // Handle country selection
   useEffect(() => {
-    if (!currency) return;
-
-    // Reset selected shipping method and price when currency changes
-    setSelectedShippingMethod("");
-    setSelectedShippingPrice(null);
-
-    if (shippingMethods.length > 0 && selectedState && selectedCountry) {
-      // If we already have shipping methods, refetch when currency changes
-      fetchShippingMethods(selectedState);
+    if (selectedCountry) {
+      setSelectedState("");
+      setShippingMethods([]);
+      setSelectedShippingMethod("");
+      setSelectedShippingPrice(null);
+      setShowPaymentOptions(false); // Reset payment options when country changes
+      fetchStates(selectedCountry);
     }
-  }, [currency]); // Only depend on currency changes
+  }, [selectedCountry]);
 
-  // Original useEffect for state selection
+  // Handle state selection
   useEffect(() => {
     if (selectedState && selectedCountry) {
+      setSelectedShippingMethod("");
+      setSelectedShippingPrice(null);
+      setShowPaymentOptions(false); // Reset payment options when state changes
       fetchShippingMethods(selectedState);
     }
-  }, [selectedState, selectedCountry]); // Remove currency dependency from here
+  }, [selectedState, selectedCountry]);
+
+  // Set up headers
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    const mainHeaders = {
+      "Content-Type": "application/json",
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    };
+    setHeaders(mainHeaders);
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -122,6 +164,8 @@ function CheckoutPage() {
       ...prevData,
       [id]: value,
     }));
+    // Reset payment options whenever form data changes
+    setShowPaymentOptions(false);
   };
 
   const checkFormValidity = () => {
@@ -139,15 +183,6 @@ function CheckoutPage() {
     );
   };
 
-  useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const mainHeaders = {
-      "Content-Type": "application/json",
-      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-    };
-    setHeaders(mainHeaders);
-  }, []);
-
   const handleProceedToPayment = async () => {
     if (!checkFormValidity()) {
       Swal.fire({
@@ -163,30 +198,32 @@ function CheckoutPage() {
     setPaymentLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_CHECKOUT_URL}`, {
-        method: "POST",
-        headers: headers, // Use the headers from state
-        body: JSON.stringify({
-          shipping_address: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            city: formData.city,
-            postal_code: formData.postcode,
-            country: selectedCountry,
-            state: selectedState,
-          },
-          shipping_method: selectedShippingMethod,
-        }),
-      });
-
-      // Check the response type and handle errors
-      const contentType = response.headers.get("content-type");
-      let errorMessage = "An unexpected error occurred. Please try again.";
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CHECKOUT_URL}?code=${currency}`,
+        {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({
+            shipping_address: {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              email: formData.email,
+              phone: formData.phone,
+              address: formData.address,
+              city: formData.city,
+              postal_code: formData.postcode,
+              country: selectedCountry,
+              state: selectedState,
+            },
+            shipping_method: selectedShippingMethod,
+          }),
+        }
+      );
 
       if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        let errorMessage = "An unexpected error occurred. Please try again.";
+
         if (contentType && contentType.includes("application/json")) {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
@@ -197,22 +234,18 @@ function CheckoutPage() {
         throw new Error(errorMessage);
       }
 
-      // Handle successful response
       const result = await response.json();
-      // console.log("API response:", result);
+      const { tx_ref, amount, amount_usd } = result;
 
-      // Extract tx_ref from the response
-      const { tx_ref } = result;
-
-      // Set tx_ref in state
       setTxRef(tx_ref);
+      setTotalInUsd(amount_usd);
+      setTotal(amount);
 
       setTimeout(() => {
         setPaymentLoading(false);
         setShowPaymentOptions(true);
       }, 1000);
     } catch (error) {
-      // console.error("API error:", error);com
       Swal.fire({
         title: "Error!",
         text:
@@ -225,6 +258,13 @@ function CheckoutPage() {
     } finally {
       setPaymentLoading(false);
     }
+  };
+
+  // Handle shipping method selection
+  const handleShippingMethodSelect = (method, price) => {
+    setSelectedShippingMethod(method);
+    setSelectedShippingPrice(price);
+    setShowPaymentOptions(false); // Reset payment options when shipping method changes
   };
 
   const symbol = cart.length > 0 ? cart[0].product.symbol : ""; // Get symbol from the first item
@@ -605,12 +645,12 @@ function CheckoutPage() {
             ) : showPaymentOptions ? (
               <div className="w-full">
                 <FlutterwavePayment
-                  total={totalPrice + selectedShippingPrice}
+                  total={total}
                   tx_ref={txRef}
                   customerInfo={formData}
                   currency={currency}
                 />
-                <PaypalPayment total={totalPrice + selectedShippingPrice} />
+                <PaypalPayment total={totalInUsd} tx_ref={txRef} />
               </div>
             ) : (
               <div className="w-full mx-auto max-w-screen-xl">
