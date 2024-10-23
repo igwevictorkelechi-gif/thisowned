@@ -113,10 +113,12 @@ class Cart(models.Model):
 class Payment(models.Model):
     tx_ref = ShortUUIDField()
     method = models.CharField(max_length=50, choices=[
+        ('none', "None"),
         ('credit_card', 'Credit Card'),
         ('paypal', 'PayPal'),
-        ('bank_transfer', 'Bank Transfer')
-    ], default='credit_card')
+        ('bank_transfer', 'Bank Transfer'),
+        ('ussd', 'USSD'),
+    ], default='none')
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),

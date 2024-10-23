@@ -153,7 +153,18 @@ def flutterwave_webhook(request):
             payment = Payment.objects.filter(tx_ref=tx_ref).first()
             print(payment)
             if payment:
+                method_mapping = {
+                    'CARD_TRANSACTION': 'credit_card',
+                    'BANK_TRANSFER_TRANSACTION': 'bank_transfer',
+                    'USSD_TRANSACTION': 'ussd',
+                    'ACCOUNT_TRANSACTION': "account"
+                }
+                payment_method = method_mapping.get(payload.get('payment_type'), 'flutterwave')
+
+                payment.method = payment_method
+
                 payment.status = 'completed'
+
                 payment.payload = json.dumps(payload)
                 payment.save()
                 carts = Cart.objects.filter(owner=payment.order.first().customer)
@@ -173,7 +184,27 @@ def paypal_webhook(request):
     if request.method == 'POST':
         payload = json.loads(request.body)
         print(payload)
-    return JsonResponse({"status": "success"}, status=200)
+        if payload["event_type"] == 'PAYMENT.CAPTURE.COMPLETED':
+            tx_ref = payload['resource']['invoice_id']
+            payment = Payment.objects.filter(tx_ref=tx_ref).first()
+            print(payment)
+            if payment:
+                payment_method = 'paypal'
+                payment.method = payment_method
+                payment.status = 'completed'
+
+                payment.payload = json.dumps(payload)
+                payment.save()
+                carts = Cart.objects.filter(owner=payment.order.first().customer)
+                for cart in carts:
+                    cart.delete()
+
+            return JsonResponse({"status": "success"}, status=200)
+        else:
+            # Handle failed or pending payment
+            return JsonResponse({"status": "failed"}, status=400)
+
+    return JsonResponse({"status": "invalid request"}, status=400)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
