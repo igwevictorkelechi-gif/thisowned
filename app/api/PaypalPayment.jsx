@@ -8,7 +8,7 @@ const PaypalPayment = ({ total, tx_ref }) => {
     // Load PayPal script and render button once total is available
     if (total) {
       const script = document.createElement("script");
-      script.src = `https://www.paypal.com/sdk/js?client-id=AQ4bH-hSKoViyIpgKRqtTUoNCpVkZqxQoA7cUo189b4dMSuBjZyuHKPwR8Jip1686bWCu3yuztcIE2LO`;
+      script.src = `https://www.paypal.com/sdk/js?client-id=AQQvVM646L4tQTOXElGP6hFdfEoe4IkVHuYKJiYq0ZRV6XmwniIeviXDeq8YFzQZ7AG_Doke03YIj-xG`;
       script.addEventListener("load", () => {
         if (window.paypal) {
           window.paypal
@@ -20,7 +20,7 @@ const PaypalPayment = ({ total, tx_ref }) => {
                       amount: {
                         value: total, // Use the converted USD total here
                       },
-                      custom_id: tx_ref, // Add transaction reference here
+                      invoice_id: tx_ref, // Add transaction reference here
                       description: `Order Reference: ${tx_ref}`, // Include in description for visibility
                     },
                   ],
