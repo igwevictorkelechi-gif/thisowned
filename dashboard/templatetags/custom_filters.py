@@ -66,3 +66,9 @@ def multiply(value, arg):
         return float(value) * float(arg)
     except (ValueError, TypeError):
         return None
+
+
+@register.filter(name='lc')
+def lc(value):
+    return value.lower()
+

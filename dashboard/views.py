@@ -7,6 +7,7 @@ from django.forms import ValidationError
 from django.core.paginator import Paginator
 from django.contrib.auth import views as auth_views, authenticate, login
 from .forms import CustomAuthenticationForm, CollectionForm
+from django.db.models import Q
 from main.models import Order, Collection, User, Product, ProductImage, SizeGuid, ShippingMethod, ShippingRate
 
 
@@ -38,7 +39,7 @@ class CustomLoginView(auth_views.LoginView):
         return super().form_invalid(form)
 
 
-@user_passes_test(admin_check, login_url='login/')
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def dashboard(request):
     pending = Order.objects.filter(status="pending").count()
     total_s = 0
@@ -50,14 +51,23 @@ def dashboard(request):
     return render(request, 'dashboard.html', {'pending': pending, 'total_s': total_s, 'revenue': revenue})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def orders(request):
-    all_orders = Order.objects.all().order_by('-id')
-    paginator = Paginator(all_orders, 15)
+
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    search = Q(customer__first_name__icontains=search) | Q(customer__email__icontains=search) | \
+             Q(total__icontains=search) | Q(created_at__icontains=search) | Q(id__icontains=search) \
+             | Q(payment_detail__method__icontains=search) | Q(payment_detail__status__icontains=search)
+    all_orders = Order.objects.filter(search, status__icontains=status).order_by('-id')
+    paginator = Paginator(all_orders, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     return render(request, 'orders.html', {'orders': page_obj})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def collections(request, c_id=None):
     all_collections = Collection.objects.all().order_by('-id')
     if request.method == 'POST':
@@ -79,11 +89,13 @@ def collections(request, c_id=None):
     return render(request, 'collections.html', {'collections': all_collections})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def customers(request):
     all_customers = User.objects.exclude(is_staff=True).order_by('-id')
     return render(request, 'customers.html', {'customers': all_customers})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def products(request, p_id=None):
     if p_id and request.method == 'DELETE':
         product = get_object_or_404(Product, id=p_id)
@@ -93,6 +105,7 @@ def products(request, p_id=None):
     return render(request, 'products.html', {'products': all_products})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def products_form(request, p_id=None):
     if request.method == 'POST':
         p, f = request.POST, request.FILES
@@ -125,6 +138,7 @@ def products_form(request, p_id=None):
     return render(request, 'product_form.html', {'collection': collection})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def shipping(request):
     if request.method == 'POST':
         data = request.POST
@@ -144,6 +158,7 @@ def shipping(request):
     return render(request, 'shipping.html', {"shipping_method": ship_method, 'shipping_rate': ship_rate})
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def shipping_method(request, method_id=None):
     if method_id:
         method_data = ShippingMethod.objects.get(id=method_id)
@@ -166,6 +181,7 @@ def shipping_method(request, method_id=None):
     return render(request, 'shipping_method.html')
 
 
+@user_passes_test(admin_check, login_url='/dashboard/login/')
 def state_multi(request, rate_id):
     rate = ShippingRate.objects.get(id=rate_id)
     if request.method == 'POST':

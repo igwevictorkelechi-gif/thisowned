@@ -3,6 +3,7 @@ import json
 from django.http import JsonResponse
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, api_view
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -51,7 +52,7 @@ class UserAdminViewSet(viewsets.ModelViewSet):
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.all()
+    queryset = Collection.objects.all().order_by('-id')
     serializer_class = CollectionSerializer
 
     def get_serializer_class(self):
@@ -62,7 +63,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
 class AllCollectionsView(APIView):
     def get(self, request):
-        query_sets = [x.products.all() for x in Collection.objects.all()]
+        query_sets = [x.products.all().order_by('-id') for x in Collection.objects.all()]
         combined_list = [item for qs in query_sets for item in qs]
         response = {"name": "all", "products": ProductListSerializer(combined_list, many=True, allow_null=True,
                                                                      context={"request": request}).data}
@@ -159,7 +160,7 @@ def flutterwave_webhook(request):
                     'USSD_TRANSACTION': 'ussd',
                     'ACCOUNT_TRANSACTION': "account"
                 }
-                payment_method = method_mapping.get(payload.get('payment_type'), 'flutterwave')
+                payment_method = method_mapping.get(payload.get('event.type'), 'flutterwave')
 
                 payment.method = payment_method
 
@@ -246,3 +247,15 @@ class ShippingRateViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(shipping_rate, many=False, context={'state': state, "request": request})
 
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class OrderPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class AdminOrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all().order_by('-id')
+    serializer_class = OrderSerializer
+    pagination_class = OrderPagination

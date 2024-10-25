@@ -1,99 +1,310 @@
 {% extends 'dashboard.html' %}
 {% load custom_filters %}
+{% block style %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
+    const csrftoken = getCookie('csrftoken');
+    var status_ = {"pending": ["Process Order", "processing", "warning"], "processing": ["Complete Order", "completed", "info"],
+                "completed": ["Cancel order", 'cancelled', "success"], 'cancelled': ['Reset Order', "pending", "danger"]}
+    function updateStatus(id, value){
+            $(`#orderModal-${id} .btn-status`).prop("disabled", true)
+            $.ajax({
+                url: `/order/${id}/`,
+                type: 'PATCH',
+                contentType: 'application/json',
+                 headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                data: JSON.stringify({
+                    status: value,
+                }),
+                success: function(response) {
+                    console.log('Order update:', response);
+                    $(`#orderModal-${id} .btn-status`).html(status_[response.status][0])
+                    $(`#orderModal-${id} .btn-status`).attr('class', `btn btn-status btn-${status_[response.status][2]}`)
+                    $(`#orderModal-${id} .btn-status`).attr('onclick', `updateStatus(${response.id}, '${status_[response.status][1]}')`)
+                    $(`#orderModal-${id} #order-status`).html(response.status)
+                    $(`#orderModal-${id} #order-status`).attr('class', `badge badge-outline-${status_[response.status][2]}`)
+                    $(`#orderModal-${id} .btn-status`).prop("disabled", false)
+                },
+                error: function(xhr, status, error) {
+                    alert('Error updating Order: ' + error);
+                    $(`#orderModal-${id} .btn-status`).prop("disabled", false)
+                }
+            });
+        }
+</script>
+{% endblock %}
 
 {% block content %}
-
     <div class="row ">
         <div class="col-12 grid-margin">
-            <div class="card">
-                <div class="card-body" style="margin-bottom: -1rem;">
-                    <h4 class="card-title">All Orders</h4>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>S/N</th>
-                                    <th> Customer details </th>
-                                    <th> Order No </th>
-                                    <th> Product Cost </th>
-                                    <th> Payment Mode </th>
-                                    <th> Order Date </th>
-                                    <th> Payment Status </th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for order in orders %}
-                                    <tr>
-                                        <td>{{forloop.counter}}</td>
-                                        <td>
-                                            <div class="mt-3">
-                                                <span>{{order.customer.first_name}} {{order.customer.last_name}}</span>
-                                                <p class="mt-2" style="font-size: 0.7rem;">
-                                                    {{order.customer.email}}</p>
-                                            </div>
-                                        </td>
-                                        <td> {{order.id|stringformat:"04d"}} </td>
-                                        <td> $14,500 </td>
+            <div id="tableExample3" data-list=''>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5 mb-2 d-flex">
+                                <input class="search form-control" placeholder="Search"/>
+                                <button class="d-flex align-items-center btn btn-light" id="order-search">
+                                    <i class='bx bx-search-alt-2'></i>
+                                </button>
+                            </div>
+                            <div class="col-md-2"></div>
+                            <div class="col-sm-12 col-md-5 mb-2 d-flex">
+                                <span style="font-size: small;">Order status: </span>
+                                <select id="single-select" class="form-control text-white" required name="country">
+                                    <option value="" >All</option>
+                                    <option value="pending" >pending</option>
+                                    <option value="processing" >processing</option>
+                                    <option value="completed" >completed</option>
+                                    <option value="cancelled" >cancelled</option>
+                                </select>
+                            </div>
 
-                                        <td> {{order.payment_detail.get_method_display }} </td>
-                                        <td> {{ order.created_at|date:"d M Y" }} </td>
-                                        <td>
-                                            <div class="badge {% if order.payment_detail.status == 'completed' %}badge-outline-success
-                                            {%elif order.payment_detail.status == 'pending'%}badge-outline-warning{%else%}badge-outline-danger{%endif%}">
-                                                {{order.payment_detail.get_status_display }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-light">View</button>
-                                            <button class="btn btn-danger ml-4">Delete</button>
-                                        </td>
-                                    </tr>
-                                {%endfor%}
+                        </div>
 
-                            </tbody>
-                        </table>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination">
-                            {% if orders.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?category={{ category_filter }}&page={{ orders.previous_page_number }}">Previous</a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#">Previous</a>
-                                </li>
-                            {% endif %}
+                    <div class="card-body" style="margin-bottom: -1rem;">
+                        <h4 class="card-title">All Orders</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="sort">S/N</th>
+                                        <th class="sort"> Customer details </th>
+                                        <th class="sort"> Order No </th>
+                                        <th class="sort"> Product Cost </th>
+                                        <th class="sort"> Payment Mode </th>
+                                        <th class="sort"> Order Date </th>
+                                        <th class="sort"> Payment Status </th>
+                                        <th class="sort">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="list">
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td class="">{{forloop.counter}}</td>
+                                            <td>
+                                                <div class="mt-3">
+                                                    <span>{{order.customer.first_name}} {{order.customer.last_name}}</span>
+                                                    <p class="mt-2" style="font-size: 0.7rem;">
+                                                        {{order.customer.email}}</p>
+                                                </div>
+                                            </td>
+                                            <td> {{order.id|stringformat:"04d"}} </td>
+                                            <td> $14,500 </td>
 
-                            {% for num in orders.paginator.page_range %}
-                                {% if orders.number == num %}
-                                    <li class="page-item active">
-                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
+                                            <td> {{order.payment_detail.get_method_display }} </td>
+                                            <td> {{ order.created_at|date:"d M Y" }} </td>
+                                            <td>
+                                                <div class="badge {% if order.payment_detail.status == 'completed' %}badge-outline-success
+                                                {%elif order.payment_detail.status == 'pending'%}badge-outline-warning{%else%}badge-outline-danger{%endif%}">
+                                                    {{order.payment_detail.get_status_display }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-light" data-toggle="modal"
+                                                                data-target="#orderModal-{{order.id}}">
+                                                                View
+                                                            </button>
+                                                <button class="btn btn-danger ml-4">Delete</button>
+                                            </td>
+                                        </tr>
+                                    {%endfor%}
 
-                            {% if orders.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?category={{ category_filter }}&page={{ orders.next_page_number }}">Next</a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-around mt-3">
+                        <button class="btn btn-sm btn-light me-1 prev" type="button" id="previous"
+                                {% if not orders.has_previous %}disabled{% endif %}>
+                            <span class="bx bx-chevron-left"></span>
+                        </button>
+                        <div>page {{orders.number}} of {{orders.paginator.num_pages}} </div>
+                        <button class="btn btn-sm btn-light ms-1 next" type="button" id="next"
+                                {% if not orders.has_next %}disabled{% endif %}>
+                            <span class="bx bx-chevron-right"> </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    {% for item in orders %}
+    <div class="modal fade" id="orderModal-{{item.id}}" tabindex="-1" role="dialog"
+        aria-labelledby="orderModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderModalLabel">Order List</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="w-100" style="overflow-y: auto;">
+                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Item</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for x in item.items.all %}
+                                <tr>
+                                    <th scope="row">{{forloop.counter}}</th>
+                                    <td>{{x.product.name}}</td>
+                                    <td>{{x.quantity}}</td>
+                                    <td>{%if x.product.currency|lc == 'usd'%}${%elif x.currency.product|lc == "eur"%}€
+                                        {%else%}₦{%endif%}{{x.product.price}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm mt-5" style="overflow: auto;">
+                      <dl class="row text-sm">
+                        <div class="col-sm-4 font-weight-bold text-white">Full name</div>
+                        <div class="col-sm-8 text-white">
+                            {{item.shipping_address.first_name}} {{item.shipping_address.last_name}}
+                        </div>
+
+                        <div class="col-sm-4 font-weight-bold text-white mt-2">Phone number</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          {{item.shipping_address.phone}}
+                        </div>
+
+                        <div class="col-sm-4 font-weight-bold text-white mt-2">Email</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          {{item.shipping_address.email}}
+                        </div>
+
+                        <div class="col-sm-4 font-weight-bold text-white mt-2">Address</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          {{item.shipping_address.address}}
+                        </div>
+
+                        <div class="col-sm-4 font-weight-bold text-white mt-2">City</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          {{item.shipping_address.city}}
+                        </div>
+
+                        <div class="col-sm-4 font-weight-bold text-white mt-2">State</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          {{item.shipping_address.state}}
+                        </div>
+
+                          <div class="col-sm-4 font-weight-bold text-white mt-2">Country</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          {{item.shipping_address.country}}
+                        </div>
+
+                        <div class="col-sm-4 font-weight-bold text-white mt-2">Status</div>
+                        <div class="col-sm-8 text-white mt-2">
+                          <span class="badge {% if item.status == 'completed' %}badge-outline-success{%elif item.status == 'pending'%}
+                          badge-outline-warning{%elif item.status == 'processing'%}badge-outline-info{%else%}badge-outline-danger{%endif%}" id="order-status">
+                              {{item.status}}
+                          </span>
+                        </div>
+                          <div class="col-sm-4 font-weight-bold text-white mt-2">Shipping method</div>
+                        <div class="col-sm-8 text-white mt-2">
+                            <div class="">{{item.shipping_method.name}}</div>
+                            <div style="font-size: small;">Delivery time: {{item.shipping_method.delivery_time}}</div>
+                        </div>
+
+                      </dl>
+                    </div>
+
+                    <label for="date" class="mt-5" style="font-size: 13px;">Select delivery
+                        date:</label>
+                    <input type="date" id="date" class="form-control" name="date">
+
+                    <div class="mt-4">
+                        <hr style="background-color: #191C24;">
+                        <p class="mt-1">Order Total: <span style="font-weight: bold;">
+                            {%if item.currency|lc == 'usd'%}${%elif item.currency|lc == "eur"%}€{%elif item.currency|lc == "gbp"%}£
+                            {%else%}₦{%endif%}{{item.total}}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-status {% if item.status == 'completed' %}btn-success{%elif item.status == 'pending'%}
+                          btn-warning{%elif item.status == 'processing'%}btn-info{%else%}btn-danger{%endif%}"
+                            onclick="updateStatus({{item.id}}, status_['{{item.status}}'][1])">
+                        {% if item.status == "pending"%} Process Order {% elif item.status == "processing" %}
+                        Complete Order {% else %} Cancel order  {%endif%}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endblock %}
+{% block script %}
+<script>
+    $(document).ready(function(){
+        var params = new URLSearchParams(window.location.search);
+        var status = params.get('status')
+        var search = params.get('search')
+        var order = {{orders.number}}
+
+        $('input.search').val(search);
+        $('select').val(status);
+
+
+        $('#order-search').click(function(){
+            var url = new URL(window.location.href);
+            if($('input.search').val() == ''){
+                url.searchParams.delete('search');
+            }else{
+                url.searchParams.set('search', $('input.search').val());
+            }
+            url.searchParams.set('page', 1);
+            window.location.href = url;
+        });
+        $('select').on('change', function(){
+            var url = new URL(window.location.href);
+            if($(this).val() == ''){
+                url.searchParams.delete('status');
+            }else{
+                url.searchParams.set('status', $(this).val());
+            }
+            url.searchParams.set('page', 1);
+            window.location.href = url;
+        });
+        $('button#previous').click(function(){
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', order-1);
+            window.location.href = url;
+        });
+        $('button#next').click(function(){
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', order+1);
+            window.location.href = url;
+        });
+
+    });
+</script>
 {% endblock %}
