@@ -192,6 +192,7 @@ def state_multi(request, rate_id):
                 state_multiplier[key] = float(value)
         rate.state_multiplier = state_multiplier
         rate.save()
+        return render(request, 'state_multi.html', {'rate': rate, "redirect": True})
 
     return render(request, 'state_multi.html', {'rate': rate})
 

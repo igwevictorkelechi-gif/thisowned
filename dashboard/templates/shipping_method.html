@@ -119,6 +119,13 @@
             renderChoiceLimit: 5    // Limit how many options are displayed at once
         });
 
+        {% if redirect %}
+            if (window.opener) {
+                window.opener.location.reload();
+                window.close();
+            }
+        {% endif %}
+
     </script>
 </body>
 

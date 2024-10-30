@@ -101,6 +101,12 @@
             console.log($(this).val())
             $(this).parent().parent().find('.price-value').html(price * $(this).val())
         })
+        {% if redirect %}
+            if (window.opener) {
+                window.close();
+            }
+        {% endif %}
+
     </script>
 
 </body>
