@@ -8,7 +8,7 @@ const PaypalPayment = ({ total, tx_ref }) => {
     // Load PayPal script and render button once total is available
     if (total) {
       const script = document.createElement("script");
-      script.src = `https://www.paypal.com/sdk/js?client-id=AQQvVM646L4tQTOXElGP6hFdfEoe4IkVHuYKJiYq0ZRV6XmwniIeviXDeq8YFzQZ7AG_Doke03YIj-xG`;
+      script.src = `https://www.paypal.com/sdk/js?client-id=AYbIKPKQiRhMh1SQNDCWz7qCKmor-wlCG-aSza3RGaje_eZ_5YdNxeos1xpqUfRExJlm7PpSb1PHCEbO`;
       script.addEventListener("load", () => {
         if (window.paypal) {
           window.paypal
