@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useCurrency } from "../../utils/CurrencyContext";
+import PaystackPayment from "../../api/PaystackPayment";
 
 function CheckoutPage() {
   const {
@@ -41,6 +42,7 @@ function CheckoutPage() {
   const [selectedShippingPrice, setSelectedShippingPrice] = useState(null);
   const [txRef, setTxRef] = useState(null); // State to hold the transaction reference
   const [totalInUsd, setTotalInUsd] = useState(null); // State to hold the usd total transaction reference
+  const [totalInNgn, setTotalInNgn] = useState(null); // State to hold the ngn total transaction reference
   const [total, setTotal] = useState(null); // State to hold the total reference
   const { currency } = useCurrency();
 
@@ -74,6 +76,7 @@ function CheckoutPage() {
     setShowPaymentOptions(false);
     setTxRef("");
     setTotalInUsd(null);
+    setTotalInNgn(null);
     setTotal(null);
 
     // Fetch fresh countries data
@@ -235,10 +238,11 @@ function CheckoutPage() {
       }
 
       const result = await response.json();
-      const { tx_ref, amount, amount_usd } = result;
+      const { tx_ref, amount, amount_usd, amount_ngn } = result;
 
       setTxRef(tx_ref);
       setTotalInUsd(amount_usd);
+      setTotalInNgn(amount_ngn);
       setTotal(amount);
 
       setTimeout(() => {
@@ -650,6 +654,13 @@ function CheckoutPage() {
                   customerInfo={formData}
                   currency={currency}
                 />
+
+                <PaystackPayment
+                  total={totalInNgn}
+                  tx_ref={txRef}
+                  customerInfo={formData}
+                />
+
                 <PaypalPayment total={totalInUsd} tx_ref={txRef} />
               </div>
             ) : (

@@ -346,7 +346,7 @@ function Navbar() {
               className={`cursor-pointer p-1 leading-6 text-gray-800 hover:text-primary hover:font-semibold mr-0}`}
             >
               <Link
-                href={isLoggedIn ? "/" : `login`}
+                href={isLoggedIn ? "/" : "/../login"}
                 className="w-full block"
                 onClick={isLoggedIn ? handleLogout : closeMenu}
               >
