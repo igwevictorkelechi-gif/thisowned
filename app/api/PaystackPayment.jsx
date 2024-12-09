@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { PaystackButton } from "react-paystack";
 import { useRouter } from "next/navigation";
