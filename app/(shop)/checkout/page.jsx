@@ -655,11 +655,11 @@ function CheckoutPage() {
                   currency={currency}
                 />
 
-                <PaystackPayment
+                {/* <PaystackPayment
                   total={totalInNgn}
                   tx_ref={txRef}
                   customerInfo={formData}
-                />
+                /> */}
 
                 <PaypalPayment total={totalInUsd} tx_ref={txRef} />
               </div>
