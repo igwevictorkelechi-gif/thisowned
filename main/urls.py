@@ -16,8 +16,9 @@ router.register(r'order', views.OrderViewSet, basename='order')
 router.register(r'shipping_rate', views.ShippingRateViewSet, basename='shipping_rate')
 
 urlpatterns = [
-    path('webhook', views.flutterwave_webhook, name="webhook"),
-    path('paypal/webhook', views.paypal_webhook, name="webhook"),
+    path('webhook', views.flutterwave_webhook, name="f_webhook"),
+    path('paystark/webhook', views.paystark_webhook, name="ps_webhook"),
+    path('paypal/webhook', views.paypal_webhook, name="p_webhook"),
     path('collection/all/', views.AllCollectionsView.as_view(), name="all_collection"),
     path('', include(router.urls)),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

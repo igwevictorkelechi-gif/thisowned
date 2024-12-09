@@ -181,6 +181,50 @@ def flutterwave_webhook(request):
 
 
 @csrf_exempt
+def paystark_webhook(request):
+    if request.method == 'POST':
+        payload = json.loads(request.body)
+        data = payload.get('data')
+        event = payload.get('event')
+
+        tx_ref = data.get('reference')
+        amount = data.get('amount')
+        status_ = data.get('status')
+
+        print(payload)
+
+        if status_ == 'success':
+            # Mark payment as completed in your database
+            payment = Payment.objects.filter(tx_ref=tx_ref).first()
+            print(payment)
+            if payment:
+                method_mapping = {
+                    'card': 'credit_card',
+                    'bank': 'bank_transfer',
+                    'ussd': 'ussd',
+                    'opay': "account"
+                }
+                payment_method = method_mapping.get(data.get('channel'), 'paystark')
+
+                payment.method = payment_method
+
+                payment.status = 'completed'
+
+                payment.payload = json.dumps(payload)
+                payment.save()
+                carts = Cart.objects.filter(owner=payment.order.first().customer)
+                for cart in carts:
+                    cart.delete()
+
+            return JsonResponse({"status": "success"}, status=200)
+        else:
+            # Handle failed or pending payment
+            return JsonResponse({"status": "failed"}, status=400)
+
+    return JsonResponse({"status": "invalid request"}, status=400)
+
+
+@csrf_exempt
 def paypal_webhook(request):
     if request.method == 'POST':
         payload = json.loads(request.body)
