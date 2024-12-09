@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from "react";
 import FlutterwavePayment from "../../api/FlutterwavePayment";
 import PaypalPayment from "../../api/PaypalPayment";
+import PaystackPayment from "../../api/PaystackPayment";
 import { useCart } from "../../utils/CartContext";
 import Swal from "sweetalert2";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useCurrency } from "../../utils/CurrencyContext";
-import PaystackPayment from "../../api/PaystackPayment";
 
 function CheckoutPage() {
   const {
