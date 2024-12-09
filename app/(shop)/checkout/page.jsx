@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import FlutterwavePayment from "../../api/FlutterwavePayment";
 import PaypalPayment from "../../api/PaypalPayment";
-// import PaystackPayment from "../../api/PaystackPayment";
+import PaystackPayment from "../../api/PaystackPayment";
 import { useCart } from "../../utils/CartContext";
 import Swal from "sweetalert2";
 import { ChevronDown } from "lucide-react";
@@ -655,11 +655,11 @@ function CheckoutPage() {
                   currency={currency}
                 />
 
-                {/* <PaystackPayment
+                <PaystackPayment
                   total={totalInNgn}
                   tx_ref={txRef}
                   customerInfo={formData}
-                /> */}
+                />
 
                 <PaypalPayment total={totalInUsd} tx_ref={txRef} />
               </div>

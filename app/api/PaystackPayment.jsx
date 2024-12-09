@@ -1,8 +1,7 @@
-"use client";
 import React from "react";
 import { PaystackButton } from "react-paystack";
+import Swal from "sweetalert2"; // Directly import SweetAlert2
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2"; // Import SweetAlert
 import { useCart } from "../utils/CartContext";
 
 const PaystackPayment = ({ total, customerInfo, tx_ref }) => {
@@ -41,7 +40,9 @@ const PaystackPayment = ({ total, customerInfo, tx_ref }) => {
           confirmButtonText: "Proceed",
         }).then(() => {
           // Navigate to the success page
-          window.location.href = "/success";
+          if (typeof window !== "undefined") {
+            window.location.href = "/success";
+          }
         });
       } catch (error) {
         console.error("Error updating cart:", error);
