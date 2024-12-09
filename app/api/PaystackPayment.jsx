@@ -1,10 +1,9 @@
 import React from "react";
 import { PaystackButton } from "react-paystack";
-import Swal from "sweetalert2"; // Directly import SweetAlert2
 import { useRouter } from "next/navigation";
 import { useCart } from "../utils/CartContext";
 
-const PaystackPayment = ({ total, customerInfo, tx_ref }) => {
+const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
   const { updateCart } = useCart(); // Get the updateCart function from context
   const router = useRouter();
 
@@ -16,7 +15,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref }) => {
     amount,
     publicKey,
     reference: tx_ref,
-    currency: "NGN",
+    currency,
     metadata: {
       custom_fields: [
         {
@@ -29,50 +28,30 @@ const PaystackPayment = ({ total, customerInfo, tx_ref }) => {
   };
 
   const handleSuccess = async (response) => {
+    // Close the Paystack modal
+    // alert("Payment Successful!");
+
+    // console.log(response.status);
+
     if (response.status === "success") {
       try {
         await updateCart(); // Ensure cart is updated before routing
-        Swal.fire({
-          title: "Success!",
-          text: "Payment completed successfully!",
-          icon: "success",
-          confirmButtonColor: "#000000",
-          confirmButtonText: "Proceed",
-        }).then(() => {
-          // Navigate to the success page
-          if (typeof window !== "undefined") {
-            window.location.href = "/success";
-          }
-        });
+
+        // Navigate to the success page
+        window.location.href = "/success";
+
+        // Optionally reload the page
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 1000); // Ensure routing happens before reload
       } catch (error) {
         console.error("Error updating cart:", error);
-        Swal.fire({
-          title: "Error!",
-          text: "An error occurred while updating your cart. Please try again.",
-          icon: "error",
-          confirmButtonColor: "#FF0000",
-          confirmButtonText: "Close",
-        });
       }
-    } else {
-      Swal.fire({
-        title: "Payment Failed!",
-        text: "Your payment was not successful. Please try again.",
-        icon: "error",
-        confirmButtonColor: "#FF0000",
-        confirmButtonText: "Retry",
-      });
     }
   };
 
   const handleClose = () => {
-    Swal.fire({
-      title: "Payment Cancelled",
-      text: "You closed the payment modal without completing the transaction.",
-      icon: "info",
-      confirmButtonColor: "#000000",
-      confirmButtonText: "Close",
-    });
+    console.log("Payment process closed.");
   };
 
   return (
