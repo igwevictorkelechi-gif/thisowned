@@ -328,6 +328,11 @@ class CheckoutSerializer(serializers.ModelSerializer):
             data['amount_usd'] = str(base_price * float(data['amount']))
         else:
             data['amount_usd'] = data['amount']
+        if "NGN" != source_currency:
+            base_price = price_converter(source_currency, 'NGN')
+            data['amount_ngn'] = str(base_price * float(data['amount']))
+        else:
+            data['amount_ngn'] = data['amount']
         return data
 
 
