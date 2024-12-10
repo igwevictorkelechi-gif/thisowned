@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-// import FlutterwavePayment from "../../api/FlutterwavePayment";
+import FlutterwavePayment from "../../api/FlutterwavePayment";
 import PaypalPayment from "../../api/PaypalPayment";
-import PaystackPayment from "../../api/PaystackPayment";
+// import PaystackPayment from "../../api/PaystackPayment";
 import { useCart } from "../../utils/CartContext";
 import Swal from "sweetalert2";
 import { ChevronDown } from "lucide-react";
@@ -648,18 +648,18 @@ function CheckoutPage() {
               </div>
             ) : showPaymentOptions ? (
               <div className="w-full">
-                {/* <FlutterwavePayment
+                <FlutterwavePayment
                   total={total}
                   tx_ref={txRef}
                   customerInfo={formData}
                   currency={currency}
-                /> */}
+                />
 
-                <PaystackPayment
+                {/* <PaystackPayment
                   total={totalInNgn}
                   tx_ref={txRef}
                   customerInfo={formData}
-                />
+                /> */}
 
                 <PaypalPayment total={totalInUsd} tx_ref={txRef} />
               </div>
