@@ -45,7 +45,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
           title: "Payment Successful!",
           text: "Thank you for your purchase.",
           confirmButtonColor: "#000000",
-          confirmButtonText: "View Order",
+          confirmButtonText: "Proceed",
         }).then(() => {
           router.push("/success");
         });
@@ -55,6 +55,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
           title: "Oops...",
           text: "Something went wrong!",
           confirmButtonColor: "#000000",
+          confirmButtonText: "Close",
         });
         console.error("Error updating cart:", error);
       }
@@ -67,6 +68,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
       title: "Payment Cancelled",
       text: "You have closed the payment process.",
       confirmButtonColor: "#000000",
+      confirmButtonText: "Close",
     });
   };
 
@@ -75,7 +77,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
       <PaystackButton
         {...config}
         text="Pay with Paystack"
-        className="w-full max-w-2xl rounded-md bg-[#09A4DB] py-3 font-semibold text-white text-center tracking-wider"
+        className="w-full max-w-2xl rounded-md bg-[#09a3dbd8] py-4 font-semibold text-white text-center tracking-wider"
         onSuccess={handleSuccess}
         onClose={handleClose}
       />
