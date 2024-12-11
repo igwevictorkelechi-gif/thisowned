@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCart } from "../utils/CartContext";
+import Swal from "sweetalert2";
 
 const PaystackButton = dynamic(
   () => import("react-paystack").then((mod) => mod.PaystackButton),
@@ -38,15 +39,35 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
     if (response.status === "success") {
       try {
         await updateCart();
-        router.push("/success");
+
+        Swal.fire({
+          icon: "success",
+          title: "Payment Successful!",
+          text: "Thank you for your purchase.",
+          confirmButtonColor: "#000000",
+          confirmButtonText: "View Order",
+        }).then(() => {
+          router.push("/success");
+        });
       } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Something went wrong!",
+          confirmButtonColor: "#000000",
+        });
         console.error("Error updating cart:", error);
       }
     }
   };
 
   const handleClose = () => {
-    console.log("Payment process closed.");
+    Swal.fire({
+      icon: "info",
+      title: "Payment Cancelled",
+      text: "You have closed the payment process.",
+      confirmButtonColor: "#000000",
+    });
   };
 
   return (
