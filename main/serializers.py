@@ -127,7 +127,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email', "password")
+        fields = ('id', 'first_name', 'last_name', 'email', 'country', "password")
 
     def create(self, validated_data):
         # Create the user with a hashed password

@@ -73,7 +73,7 @@ class AllCollectionsView(APIView):
 class RegisterViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    http_method_names = ['post']
+    http_method_names = ['post', 'get']
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -91,6 +91,12 @@ class RegisterViewSet(viewsets.ModelViewSet):
             'refresh': refresh_token
         }
 
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        response_data = {
+            'countries': [country.name for country in pycountry.countries]
+        }
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
