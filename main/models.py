@@ -78,6 +78,18 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def final_price(self, user, converter):
+        if user.is_authenticated:
+            user_country = user.country
+            price = self.ng_price if user_country == "Nigeria" else self.price
+            currency = self.currency.upper()
+            base_price = converter('NGN', currency) if currency != "NGN" else 1
+            print(price, currency, base_price)
+            return round((price * base_price), 2)
+        else:
+            return self.price
+
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_image")

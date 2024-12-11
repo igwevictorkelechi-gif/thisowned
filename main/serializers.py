@@ -44,6 +44,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
     discount_price = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -55,6 +56,10 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def get_size(self, obj):
         return [[size.id, size.rating] for size in obj.sizes.all()]
+
+    def get_price(self, obj):
+        request = self.context.get('request')
+        return obj.final_price(request.user, price_converter)
 
     def get_discount_price(self, obj):
         return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))

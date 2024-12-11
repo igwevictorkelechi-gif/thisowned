@@ -10,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
     """Define admin model for custom User model with no username field."""
     model = User
     fieldsets = (
-        (_('Personal info'), {'fields': ('first_name', 'last_name')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'country')}),
         (None, {'fields': ('email', 'password', 'is_online')}),
         # (_('Social links'), {'fields': ('facebook', 'twitter', 'linkedin', 'whatsapp')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
