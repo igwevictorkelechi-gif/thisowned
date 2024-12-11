@@ -1,8 +1,14 @@
 "use client";
-import React from "react";
-import { PaystackButton } from "react-paystack";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCart } from "../utils/CartContext";
+
+const PaystackButton = dynamic(
+  () => import("react-paystack").then((mod) => mod.PaystackButton),
+  {
+    ssr: false,
+  }
+);
 
 const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
   const { updateCart } = useCart();
@@ -32,7 +38,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
     if (response.status === "success") {
       try {
         await updateCart();
-        router.push("/success"); // Use router.push instead of window.location
+        router.push("/success");
       } catch (error) {
         console.error("Error updating cart:", error);
       }
