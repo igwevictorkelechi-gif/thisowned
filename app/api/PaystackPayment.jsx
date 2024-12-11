@@ -1,14 +1,15 @@
+"use client";
 import React from "react";
 import { PaystackButton } from "react-paystack";
 import { useRouter } from "next/navigation";
 import { useCart } from "../utils/CartContext";
 
 const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
-  const { updateCart } = useCart(); // Get the updateCart function from context
+  const { updateCart } = useCart();
   const router = useRouter();
 
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_TEST_KEY;
-  const amount = total * 100; // Convert to kobo (Nigerian currency)
+  const amount = total * 100;
 
   const config = {
     email: customerInfo.email,
@@ -28,22 +29,10 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
   };
 
   const handleSuccess = async (response) => {
-    // Close the Paystack modal
-    // alert("Payment Successful!");
-
-    // console.log(response.status);
-
     if (response.status === "success") {
       try {
-        await updateCart(); // Ensure cart is updated before routing
-
-        // Navigate to the success page
-        // window.location.href = "/success";
-
-        // Optionally reload the page
-        // setTimeout(() => {
-        //   window.location.reload();
-        // }, 1000); // Ensure routing happens before reload
+        await updateCart();
+        router.push("/success"); // Use router.push instead of window.location
       } catch (error) {
         console.error("Error updating cart:", error);
       }
