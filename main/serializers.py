@@ -62,7 +62,8 @@ class ProductListSerializer(serializers.ModelSerializer):
         return obj.final_price(request.user, price_converter)
 
     def get_discount_price(self, obj):
-        return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
+        price = obj.final_price(self.context.get('request').user, price_converter)
+        return price - (price * ((obj.discount if obj.discount else 0) / 100))
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -95,6 +96,7 @@ class SizeGuidSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(source="product_image", many=True, allow_null=True)
     size_guide = SizeGuidSerializer(source="sizes", many=True, allow_null=True)
+    price = serializers.SerializerMethodField()
     discount_price = serializers.SerializerMethodField()
     complete_set = serializers.SerializerMethodField()
 
@@ -109,8 +111,13 @@ class ProductSerializer(serializers.ModelSerializer):
         return [] if products.count() == 0 else ProductSetSerializer(
             products, many=True, context={'request': request}).data if products[0].products.count() else []
 
+    def get_price(self, obj):
+        request = self.context.get('request')
+        return obj.final_price(request.user, price_converter)
+
     def get_discount_price(self, obj):
-        return obj.price - (obj.price * ((obj.discount if obj.discount else 0) / 100))
+        price = obj.final_price(self.context.get('request').user, price_converter)
+        return price - (price * ((obj.discount if obj.discount else 0) / 100))
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -302,7 +309,8 @@ class CheckoutSerializer(serializers.ModelSerializer):
         total = 0
         for item_data in items_data:
             discount_price = ((item_data.product.discount if item_data.product.discount else 0) / 100)
-            new_price = (item_data.product.price - (item_data.product.price * discount_price)) * item_data.quantity
+            price = item_data.product.final_price(self.context.get('request').user, price_converter)
+            new_price = (price - (price * discount_price)) * item_data.quantity
 
             item_dict = {"name": item_data.product.name, "image": item_data.product.product_image.first().image.url,
                          "currency": item_data.product.currency, "price": new_price, 'id': item_data.product.id}
