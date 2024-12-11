@@ -38,7 +38,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
         await updateCart(); // Ensure cart is updated before routing
 
         // Navigate to the success page
-        window.location.href = "/success";
+        // window.location.href = "/success";
 
         // Optionally reload the page
         // setTimeout(() => {
