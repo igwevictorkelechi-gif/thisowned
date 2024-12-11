@@ -47,7 +47,8 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
           confirmButtonColor: "#000000",
           confirmButtonText: "Proceed",
         }).then(() => {
-          router.push("/success");
+          window.location.href = `success`;
+          // router.push("/success");
         });
       } catch (error) {
         Swal.fire({

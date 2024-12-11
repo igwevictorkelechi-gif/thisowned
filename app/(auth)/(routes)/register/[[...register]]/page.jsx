@@ -4,21 +4,43 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { useAuth } from "../../../../utils/AuthContext";
 
-function Page() {
+function RegisterPage() {
   const router = useRouter();
   const { setIsLoggedIn } = useAuth();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     email: "",
+    country: "",
     password: "",
   });
+  const [countries, setCountries] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fetch countries on component mount
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(process.env.NEXT_PUBLIC_AUTH_REGISTER_URL);
+        if (!response.ok) {
+          throw new Error("Failed to fetch countries");
+        }
+        const data = await response.json();
+        // console.log("Fetched data:", data);
+
+        setCountries(data.countries);
+      } catch (err) {
+        console.error("Error fetching countries:", err);
+      }
+    };
+
+    fetchCountries();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -51,6 +73,7 @@ function Page() {
           first_name: "",
           last_name: "",
           email: "",
+          country: "",
           password: "",
         });
         // Store tokens securely (assuming they're in the result)
@@ -126,7 +149,7 @@ function Page() {
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="font-medium">First Name</label>
+              <label className="font-medium text-sm">First Name</label>
               <input
                 type="text"
                 name="first_name"
@@ -137,7 +160,7 @@ function Page() {
               />
             </div>
             <div>
-              <label className="font-medium">Last Name</label>
+              <label className="font-medium text-sm">Last Name</label>
               <input
                 type="text"
                 name="last_name"
@@ -148,7 +171,7 @@ function Page() {
               />
             </div>
             <div>
-              <label className="font-medium">Email</label>
+              <label className="font-medium text-sm">Email</label>
               <input
                 type="email"
                 name="email"
@@ -158,8 +181,45 @@ function Page() {
                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
               />
             </div>
+
+            <div className="relative mx-auto">
+              <label className="font-medium text-sm">Country</label>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute top-6 bottom-0 w-5 h-5 my-auto text-gray-400 right-3"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <select
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2.5 text-sm text-gray-500 border rounded-lg outline-none appearance-none focus:border-gray-600"
+              >
+                <option value="">Select your country</option>
+                {Array.isArray(countries) && countries.length > 0 ? (
+                  countries.map((country, index) => (
+                    <option key={index} value={country}>
+                      {country}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>
+                    Loading...
+                  </option>
+                )}
+              </select>
+            </div>
+
             <div>
-              <label className="font-medium">Password</label>
+              <label className="font-medium text-sm">Password</label>
               <input
                 type="password"
                 name="password"
@@ -257,4 +317,4 @@ function Page() {
   );
 }
 
-export default Page;
+export default RegisterPage;
