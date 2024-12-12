@@ -20,7 +20,19 @@ function Products() {
 
     const fetchProducts = () => {
       setLoading(true);
-      fetch(`${process.env.NEXT_PUBLIC_PRODUCTS_URL}?code=${currency}`)
+
+      // Get the access token from localStorage
+      const accessToken = localStorage.getItem("accessToken");
+
+      const headers = {
+        "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      };
+
+      fetch(`${process.env.NEXT_PUBLIC_PRODUCTS_URL}?code=${currency}`, {
+        method: "GET",
+        headers: headers, // Include headers with the access token
+      })
         .then((response) => response.json())
         .then((data) => {
           setProducts(data);

@@ -27,8 +27,18 @@ function ShopDetails({ params }) {
     const fetchProduct = async () => {
       setLoading(true);
       try {
+        // Get the access token from localStorage
+        const accessToken = localStorage.getItem("accessToken");
+
+        // Set headers with the Authorization token if available
+        const headers = {
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }), // Add token if it exists
+        };
+
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_PRODUCTS_URL}${params.id}/?code=${currency}`
+          `${process.env.NEXT_PUBLIC_PRODUCTS_URL}${params.id}/?code=${currency}`,
+          { headers }
         );
 
         if (!response.ok) {
@@ -138,13 +148,20 @@ function ShopDetails({ params }) {
     // console.log("Request body:", payload);
 
     try {
+      // Get the access token from localStorage
+      const accessToken = localStorage.getItem("accessToken");
+
+      // Set headers with the Authorization token if available
+      const headers = {
+        "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }), // Add token if it exists
+      };
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: headers,
           body: JSON.stringify(payload),
         }
       );

@@ -15,12 +15,25 @@ function CollectionsPage({ params }) {
     async function fetchCollections() {
       try {
         setLoading(true);
+
+        // Get the access token from localStorage
+        const accessToken = localStorage.getItem("accessToken");
+
+        // Construct the URL based on the slug
         const url =
           params?.slug === "all"
             ? `${process.env.NEXT_PUBLIC_COLLECTION_URL}all/?code=${currency}`
             : `${process.env.NEXT_PUBLIC_COLLECTION_URL}${params?.slug}/?code=${currency}`;
 
-        const response = await fetch(url);
+        // Set headers with the Authorization token if available
+        const headers = {
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        };
+
+        // Fetch collections data with headers
+        const response = await fetch(url, { headers });
+
         if (!response.ok) {
           throw new Error("Failed to fetch collections");
         }
