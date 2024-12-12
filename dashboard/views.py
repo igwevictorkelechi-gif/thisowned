@@ -142,7 +142,6 @@ def products_form(request, p_id=None):
 def shipping(request):
     if request.method == 'POST':
         data = request.POST
-        print(data["model"])
         if 'add-rate' in data:
             ShippingRate.objects.create(country=data['country'], base_rate=data['base_rate'])
         elif 'edit-rate' in data:
