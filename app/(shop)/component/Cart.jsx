@@ -65,18 +65,20 @@ function Cart({ setIsCartEmpty }) {
   };
 
   // Increment item quantity by adding 1
-  const incrementQuantity = (itemId) => {
+  const incrementQuantity = async (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
     const newQuantity = item.quantity + 1;
-    updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
+    await updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
+    await updateCart(); // This will fetch the latest cart data and update the context
   };
 
   // Decrement item quantity by subtracting 1 (but not below 1)
-  const decrementQuantity = (itemId) => {
+  const decrementQuantity = async (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
     if (item && item.quantity > 1) {
       const newQuantity = item.quantity - 1;
-      updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
+      await updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
+      await updateCart(); // This will fetch the latest cart data and update the context
     }
   };
   // Remove item from cart
