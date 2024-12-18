@@ -661,7 +661,7 @@ function CheckoutPage() {
                   customerInfo={formData}
                 />
 
-                <PaypalPayment total={totalInUsd} tx_ref={txRef} />
+                {/* <PaypalPayment total={totalInUsd} tx_ref={txRef} /> */}
               </div>
             ) : (
               <div className="w-full mx-auto max-w-screen-xl">
