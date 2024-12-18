@@ -15,7 +15,7 @@ const PaystackPayment = ({ total, customerInfo, tx_ref, currency }) => {
   const { updateCart } = useCart();
   const router = useRouter();
 
-  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_TEST_KEY;
+  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_LIVE_KEY;
   const amount = total * 100;
 
   const config = {
