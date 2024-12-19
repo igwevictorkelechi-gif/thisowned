@@ -83,7 +83,7 @@ class Product(models.Model):
             user_country = user.country
             price = self.ng_price if user_country == "Nigeria" else self.price
             currency = self.currency.upper()
-            base_price = converter('NGN', currency) if currency != "NGN" else 1
+            base_price = converter('NGN', currency) if currency != "NGN" and user_country == "Nigeria" else 1
             print(price, currency, base_price)
             return round((price * base_price), 2)
         else:
@@ -152,7 +152,7 @@ class Shipping(models.Model):
     phone = models.CharField(max_length=15)
     address = models.TextField()
     city = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
+    postal_code = models.CharField(max_length=20, null=True, blank=True)
     country = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     shipped_at = models.DateTimeField(null=True, blank=True)
