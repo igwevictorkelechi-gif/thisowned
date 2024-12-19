@@ -33,6 +33,24 @@ currency_dict = {
     "NGN": "₦"
 }
 
+counties_currency = {
+    "United States, Puerto Rico, Guam, Northern Mariana Islands, American Samoa, U.S. Virgin Islands": "USD",
+    # United States Dollar
+    """Austria, Belgium, Cyprus, Estonia, Finland, France, Germany, Greece, Ireland, Italy, Latvia, Lithuania, 
+    Luxembourg, Malta, Netherlands, Portugal, Slovakia, Slovenia, Spain, Andorra, Monaco, San Marino, Vatican City, 
+    Kosovo, Montenegro""": "EUR",  # Euro
+    "United Kingdom, England, Scotland, Wales, Northern Ireland": "GBP",  # British Pound Sterling
+    "India, Bhutan": "INR",  # Indian Rupee
+    "Nigeria": "NGN",  # Nigerian Naira
+}
+
+
+def get_currency_by_country(user_country):
+    for countries, currency in counties_currency.items():
+        if user_country in countries.split(", "):
+            return currency
+    return "USD"
+
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -133,13 +151,13 @@ class ProductSerializer(serializers.ModelSerializer):
         return data
 
 
-
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(style={"input_type": "password"}, write_only=True)
+    currency = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email', 'country', "password")
+        fields = ('id', 'first_name', 'last_name', 'email', 'country', 'currency', "password")
 
     def create(self, validated_data):
         # Create the user with a hashed password
@@ -147,11 +165,15 @@ class UserSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
+            country=validated_data['country'],
         )
         user.set_password(validated_data['password'])
         user.save()
 
         return user
+
+    def get_currency(self, obj):
+        return get_currency_by_country(obj.country)
 
 
 class UserTypeSerializer(serializers.ModelSerializer):
