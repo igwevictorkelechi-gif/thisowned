@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { useAuth } from "../../../../utils/AuthContext";
+import { useCurrency } from "../../../../utils/CurrencyContext";
 
 function RegisterPage() {
   const router = useRouter();
+  const { updateCurrency } = useCurrency(); // Get currency and updateCurrency
   const { setIsLoggedIn } = useAuth();
   const [formData, setFormData] = useState({
     first_name: "",
@@ -81,6 +83,31 @@ function RegisterPage() {
           localStorage.setItem("accessToken", result.access);
           localStorage.setItem("refreshToken", result.refresh);
 
+          // Fetch the current user data with the access token
+          const userResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_USERS_URL}current`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${result.access}`,
+              },
+            }
+          );
+
+          if (!userResponse.ok) {
+            throw new Error("Failed to fetch user data.");
+          }
+
+          const userData = await userResponse.json();
+          const { country, currency } = userData;
+
+          // Optionally store or display this data as needed
+          // console.log("User Data:", { country, currency });
+
+          localStorage.setItem("currency", currency);
+
+          // Update currency in global state (assuming you use useCurrency context)
+          updateCurrency(currency); // This will update the currency context globally
           // Update login state
           setIsLoggedIn(true);
           // Trigger a custom event to notify other components
