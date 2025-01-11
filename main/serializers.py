@@ -66,7 +66,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ["id", "name", "price", "currency", "discount", 'discount_price', "images", 'size']
+        fields = ["id", "name", "price", "currency", "discount", 'discount_price', "images", 'size', 'in_stock']
 
     def get_images(self, obj):
         all_images = obj.product_image.all()[:2]
@@ -121,7 +121,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ["id", "name", "price", "currency", "discount", "discount_price", "details", "care",
-                  "delivery_and_return", "images", "complete_set", "size_guide"]
+                  "delivery_and_return", "images", "complete_set", "size_guide", 'in_stock']
 
     def get_complete_set(self, obj):
         products = obj.sets.all()

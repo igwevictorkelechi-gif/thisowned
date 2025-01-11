@@ -74,6 +74,7 @@ class Product(models.Model):
     care = models.TextField()
     delivery_and_return = models.TextField()
     tags = models.TextField(null=True, blank=True)
+    in_stock = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

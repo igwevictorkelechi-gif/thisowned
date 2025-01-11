@@ -113,7 +113,7 @@ def products_form(request, p_id=None):
         ap = Product() if not p.get('product_id') else Product.objects.get(id=p.get('product_id'))
         ap.name, ap.collection, ap.price, ap.care = p.get('name'), collection, p.get('b-price'), p.get('care')
         ap.currency, ap.discount, ap.details = p.get('price-currency'), p.get('discount'), p.get('details')
-        ap.tags, ap.ng_price = p.get('tags'), p.get("ng-price")
+        ap.tags, ap.ng_price, ap.in_stock = p.get('tags'), p.get("ng-price"), bool(int(p.get('stock-status')))
 
         if p.get('product_id'):
             for item in ProductImage.objects.filter(image__in=json.loads(p.get('removed'))):

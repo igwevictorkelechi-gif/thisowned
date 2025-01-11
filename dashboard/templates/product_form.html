@@ -262,11 +262,11 @@
                   </div>
                   <div class="card-body">
                     <div class="form-check">
-                        <input class="form-check-input p-2" id="in-stock" type="radio" checked name="stock-status">
+                        <input class="form-check-input p-2" id="in-stock" type="radio" {% if product.in_stock %}checked{%endif%} name="stock-status" value="1">
                         <label class="form-check-label fs-0 fw-normal text-700" for="in-stock">In stock</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input p-2" id="unavailable" type="radio" name="stock-status">
+                        <input class="form-check-input p-2" id="unavailable" type="radio" {% if not product.in_stock %}checked{%endif%} name="stock-status" value="0">
                         <label class="form-check-label fs-0 fw-normal text-700" for="unavailable">Unavailable</label>
                     </div>
                   </div>
