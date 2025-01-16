@@ -412,84 +412,92 @@ function ShopDetails({ params }) {
                   {product.symbol} {product.price.toFixed(2)}
                 </p>
 
-                <div className="mt-6 flex items-center gap-6">
-                  <label className="block text-base font-medium text-white">
-                    Size:
-                  </label>
+                {!product.in_stock ? (
+                  <p className="mt-6 text-red-500 font-bold">
+                    This product is currently out of stock.
+                  </p>
+                ) : (
+                  <>
+                    <div className="mt-6 flex items-center gap-6">
+                      <label className="block text-base font-medium text-white">
+                        Size:
+                      </label>
 
-                  <fieldset className="flex flex-wrap gap-3">
-                    {product.size_guide.map(
-                      (size) =>
-                        size.is_available && (
-                          <div key={size.id}>
-                            <label
-                              htmlFor={`Size${size.rating}`}
-                              className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
-                                selectedSize === size.id
-                                  ? "border-red-500 bg-white text-red-500 font-bold"
-                                  : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name="SizeOption"
-                                value={size.id}
-                                id={`Size${size.rating}`}
-                                className="sr-only"
-                                checked={selectedSize === size.id}
-                                onChange={() => handleSizeChange(size.id)}
-                              />
-                              <p className="text-sm font-medium uppercase">
-                                {size.rating}
-                              </p>
-                            </label>
-                          </div>
-                        )
-                    )}
-                  </fieldset>
-                </div>
+                      <fieldset className="flex flex-wrap gap-3">
+                        {product.size_guide.map(
+                          (size) =>
+                            size.is_available && (
+                              <div key={size.id}>
+                                <label
+                                  htmlFor={`Size${size.rating}`}
+                                  className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
+                                    selectedSize === size.id
+                                      ? "border-red-500 bg-white text-red-500 font-bold"
+                                      : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="SizeOption"
+                                    value={size.id}
+                                    id={`Size${size.rating}`}
+                                    className="sr-only"
+                                    checked={selectedSize === size.id}
+                                    onChange={() => handleSizeChange(size.id)}
+                                  />
+                                  <p className="text-sm font-medium uppercase">
+                                    {size.rating}
+                                  </p>
+                                </label>
+                              </div>
+                            )
+                        )}
+                      </fieldset>
+                    </div>
 
-                <div className="mt-10 flex items-center gap-x-5">
-                  <label
-                    htmlFor="Quantity"
-                    className="font-medium text-base text-white"
-                  >
-                    Quantity:
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={decrementQuantity}
-                      type="button"
-                      className="size-10 leading-10 text-white transition hover:opacity-75"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      id="Quantity"
-                      min={1}
-                      value={quantity}
-                      onChange={handleQuantityChange}
-                      className="h-10 w-16 rounded border bg-black border-gray-200 text-center text-white"
-                    />
-                    <button
-                      onClick={incrementQuantity}
-                      type="button"
-                      className="size-10 leading-10 text-white transition hover:opacity-75"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+                    <div className="mt-10 flex items-center gap-x-5">
+                      <label
+                        htmlFor="Quantity"
+                        className="font-medium text-base text-white"
+                      >
+                        Quantity:
+                      </label>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={decrementQuantity}
+                          type="button"
+                          className="size-10 leading-10 text-white transition hover:opacity-75"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          id="Quantity"
+                          min={1}
+                          value={quantity}
+                          onChange={handleQuantityChange}
+                          className="h-10 w-16 rounded border bg-black border-gray-200 text-center text-white"
+                        />
+                        <button
+                          onClick={incrementQuantity}
+                          type="button"
+                          className="size-10 leading-10 text-white transition hover:opacity-75"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
 
-                <div className="mt-12">
-                  <button
-                    onClick={addToCart}
-                    className="bg-white hover:opacity-95 hover:text-red-500  hover:font-medium text-whte p-3 w-[100%] md:max-w-[52%] shadow-sm rounded-sm"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
+                    <div className="mt-12">
+                      <button
+                        onClick={addToCart}
+                        className="bg-white hover:opacity-95 hover:text-red-500 hover:font-medium text-whte p-3 w-[100%] md:max-w-[52%] shadow-sm rounded-sm"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </>
+                )}
                 {/* Conditionally render "Complete the Set" */}
                 {product.complete_set && product.complete_set.length > 0 && (
                   <div className="mt-20">
