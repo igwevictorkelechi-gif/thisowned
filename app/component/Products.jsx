@@ -94,7 +94,7 @@ function Products() {
               </div>
             </div>
           ) : (
-            <ul className="mt-8 grid gap-4 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-8 grid gap-4 gap-y-16 grid-cols-2 lg:grid-cols-4">
               {products.map((product) => (
                 <li key={product.id}>
                   <div
@@ -123,7 +123,7 @@ function Products() {
                           : product.images[0].image
                       }
                       alt={product.name}
-                      className="h-[350px] w-full object-cover transition duration-500 group-hover:scale-105 sm:h-[450px] text-white"
+                      className="h-[180px] w-full object-cover transition duration-500 group-hover:scale-105 xl:h-[450px] text-white"
                     />
 
                     <div className="relative pt-3">
