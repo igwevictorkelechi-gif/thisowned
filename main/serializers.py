@@ -20,7 +20,7 @@ def price_converter(source_currency, target_currency):
         return 1
     rate = "{}{}".format(text1, text2).replace(',', '')
     result = 1 * float(rate)
-    cache.set(f'{source_currency}-{target_currency}', result, timeout=60 * 15)
+    cache.set(f'{source_currency}-{target_currency}', result, timeout=60 * 24)
 
     return result
 

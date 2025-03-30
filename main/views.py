@@ -14,14 +14,22 @@ from .serializers import *
 from .models import Product, User, Collection
 
 
+class ProductPagination(PageNumberPagination):
+    page_size = 1  # Number of items per page
+    page_size_query_param = 'page_size'  # Allow client to set page size
+    max_page_size = 100  # Set a limit on page size
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().order_by('-id')
     serializer_class = ProductSerializer
+    pagination_class = ProductPagination  # Apply custom pagination
 
     def get_serializer_class(self):
         if self.action == 'list':
             return ProductListSerializer
         return super().get_serializer_class()
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
