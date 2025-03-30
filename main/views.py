@@ -15,7 +15,7 @@ from .models import Product, User, Collection
 
 
 class ProductPagination(PageNumberPagination):
-    page_size = 1  # Number of items per page
+    page_size = 4  # Number of items per page
     page_size_query_param = 'page_size'  # Allow client to set page size
     max_page_size = 100  # Set a limit on page size
 
