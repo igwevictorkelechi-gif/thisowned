@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 import pycountry
 
 from .serializers import *
+from django.db.models import QuerySet
 from .models import Product, User, Collection
 
 
@@ -30,6 +31,28 @@ class ProductViewSet(viewsets.ModelViewSet):
             return ProductListSerializer
         return super().get_serializer_class()
 
+    def get_object(self):
+        pk = self.kwargs.get('pk')
+        if "c" in pk.lower():
+            try:
+                if pk.strip()[1:]:
+                    return Product.objects.filter(collection__id=int(pk.strip()[1:]))
+                else:
+                    return Product.objects.all()
+            except ValueError:
+                pass
+
+        return super().get_object()
+
+    def retrieve(self, request, *args, **kwargs):
+
+        product = self.get_object()
+        if isinstance(product, QuerySet):
+            self.queryset = product
+            return self.list(request)
+        else:
+            serializer = ProductSerializer(product, context={"request": request})
+        return Response(serializer.data)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -68,15 +91,45 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionDetailSerializer
         return super().get_serializer_class()
 
+    def retrieve(self, request, *args, **kwargs):
+        collection = self.get_object()  # Get the requested collection
+
+        # Fetch products dynamically based on pagination
+        paginator = ProductPagination()
+
+        paginated_products = paginator.paginate_queryset(
+            collection.products.order_by('-id'), request
+        )
+
+        # Serialize paginated products
+        serialized_products = ProductListSerializer(paginated_products, many=True, context={"request": request}).data
+
+        # Serialize collection
+        collection_data = CollectionDetailSerializer(collection, context={"request": request}).data
+        collection_data["products"] = serialized_products  # Add paginated products
+
+        return paginator.get_paginated_response(collection_data)
+
+
 
 class AllCollectionsView(APIView):
+    pagination_class = ProductPagination  # Assign pagination class
+
     def get(self, request):
         query_sets = [x.products.all().order_by('-id') for x in Collection.objects.all()]
         combined_list = [item for qs in query_sets for item in qs]
-        response = {"name": "all", "products": ProductListSerializer(combined_list, many=True, allow_null=True,
-                                                                     context={"request": request}).data}
-        return Response(response, status=status.HTTP_200_OK)
 
+        # Apply pagination
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(combined_list, request)
+
+        # Serialize paginated data
+        response_data = {
+            "name": "all",
+            "products": ProductListSerializer(paginated_queryset, many=True, context={"request": request}).data
+        }
+
+        return paginator.get_paginated_response(response_data)
 
 class RegisterViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
