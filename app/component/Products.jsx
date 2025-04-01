@@ -1,27 +1,34 @@
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCurrency } from "../utils/CurrencyContext";
 
 function Products() {
   const router = useRouter();
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true); // State to handle loading
-  const [hoveredProductId, setHoveredProductId] = useState(null); // State to track hovered product for large screens
-  const [clickedProductId, setClickedProductId] = useState(null); // State to track clicked product for small screens
-  const [isLargeScreen, setIsLargeScreen] = useState(false); // State to check if it's a large screen
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadedImages, setLoadedImages] = useState(new Set());
+  const [nextPageUrl, setNextPageUrl] = useState(
+    process.env.NEXT_PUBLIC_PRODUCTS_URL
+  );
+  const [hoveredProductId, setHoveredProductId] = useState(null);
+  const [clickedProductId, setClickedProductId] = useState(null);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const observerRef = useRef(null);
   const { currency } = useCurrency();
 
-  useEffect(() => {
-    if (!currency) return;
+  const fetchProducts = async (isInitialLoad = false) => {
+    if (!nextPageUrl || loadingMore) return;
 
-    // console.log("Fetching products with currency:", currency);
+    if (isInitialLoad) {
+      setInitialLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-    const fetchProducts = () => {
-      setLoading(true);
-
-      // Get the access token from localStorage
+    try {
       const accessToken = localStorage.getItem("accessToken");
 
       const headers = {
@@ -29,22 +36,42 @@ function Products() {
         ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
       };
 
-      fetch(`${process.env.NEXT_PUBLIC_PRODUCTS_URL}?code=${currency}`, {
-        method: "GET",
-        headers: headers, // Include headers with the access token
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setProducts(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching products:", error);
-          setLoading(false);
-        });
-    };
+      const separator = nextPageUrl.includes("?") ? "&" : "?";
+      const urlWithCurrency = `${nextPageUrl}${separator}code=${currency}`;
 
-    fetchProducts();
+      const response = await fetch(urlWithCurrency, { headers });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      setProducts((prev) => {
+        const uniqueProducts = new Map();
+        [...(isInitialLoad ? [] : prev), ...data.results].forEach((product) => {
+          uniqueProducts.set(product.id, product);
+        });
+
+        return Array.from(uniqueProducts.values());
+      });
+
+      setNextPageUrl(data.next);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      if (isInitialLoad) {
+        setInitialLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    setProducts([]); // Clear products on currency change
+    setNextPageUrl(process.env.NEXT_PUBLIC_PRODUCTS_URL);
+    fetchProducts(true);
   }, [currency]);
 
   useEffect(() => {
@@ -58,34 +85,47 @@ function Products() {
     };
   }, []);
 
-  // Function to handle the image click for small screens
+  useEffect(() => {
+    if (!nextPageUrl) return;
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        fetchProducts(false);
+      }
+    });
+
+    const observerTarget = document.getElementById("loadMoreTrigger");
+    if (observerTarget) observerRef.current.observe(observerTarget);
+
+    return () => observerRef.current?.disconnect();
+  }, [nextPageUrl]);
+
   const handleImageClick = (productId) => {
     if (!isLargeScreen) {
-      // For small screens
       if (clickedProductId === productId) {
-        // If the image has already been clicked, navigate to the product page
         router.push(`/shop/${productId}`);
       } else {
-        // Otherwise, toggle the image
         setClickedProductId(productId);
       }
     }
   };
 
-  // Function to handle the image click for large screens
   const handleLargeScreenClick = (productId) => {
     if (isLargeScreen) {
-      // Directly navigate to the product page on large screens
       router.push(`/shop/${productId}`);
     }
+  };
+
+  const handleImageLoad = (productId) => {
+    setLoadedImages((prev) => new Set(prev).add(productId));
   };
 
   return (
     <div>
       <section>
         <div className="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-12">
-          {/* Loader */}
-          {loading ? (
+          {/* Initial Loader */}
+          {initialLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="flex-col gap-4 w-full flex items-center justify-center">
                 <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
@@ -94,55 +134,89 @@ function Products() {
               </div>
             </div>
           ) : (
-            <ul className="mt-8 grid gap-4 gap-y-16 grid-cols-2 lg:grid-cols-4">
-              {products.map((product) => (
-                <li key={product.id}>
-                  <div
-                    className="group block overflow-hidden cursor-pointer"
-                    onClick={() => {
-                      isLargeScreen
-                        ? handleLargeScreenClick(product.id)
-                        : handleImageClick(product.id);
-                    }} // Click behavior varies based on screen size
-                    onMouseEnter={() =>
-                      isLargeScreen && setHoveredProductId(product.id)
-                    } // Only allow hover behavior on large screens
-                    onMouseLeave={() =>
-                      isLargeScreen && setHoveredProductId(null)
-                    } // Reset hover on large screens
-                  >
-                    <Image
-                      width={500}
-                      height={500}
-                      src={
-                        // Image change on hover for large screens
-                        (isLargeScreen && hoveredProductId === product.id) ||
-                        // Image change on click for small screens
-                        (!isLargeScreen && clickedProductId === product.id)
-                          ? product.images[1].image
-                          : product.images[0].image
+            <>
+              <ul className="mt-8 grid gap-4 gap-y-16 grid-cols-2 lg:grid-cols-4">
+                {products.map((product) => (
+                  <li key={product.id}>
+                    <div
+                      className="group block overflow-hidden cursor-pointer"
+                      onClick={() =>
+                        isLargeScreen
+                          ? handleLargeScreenClick(product.id)
+                          : handleImageClick(product.id)
                       }
-                      alt={product.name}
-                      className="h-[180px] w-full object-cover transition duration-500 group-hover:scale-105 xl:h-[450px] text-white"
-                    />
+                      onMouseEnter={() =>
+                        isLargeScreen && setHoveredProductId(product.id)
+                      }
+                      onMouseLeave={() =>
+                        isLargeScreen && setHoveredProductId(null)
+                      }
+                    >
+                      <div className="relative h-[180px] xl:h-[450px] w-full overflow-hidden">
+                        {/* Blurred Placeholder */}
+                        {!loadedImages.has(product.id) && (
+                          <div className="absolute inset-0 animate-pulse"></div>
+                        )}
 
-                    <div className="relative pt-3">
-                      <h3 className="text-sm group-hover:underline group-hover:underline-offset-4 text-white">
-                        {product.name}
-                      </h3>
+                        <Image
+                          width={500}
+                          height={500}
+                          src={
+                            (isLargeScreen &&
+                              hoveredProductId === product.id) ||
+                            (!isLargeScreen && clickedProductId === product.id)
+                              ? product.images[1]?.image
+                              : product.images[0]?.image
+                          }
+                          alt={product.name}
+                          className={`h-[180px] w-full object-cover transition duration-500 group-hover:scale-105 xl:h-[450px] text-white ${
+                            !loadedImages.has(product.id)
+                              ? "blur-md scale-110"
+                              : "blur-0 scale-100"
+                          }`}
+                          onLoad={() => handleImageLoad(product.id)}
+                          onError={() => handleImageLoad(product.id)}
+                        />
+                      </div>
 
-                      <p className="mt-2">
-                        <span className="tracking-wider text-white">
-                          {product.symbol}
-                          {product.price.toFixed(2)}{" "}
-                          <span className="uppercase">{product.currency}</span>
-                        </span>
-                      </p>
+                      <div className="relative pt-3">
+                        <h3 className="text-sm group-hover:underline group-hover:underline-offset-4 text-white">
+                          {product.name}
+                        </h3>
+
+                        <p className="mt-2">
+                          <span className="tracking-wider text-white">
+                            {product.symbol}
+                            {product.price.toFixed(2)}{" "}
+                            <span className="uppercase">
+                              {product.currency}
+                            </span>
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Infinite Scroll Trigger */}
+              <div id="loadMoreTrigger" style={{ height: "50px" }}></div>
+
+              {/* Separate Loader for New Products */}
+              {loadingMore && (
+                <div className="flex justify-center items-center py-10">
+                  <div className="flex justify-center items-center py-4">
+                    <div className="flex-col gap-2 w-full flex items-center justify-center">
+                      <div className="w-10 h-10 border-2 border-transparent text-gray-100 text-lg animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
+                        <div className="w-8 h-8 border-2 border-transparent text-red-500 text-sm animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
+                      </div>
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+
+                  {/* <span className="text-gray-300 text-sm animate-pulse">Loading more products...</span> */}
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
