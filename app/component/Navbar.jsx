@@ -190,10 +190,18 @@ function Navbar() {
                     >
                       Currency
                     </option>
-                    <option value="USD">USD</option>
-                    <option value="NGN">NGN</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
+                    <option value="USD" className="text-gray-300">
+                      USD
+                    </option>
+                    <option value="NGN" className="text-gray-300">
+                      NGN
+                    </option>
+                    <option value="EUR" className="text-gray-300">
+                      EUR
+                    </option>
+                    <option value="GBP" className="text-gray-300">
+                      GBP
+                    </option>
                   </select>
                 </div>
 
@@ -227,10 +235,18 @@ function Navbar() {
                     <option disabled value="" className="text-white">
                       Currency
                     </option>
-                    <option value="USD">USD</option>
-                    <option value="NGN">NGN</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
+                    <option value="USD" className="text-gray-300">
+                      USD
+                    </option>
+                    <option value="NGN" className="text-gray-300">
+                      NGN
+                    </option>
+                    <option value="EUR" className="text-gray-300">
+                      EUR
+                    </option>
+                    <option value="GBP" className="text-gray-300">
+                      GBP
+                    </option>
                   </select>
                 </div>
               </div>
