@@ -21,7 +21,7 @@ function CollectionsPage({ params }) {
         if (params?.slug === "all") {
           url = `${baseUrl}c/`;
         } else {
-          url = `${baseUrl}c/${params?.slug}/`;
+          url = `${baseUrl}c${params?.slug}/`;
         }
 
         const accessToken = localStorage.getItem("accessToken");
