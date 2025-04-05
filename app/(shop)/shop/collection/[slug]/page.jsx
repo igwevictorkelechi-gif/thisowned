@@ -3,81 +3,88 @@ import React, { useEffect, useState } from "react";
 import ProductCollections from "../component/ProductCollections";
 import { useCurrency } from "../../../../utils/CurrencyContext";
 
-// Move fetch function inside the component to use dynamic currency
 function CollectionsPage({ params }) {
-  const [collections, setCollections] = useState(null);
+  const [collections, setCollections] = useState([]);
+  const [nextPage, setNextPage] = useState(null);
   const [loading, setLoading] = useState(true);
   const { currency } = useCurrency();
 
   useEffect(() => {
     if (!currency) return;
 
-    async function fetchCollections() {
+    const fetchCollections = async () => {
       try {
         setLoading(true);
+        const baseUrl = process.env.NEXT_PUBLIC_PRODUCTS_URL;
 
-        // Get the access token from localStorage
+        let url;
+        if (params?.slug === "all") {
+          url = `${baseUrl}c/`;
+        } else {
+          url = `${baseUrl}c/${params?.slug}/`;
+        }
+
         const accessToken = localStorage.getItem("accessToken");
 
-        // Construct the URL based on the slug
-        const url =
-          params?.slug === "all"
-            ? `${process.env.NEXT_PUBLIC_COLLECTION_URL}all/?code=${currency}`
-            : `${process.env.NEXT_PUBLIC_COLLECTION_URL}${params?.slug}/?code=${currency}`;
-
-        // Set headers with the Authorization token if available
         const headers = {
           "Content-Type": "application/json",
           ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
         };
 
-        // Fetch collections data with headers
         const response = await fetch(url, { headers });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch collections");
-        }
+        if (!response.ok) throw new Error("Failed to fetch collections");
 
         const data = await response.json();
-        setCollections(data);
+
+        setCollections(data.results || []);
+        setNextPage(data.next);
       } catch (error) {
         console.error("Error fetching collections:", error);
-        setCollections(null);
+        setCollections([]);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchCollections();
   }, [currency, params?.slug]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-20 bg-black">
-        <div className="flex-col gap-4 w-full flex items-center justify-center">
-          <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-            <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const loadMoreCollections = async () => {
+    if (!nextPage) return;
+
+    try {
+      const response = await fetch(nextPage);
+      const data = await response.json();
+
+      setCollections((prev) => {
+        const existingIds = new Set(prev.map((item) => item.id));
+        const filteredNew = data.results.filter(
+          (item) => !existingIds.has(item.id)
+        );
+        return [...prev, ...filteredNew];
+      });
+
+      setNextPage(data.next);
+    } catch (error) {
+      console.error("Failed to load more collections:", error);
+    }
+  };
 
   return (
     <div className="mx-auto bg-black">
       <header className="text-center pt-10 pb-2">
         <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider">
-          {params?.slug === "all"
-            ? "All Collections"
-            : collections?.name || "Collections"}
+          {params?.slug === "all" ? "All Collections" : "Collections"}
         </h2>
       </header>
-      {collections && (
-        <ProductCollections
-          collections={collections}
-          isAllCollections={params?.slug === "all"}
-        />
-      )}
+      <ProductCollections
+        collections={collections}
+        isAllCollections={params?.slug === "all"}
+        loading={loading}
+        loadMore={loadMoreCollections}
+        hasNext={!!nextPage}
+      />
     </div>
   );
 }
