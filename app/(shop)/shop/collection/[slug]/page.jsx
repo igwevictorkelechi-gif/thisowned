@@ -2,15 +2,40 @@
 import React, { useEffect, useState } from "react";
 import ProductCollections from "../component/ProductCollections";
 import { useCurrency } from "../../../../utils/CurrencyContext";
+import { Loader, LoaderPinwheelIcon } from "lucide-react";
 
 function CollectionsPage({ params }) {
   const [collections, setCollections] = useState([]);
   const [nextPage, setNextPage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [collectionName, setCollectionName] = useState("");
+  const [nameLoading, setNameLoading] = useState(params?.slug !== "all");
   const { currency } = useCurrency();
 
   useEffect(() => {
     if (!currency) return;
+
+    const fetchCollectionDetails = async () => {
+      if (params?.slug !== "all") {
+        try {
+          setNameLoading(true);
+          const response = await fetch(process.env.NEXT_PUBLIC_COLLECTION_URL);
+          if (response.ok) {
+            const collectionsData = await response.json();
+            const currentCollection = collectionsData.find(
+              (collection) => collection.id.toString() === params?.slug
+            );
+            if (currentCollection) {
+              setCollectionName(currentCollection.name);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching collection details:", error);
+        } finally {
+          setNameLoading(false);
+        }
+      }
+    };
 
     const fetchCollections = async () => {
       try {
@@ -47,6 +72,7 @@ function CollectionsPage({ params }) {
       }
     };
 
+    fetchCollectionDetails();
     fetchCollections();
   }, [currency, params?.slug]);
 
@@ -75,7 +101,21 @@ function CollectionsPage({ params }) {
     <div className="mx-auto bg-black">
       <header className="text-center pt-10 pb-2">
         <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider">
-          {params?.slug === "all" ? "All Collections" : "Collections"}
+          {params?.slug === "all" ? (
+            <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider">
+              All Collections{" "}
+            </h2>
+          ) : nameLoading ? (
+            <div className="flex justify-center items-center h-8">
+              <Loader className="flex items-center justify-center mx-auto animate-spin" />
+              {/* <div className="w-40 h-8 bg-gray-900 animate-pulse rounded"></div> */}
+            </div>
+          ) : (
+            <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider uppercase">
+              {collectionName}
+              {/* Collections */}
+            </h2>
+          )}
         </h2>
       </header>
       <ProductCollections
