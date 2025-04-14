@@ -106,6 +106,7 @@ function Products() {
         router.push(`/shop/${productId}`);
       } else {
         setClickedProductId(productId);
+        router.push(`/shop/${productId}`);
       }
     }
   };

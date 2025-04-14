@@ -6,7 +6,7 @@ import { useCart } from "../utils/CartContext";
 const FlutterwavePayment = ({ total, customerInfo, tx_ref, currency }) => {
   const { updateCart } = useCart(); // Get the updateCart function from context
   // const { updateCart } = useCart();
-  console.log("updateCart function:", updateCart);
+  // console.log("updateCart function:", updateCart);
   const router = useRouter();
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_TEST_KEY,

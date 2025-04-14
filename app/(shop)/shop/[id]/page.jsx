@@ -58,7 +58,7 @@ function ShopDetails({ params }) {
             (size) => size.is_available
           );
 
-          console.log(firstAvailableSize);
+          // console.log(firstAvailableSize);
 
           if (firstAvailableSize) {
             setSelectedSize(firstAvailableSize.id);

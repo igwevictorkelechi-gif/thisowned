@@ -58,6 +58,7 @@ function ProductCollections({
         router.push(`/shop/${productId}`);
       } else {
         setClickedProductId(productId);
+        router.push(`/shop/${productId}`);
       }
     }
   };

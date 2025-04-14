@@ -66,8 +66,8 @@ function RegisterPage() {
       });
 
       const result = await response.json();
-      console.log("Response status:", response.status);
-      console.log("Response body:", result);
+      // console.log("Response status:", response.status);
+      // console.log("Response body:", result);
 
       if (response.ok) {
         // Reset form data to initial state,
