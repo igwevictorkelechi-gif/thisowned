@@ -73,7 +73,7 @@ function ProductCollections({
   };
 
   const renderProducts = () => (
-    <ul className="mt-8 grid gap-4 gap-y-16 grid-cols-2 lg:grid-cols-4">
+    <ul className="mt-8 grid gap-4 gap-y-16 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {collections.map((product) => (
         <li key={product.id}>
           <div
@@ -88,7 +88,7 @@ function ProductCollections({
             }
             onMouseLeave={() => isLargeScreen && setHoveredProductId(null)}
           >
-            <div className="relative h-[180px] xl:h-[450px] w-full overflow-hidden">
+            <div className="relative h-[180px] md:h-[450px] w-full overflow-hidden">
               {/* Blurred Placeholder */}
               {!loadedImages.has(product.id) && (
                 <div className="absolute inset-0 animate-pulse"></div>
@@ -104,7 +104,7 @@ function ProductCollections({
                     : product.images[0]?.image
                 }
                 alt={product.name}
-                className={`h-[180px] w-full object-cover transition duration-500 group-hover:scale-105 xl:h-[450px] text-white ${
+                className={`h-[180px] md:h-[450px] w-full object-cover transition duration-500 group-hover:scale-105 text-white ${
                   !loadedImages.has(product.id)
                     ? "blur-md scale-110"
                     : "blur-0 scale-100"

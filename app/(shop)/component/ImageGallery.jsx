@@ -22,7 +22,7 @@ function ImageGallery({ images }) {
                   width={200}
                   height={200}
                   alt={`product image ${index + 1}`}
-                  className="h-full w-full object-cover object-center cursor-pointer"
+                  className="object-center h-[110px] w-[110px] md:h-[150px] md:w-full object-cover cursor-pointer"
                 />
               </div>
             ))}
@@ -33,7 +33,7 @@ function ImageGallery({ images }) {
             width={500}
             height={500}
             alt="product image"
-            className="h-full w-full object-cover object-center"
+            className="object-center h-[400px] md:h-[650px] w-full object-cover"
           />
           <span className="absolute left-0 top-0 rounded-br-lg bg-red-500 px-3 py-1.5 text-sm uppercase tracking-wider text-white">
             Sale
