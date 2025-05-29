@@ -117,7 +117,7 @@
                                        {{size.rating}}{% if not forloop.last %},{% endif %}{% endfor %}" required/>
                             </div>
 
-                            <label class="form-label" for="size-guid">Size Guid:</label>
+                            <!-- <label class="form-label" for="size-guid">Size Guid:</label>
                             <div class="col-12 mb-3" style="overflow: scroll">
                                 <table class="table table-bordered" id="size-guid">
                                 <thead>
@@ -170,7 +170,7 @@
 
                                 </tbody>
                             </table>
-                            </div>
+                            </div> -->
 
                         </div>
                     </div>
@@ -366,7 +366,7 @@
 
         });
         $('form').on('submit', function(e) {
-            $('.table tbody tr:last').remove();
+            // $('.table tbody tr:last').remove();
             var dataTransfer = new DataTransfer();
             dropzone.getAcceptedFiles().forEach(function(file) {
               dataTransfer.items.add(file);
@@ -446,37 +446,37 @@ const choices2 = new Choices(element2, {
     removeItemButton: true
 });
 
-choices.passedElement.element.addEventListener(
-  'addItem',
-  function(event) {
-    console.log(event.detail.value);
-    $('.table thead tr :nth-last-child(2)').after(`<th class="text-center">${event.detail.value}</th>`)
-    $('.table tbody tr :nth-last-child(2)').after(`<td><input class="form-control" type="text" name="${event.detail.value}" placeholder="value" required></td>`)
-    $('.table tbody tr:last').find('input').attr('required', false);
-  },
-  false,
-);
-choices.passedElement.element.addEventListener(
-  'removeItem',
-  function(event) {
-    var headerText = event.detail.value;
+// choices.passedElement.element.addEventListener(
+//   'addItem',
+//   function(event) {
+//     console.log(event.detail.value);
+//     $('.table thead tr :nth-last-child(2)').after(`<th class="text-center">${event.detail.value}</th>`)
+//     $('.table tbody tr :nth-last-child(2)').after(`<td><input class="form-control" type="text" name="${event.detail.value}" placeholder="value" required></td>`)
+//     $('.table tbody tr:last').find('input').attr('required', false);
+//   },
+//   false,
+// );
+// choices.passedElement.element.addEventListener(
+//   'removeItem',
+//   function(event) {
+//     var headerText = event.detail.value;
 
-    var columnIndex = $('.table th').filter(function() {
-      return $(this).text() === headerText;
-    }).index();
+//     var columnIndex = $('.table th').filter(function() {
+//       return $(this).text() === headerText;
+//     }).index();
 
-    if (columnIndex !== -1) {
-      $('.table th').eq(columnIndex).remove();
+//     if (columnIndex !== -1) {
+//       $('.table th').eq(columnIndex).remove();
 
-      $('.table tbody tr').each(function() {
-        $(this).find('td').eq(columnIndex).remove();
-      });
-    } else {
-      alert('Column with the header "' + headerText + '" not found.');
-    }
-  },
-  false,
-);
+//       $('.table tbody tr').each(function() {
+//         $(this).find('td').eq(columnIndex).remove();
+//       });
+//     } else {
+//       alert('Column with the header "' + headerText + '" not found.');
+//     }
+//   },
+//   false,
+// );
 
 dropzoneInit();
 
@@ -506,19 +506,19 @@ dropzoneInit();
             $('#final-price').val(`${value} B - ${valueb} NG`)
           })
 
-          $(document).on('click', '#add-size', function(){
-            var lastRow = $('.table tbody tr:last').clone();
-            lastRow.find('input').val('');
-            $("tbody tr:last td:last").html(`<a class="btn btn-sm btn-link text-danger" href="#!" data-bs-toggle="tooltip"
-            data-bs-placement="top"aria-label="Remove" data-bs-original-title="Remove"><span class="fs--1 bx bxs-trash"></span></a>`);
-            $('.table tbody tr:last').find('input').attr('required', true);
-            lastRow.find('input').attr('required', false)
+      //     $(document).on('click', '#add-size', function(){
+      //       var lastRow = $('.table tbody tr:last').clone();
+      //       lastRow.find('input').val('');
+      //       $("tbody tr:last td:last").html(`<a class="btn btn-sm btn-link text-danger" href="#!" data-bs-toggle="tooltip"
+      //       data-bs-placement="top"aria-label="Remove" data-bs-original-title="Remove"><span class="fs--1 bx bxs-trash"></span></a>`);
+      //       $('.table tbody tr:last').find('input').attr('required', true);
+      //       lastRow.find('input').attr('required', false)
 
-            $('.table tbody').append(lastRow)
-          });
-          $(document).on('click', '.table .text-danger', function(){
-            $(this).parent().parent().remove()
-       })
+      //       $('.table tbody').append(lastRow)
+      //     });
+      //     $(document).on('click', '.table .text-danger', function(){
+      //       $(this).parent().parent().remove()
+      //  })
 
     </script>
 
