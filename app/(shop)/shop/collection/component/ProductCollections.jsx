@@ -74,7 +74,7 @@ function ProductCollections({
   };
 
   const renderProducts = () => (
-    <ul className="mt-8 grid gap-5 gap-y-14 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <ul className="mt-8 grid gap-4 md:gap-5 gap-y-14 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {collections.map((product) => (
         <li key={product.id}>
           <div
