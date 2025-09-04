@@ -74,11 +74,11 @@ function ProductCollections({
   };
 
   const renderProducts = () => (
-    <ul className="mt-8 grid gap-4 gap-y-16 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <ul className="mt-8 grid gap-5 gap-y-14 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {collections.map((product) => (
         <li key={product.id}>
           <div
-            className="group block overflow-hidden cursor-pointer"
+            className="group block overflow-hidden cursor-pointer border p-3 border-white/10"
             onClick={() =>
               isLargeScreen
                 ? handleLargeScreenClick(product.id)
