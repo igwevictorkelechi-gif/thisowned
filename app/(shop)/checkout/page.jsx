@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-// import FlutterwavePayment from "../../api/FlutterwavePayment";
+import FlutterwavePayment from "../../api/FlutterwavePayment";
 import PaypalPayment from "../../api/PaypalPayment";
 import PaystackPayment from "../../api/PaystackPayment";
 import { useCart } from "../../utils/CartContext";
@@ -46,6 +46,8 @@ function CheckoutPage() {
   const [total, setTotal] = useState(null); // State to hold the total reference
   const { currency } = useCurrency();
 
+  const [initiatePayment, setInitiatePayment] = useState(false);
+
   // Reset everything when currency changes
   useEffect(() => {
     if (!currency) return;
@@ -74,7 +76,7 @@ function CheckoutPage() {
 
     // Reset payment state
     setShowPaymentOptions(false);
-    setTxRef("");
+    setTxRef(null);
     setTotalInUsd(null);
     setTotalInNgn(null);
     setTotal(null);
@@ -238,17 +240,33 @@ function CheckoutPage() {
       }
 
       const result = await response.json();
-      const { tx_ref, amount, amount_usd, amount_ngn } = result;
+
+      console.log(result);
+
+      // Extract from result
+      let { tx_ref, amount, amount_usd, amount_ngn } = result;
+
+      // Save the raw amount (before multiplying)
+      const rawAmount = Number(amount);
+
+      console.log(tx_ref);
 
       setTxRef(tx_ref);
+
       setTotalInUsd(amount_usd);
       setTotalInNgn(amount_ngn);
-      setTotal(amount);
+      setTotal(rawAmount);
 
+      // Stop the loading state
+      setPaymentLoading(false);
+
+      // Show the PaystackPayment component
+      setShowPaymentOptions(true);
+
+      // Set a small delay then initiate payment automatically
       setTimeout(() => {
-        setPaymentLoading(false);
-        setShowPaymentOptions(true);
-      }, 1000);
+        setInitiatePayment(true);
+      }, 300);
     } catch (error) {
       Swal.fire({
         title: "Error!",
@@ -259,11 +277,15 @@ function CheckoutPage() {
         confirmButtonColor: "#000000",
         confirmButtonText: "Close",
       });
-    } finally {
       setPaymentLoading(false);
     }
   };
 
+  const handlePaymentClosed = () => {
+    setInitiatePayment(false); // Reset the initiate payment flag
+  };
+
+  // No changes needed to the JSX part from the previous solution
   // Handle shipping method selection
   const handleShippingMethodSelect = (method, price) => {
     setSelectedShippingMethod(method);
@@ -647,19 +669,19 @@ function CheckoutPage() {
                 </div>
               </div>
             ) : showPaymentOptions ? (
-              <div className="w-full">
-                {/* <FlutterwavePayment
+              <div className="w-full mx-auto max-w-screen-xl">
+                <FlutterwavePayment
                   total={total}
                   tx_ref={txRef}
                   customerInfo={formData}
                   currency={currency}
-                /> */}
+                />
 
-                <PaystackPayment
+                {/* <PaystackPayment
                   total={totalInNgn}
                   tx_ref={txRef}
                   customerInfo={formData}
-                />
+                /> */}
 
                 {/* <PaypalPayment total={totalInUsd} tx_ref={txRef} /> */}
               </div>
@@ -669,12 +691,43 @@ function CheckoutPage() {
                   onClick={handleProceedToPayment}
                   className="inline-block w-full rounded-lg bg-white px-5 py-3 font-medium text-black text-center cursor-pointer"
                 >
-                  Pay Now
+                  Proceed to payment
                 </button>
               </div>
             )}
           </div>
         </div>
+
+        {/* <div className="grid lg:grid-cols-3 lg:gap-16 px-4 py-16 sm:px-6 lg:px-[12rem] -mt-[5rem] lg:-mt-[8rem]">
+          <div className="lg:col-span-2">
+            {paymentloading ? (
+              <div className="w-full flex justify-center items-center">
+                <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
+                  <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
+                </div>
+              </div>
+            ) : showPaymentOptions ? (
+              <div className="w-full">
+                <PaystackPayment
+                  total={totalInNgn}
+                  tx_ref={txRef}
+                  customerInfo={formData}
+                  onInitiatePayment={initiatePayment}
+                  onPaymentClosed={handlePaymentClosed}
+                />
+              </div>
+            ) : (
+              <div className="w-full mx-auto max-w-screen-xl">
+                <button
+                  onClick={handleProceedToPayment}
+                  className="inline-block w-full rounded-lg bg-white px-5 py-3 font-medium text-black text-center cursor-pointer"
+                >
+                  Pay with Paystack
+                </button>
+              </div>
+            )}
+          </div>
+        </div> */}
       </section>
     </div>
   );

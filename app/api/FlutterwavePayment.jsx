@@ -56,7 +56,7 @@ const FlutterwavePayment = ({ total, customerInfo, tx_ref, currency }) => {
     <div className="flex justify-center text-center mt-12">
       <FlutterWaveButton
         {...fwConfig}
-        className="w-full max-w-2xl rounded-md bg-[#FF9B00] py-3 font-semibold text-white text-center tracking-wider"
+        className="w-full max-w-5xl rounded-md bg-[#FF9B00] py-3 font-semibold text-white text-center tracking-wider"
         text="Pay with Flutterwave"
       />
     </div>
