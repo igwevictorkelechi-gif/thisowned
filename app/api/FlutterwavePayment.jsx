@@ -9,7 +9,7 @@ const FlutterwavePayment = ({ total, customerInfo, tx_ref, currency }) => {
   // console.log("updateCart function:", updateCart);
   const router = useRouter();
   const config = {
-    public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_TEST_KEY,
+    public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_LIVE_KEY,
     // tx_ref: Date.now(),
     tx_ref: tx_ref,
     amount: total,
