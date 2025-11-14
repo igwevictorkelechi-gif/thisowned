@@ -248,6 +248,10 @@ def flutterwave_webhook(request):
 
 
 @csrf_exempt
+
+
+
+@csrf_exempt
 def paystark_webhook(request):
     if request.method == 'POST':
         payload = json.loads(request.body)
