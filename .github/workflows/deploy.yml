@@ -2,7 +2,7 @@ name: Deploy Django to Vercel
 
 on:
   push:
-    branches: [ "main" ]   # or "master"
+    branches: [ "backend" ]   # or "master"
 
 jobs:
   deploy:
