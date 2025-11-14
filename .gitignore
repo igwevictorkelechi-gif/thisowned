@@ -4,5 +4,6 @@
 *.sqlite3
 db.sqlite3
 media/
+__pycache__/
 
 .vercel
