@@ -69,7 +69,7 @@
         <li class="nav-item nav-category">
           <span class="nav-link">Navigation</span>
         </li>
-        <li class="nav-item menu-items {% if request.path == '/dashboard/' %}active{% endif %}">
+        <li class="nav-item menu-items {% if request.path == '/' %}active{% endif %}">
           <a class="nav-link" href="{% url 'dashboard' %}">
             <span class="menu-icon">
               <i class="mdi mdi-speedometer"></i>
@@ -78,7 +78,7 @@
           </a>
         </li>
 
-        <li class="nav-item menu-items {% if request.path == '/dashboard/orders/' %}active{% endif %}">
+        <li class="nav-item menu-items {% if request.path == '/orders/' %}active{% endif %}">
           <a class="nav-link" href="{% url 'orders' %}">
             <span class="menu-icon">
               <i class='bx bxs-shopping-bag-alt'></i>
@@ -87,7 +87,7 @@
           </a>
         </li>
 
-        <li class="nav-item menu-items {% if '/dashboard/products/' in request.path %}active{% endif %}">
+        <li class="nav-item menu-items {% if '/products/' in request.path %}active{% endif %}">
           <a class="nav-link" href="{% url 'products' %}">
             <span class="menu-icon">
               <i class='bx bx-store'></i>
@@ -96,7 +96,7 @@
           </a>
         </li>
 
-        <li class="nav-item menu-items  {% if  '/dashboard/collections/' in request.path %}active{% endif %}">
+        <li class="nav-item menu-items  {% if  '/collections/' in request.path %}active{% endif %}">
           <a class="nav-link" href="{% url 'collections' %}">
             <span class="menu-icon">
               <i class='bx bx-collection'></i>
@@ -105,7 +105,7 @@
           </a>
         </li>
 
-        <li class="nav-item menu-items {% if request.path == '/dashboard/customers/' %}active{% endif %}">
+        <li class="nav-item menu-items {% if request.path == '/customers/' %}active{% endif %}">
           <a class="nav-link" href="{% url 'customers' %}">
             <span class="menu-icon">
               <i class='bx bx-group'></i>
@@ -114,7 +114,7 @@
           </a>
         </li>
 
-         <li class="nav-item menu-items {% if request.path == '/dashboard/shipping/' %}active{% endif %}">
+         <li class="nav-item menu-items {% if request.path == '/shipping/' %}active{% endif %}">
               <a class="nav-link" href="{% url 'shipping' %}">
                   <span class="menu-icon">
                   <i class='bx bx-package'></i>
@@ -292,7 +292,7 @@
 
   <!-- endinject -->
   <!-- Custom js for this page -->
-  <script src="{% static 'assets/js/dashboard.js' %}"></script>
+  <script src="{% static 'assets/js.js' %}"></script>
   <!-- End custom js for this page -->
   {% block script %}{% endblock %}
 </body>

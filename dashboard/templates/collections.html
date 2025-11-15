@@ -89,7 +89,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                      $.ajax({
-                        url: `/dashboard/collections/${button.attr('data-id')}`,
+                        url: `/collections/${button.attr('data-id')}`,
                         method: 'DELETE',
                         headers: {
                             'X-CSRFToken': $('form [type=hidden]').val()
