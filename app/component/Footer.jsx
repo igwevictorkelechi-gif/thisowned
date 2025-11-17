@@ -84,7 +84,8 @@ function Footer() {
 
             <div className="mt-14 md:mt-0">
               <p className="text-lg font-semibold text-gray-900">
-                Stay in Touch
+                {/* Stay in Touch */}
+                STAY TAPPED IN WITH THE MOB
               </p>
 
               <div className="mx-auto mt-5 max-w-md sm:ms-0">
