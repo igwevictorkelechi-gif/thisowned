@@ -1,24 +1,20 @@
 from django.core.cache import cache
 from rest_framework import serializers
+import requests
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
     Shipping, ShippingRate, ShippingMethod
 
 
 def price_converter(source_currency, target_currency):
-    import requests
-    from bs4 import BeautifulSoup
     cached = cache.get(f'{source_currency}-{target_currency}', None)
     if cached:
         return cached
-    response = requests.get(
-        f"https://www.xe.com/currencyconverter/convert/?Amount=1&From={source_currency}&To={target_currency}")
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    text1 = soup.find(class_="faded-digits").previous_sibling
-    text2 = soup.find(class_="faded-digits").get_text(strip=True)
-    if not text1 and text2:
-        return 1
-    rate = "{}{}".format(text1, text2).replace(',', '')
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{source_currency}{target_currency}=X"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
+    data = requests.get(url, headers=headers).json()
+    rate = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
     result = 1 * float(rate)
     cache.set(f'{source_currency}-{target_currency}', result, timeout=60 * 24)
 
