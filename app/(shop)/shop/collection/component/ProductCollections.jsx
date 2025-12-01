@@ -121,14 +121,32 @@ function ProductCollections({
               </h3>
 
               <p className="mt-2">
-                <span className="tracking-wider text-white">
-                  {product.symbol}
-                  {product.price.toFixed(2)}{" "}
-                  <span className="uppercase">{product.currency}</span>
-                </span>
+                {product.discount > 0 ? (
+                  <>
+                    <span className="tracking-wider text-white line-through opacity-70">
+                      {product.symbol}
+                      {product.price.toFixed(2)}
+                    </span>
+                    <span className="tracking-wider text-white ml-2">
+                      {product.symbol}
+                      {product.discount_price.toFixed(2)}{" "}
+                      <span className="uppercase">{product.currency}</span>
+                    </span>
+                    <span className="ml-2 text-xs bg-red-500 font-semibold text-white px-2 py-0.5 rounded">
+                      -{product.discount}%
+                    </span>
+                  </>
+                ) : (
+                  <span className="tracking-wider text-white">
+                    {product.symbol}
+                    {product.price.toFixed(2)}{" "}
+                    <span className="uppercase">{product.currency}</span>
+                  </span>
+                )}
               </p>
+
               {product.discount > 0 && (
-                <p className="mt-1 text-sm text-red-500">
+                <p className="mt-1 text-sm text-red-500 hidden">
                   Discount: {product.discount}%
                 </p>
               )}

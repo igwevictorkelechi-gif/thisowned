@@ -582,8 +582,23 @@ function CheckoutPage() {
                             <div>
                               <dt className="inline">Price:</dt>
                               <dd className="inline ml-1.5">
-                                {item.product.symbol}
-                                {item.product.price.toFixed(2)}
+                                {item.product.discount > 0 ? (
+                                  <>
+                                    <span className="line-through opacity-70">
+                                      {item.product.symbol}
+                                      {item.product.price.toFixed(2)}
+                                    </span>
+                                    <span className="ml-2">
+                                      {item.product.symbol}
+                                      {item.product.discount_price.toFixed(2)}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {item.product.symbol}
+                                    {item.product.price.toFixed(2)}
+                                  </>
+                                )}
                               </dd>
                             </div>
                           </dl>

@@ -409,7 +409,23 @@ function ShopDetails({ params }) {
                   {product.name}
                 </h1>
                 <p className="font-light text-[1.3rem] mt-4 text-white">
-                  {product.symbol} {product.price.toFixed(2)}
+                  {product.discount > 0 ? (
+                    <>
+                      <span className="line-through opacity-70">
+                        {product.symbol} {product.price.toFixed(2)}
+                      </span>
+                      <span className="ml-3">
+                        {product.symbol} {product.discount_price.toFixed(2)}
+                      </span>
+                      <span className="ml-2 text-xs font-semibold bg-red-500 px-2 py-0.5 rounded -mt-0.5">
+                        -{product.discount}%
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {product.symbol} {product.price.toFixed(2)}
+                    </>
+                  )}
                 </p>
 
                 {!product.in_stock ? (

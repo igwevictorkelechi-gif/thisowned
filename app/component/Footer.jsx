@@ -19,7 +19,8 @@ function Footer() {
           </div>
 
           <p className="mt-4 text-center leading-relaxed text-gray-500 sm:text-left lg:mt-0 uppercase">
-            Shop the latest trends and enjoy exclusive deals, all in one place.
+            {/* Shop the latest trends and enjoy exclusive deals, all in one place. */}
+            JUST BE GETTING THE ONLY TRENDS AND ENJOYING EXCLUSIVE ITEMS, ALL IN ONE PLACE?
           </p>
         </div>
 
