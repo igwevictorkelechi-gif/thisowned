@@ -2,7 +2,7 @@ from django.core.cache import cache
 from rest_framework import serializers
 import requests
 from .models import Product, ProductImage, User, Collection, ProductSet, SizeGuid, Cart, Order, OrderItem, Payment, \
-    Shipping, ShippingRate, ShippingMethod
+    Shipping, ShippingRate, ShippingMethod, Waitlist
 
 
 def price_converter(source_currency, target_currency):
@@ -418,3 +418,9 @@ class ShippingRateSerializer(serializers.ModelSerializer):
 
     def get_state(self, obj):
         return self.context.get('state', None)
+
+
+class WaitlistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Waitlist
+        fields = '__all__'

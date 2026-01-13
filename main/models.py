@@ -225,3 +225,13 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product['name']} (x{self.quantity})"
+
+
+class Waitlist(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

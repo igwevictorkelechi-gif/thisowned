@@ -12,7 +12,7 @@ import pycountry
 
 from .serializers import *
 from django.db.models import QuerySet
-from .models import Product, User, Collection
+from .models import Product, User, Collection, Waitlist
 
 
 class ProductPagination(PageNumberPagination):
@@ -368,3 +368,9 @@ class OrderPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+
+class WaitlistViewSet(viewsets.ModelViewSet):
+    queryset = Waitlist.objects.all().order_by('-id')
+    serializer_class = WaitlistSerializer
+    http_method_names = ['post', 'get']
