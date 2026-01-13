@@ -32,7 +32,11 @@ export default function WaitlistPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    first_name: formData.firstName,
+                    last_name: formData.lastName,
+                    email: formData.email
+                }),
             });
 
             if (response.ok) {
