@@ -14,18 +14,25 @@ export function middleware(request) {
     ];
 
     // Check if the current path starts with any of the allowed paths
-    const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
+    // const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
 
     // Also allow static files in public folder if they don't have a specific prefix but usually processed by next
     // Ideally, specific public files should be listed or we check for file extensions if needed.
     // For now, the explicit list + _next covers most. 
 
-    if (isAllowed) {
-        return NextResponse.next();
-    }
+    // if (isAllowed) {
+    //     return NextResponse.next();
+    // }
 
     // Redirect everything else to waitlist
-    return NextResponse.redirect(new URL('/waitlist', request.url));
+    // return NextResponse.redirect(new URL('/waitlist', request.url));
+
+
+    if (pathname.startsWith("/waitlist")) {
+        return NextResponse.redirect(new URL('/', request.url));
+    } else {
+        return NextResponse.next();
+    }
 }
 
 export const config = {
