@@ -7,3 +7,4 @@ media/
 __pycache__/
 
 .vercel
+node_modules
