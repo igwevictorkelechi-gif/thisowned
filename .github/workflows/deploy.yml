@@ -2,19 +2,17 @@ name: Deploy Backend to Vercel
 
 on:
   push:
-    branches:
-      - backend
+    branches: [ "backend" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Deploy to Vercel
-        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Backend
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }} --name=thisowned-server
