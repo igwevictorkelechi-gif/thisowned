@@ -2,7 +2,8 @@ name: Deploy Next.js to Vercel
 
 on:
   push:
-    branches: [ "frontend" ]   # or "master"
+    branches:
+      - frontend
 
 jobs:
   deploy:
@@ -12,11 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Vercel Deployment steps using a third-party action
-      - name: Deploy to Vercel (Production)
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
-          vercel-args: '--prod' 
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
