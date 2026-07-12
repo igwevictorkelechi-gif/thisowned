@@ -14,6 +14,7 @@ urlpatterns = [
     path('shipping/sm/<str:rate_id>', views.state_multi, name='state_multi_'),
     path('collections/<int:c_id>', views.collections, name='edit_collection'),
     path('customers/', views.customers, name='customers'),
+    path('waitlist/', views.waitlist, name='waitlist'),
     path('products/', views.products, name='products'),
     path('products/<int:p_id>', views.products, name='products'),
     path('products/form/', views.products_form, name='products_form'),
