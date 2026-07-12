@@ -2,48 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #000;
+    color: #fff;
+  }
+  ::selection {
+    background: #e02e21;
+    color: #fff;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  /* Heavy condensed display type — the Culture Kings signature */
+  .display {
+    font-family: var(--font-display), Impact, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 0.92;
+    font-weight: 400;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-weight: 600;
+    font-size: 0.72rem;
+  }
+  /* Solid streetwear button */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 text-sm font-bold uppercase tracking-widest transition-colors duration-200;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-dark;
+  }
+  .btn-light {
+    @apply btn bg-white text-black hover:bg-primary hover:text-white;
+  }
+  .btn-outline {
+    @apply btn border border-white/25 text-white hover:border-white hover:bg-white hover:text-black;
+  }
+  .section-x {
+    @apply px-4 sm:px-6 lg:px-10;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-} */
-
-/* * {
-  scroll-behavior: smooth;
-} */
-
-/* .scroll-container {
-  position: relative;
+  /* Marquee track: duplicate content inside, animate -50% */
+  .marquee-track {
+    display: inline-flex;
+    white-space: nowrap;
+    will-change: transform;
+  }
 }
 
-.scroll-container ul:hover {
-  touch-action: none;
-  scroll-snap-type: y mandatory;
-} */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .marquee-track {
+    animation: none !important;
+  }
+}
 
 /* From Uiverse.io by JulanDeAlb */
 .hamburger {
@@ -93,12 +116,12 @@ body::-webkit-scrollbar {
 }
 
 body::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.3); /* Color of the scrollbar thumb */
+  background-color: #e02e21; /* Color of the scrollbar thumb */
   border-radius: 10px; /* Rounded corners */
 }
 
 body::-webkit-scrollbar-track {
-  background-color: rgba(0, 0, 0, 0.1); /* Background of the scrollbar track */
+  background-color: #161616; /* Background of the scrollbar track */
 }
 
 /* LENIS CUSTOM STYLES  */

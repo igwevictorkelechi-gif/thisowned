@@ -121,26 +121,31 @@ function Products() {
     setLoadedImages((prev) => new Set(prev).add(productId));
   };
 
+  const Spinner = ({ size = "lg" }) => (
+    <div className="flex w-full items-center justify-center">
+      <div
+        className={`${
+          size === "lg" ? "h-16 w-16 border-4" : "h-9 w-9 border-2"
+        } animate-spin rounded-full border-line border-t-primary`}
+      ></div>
+    </div>
+  );
+
   return (
     <div>
       <section>
-        <div className="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-12">
-          {/* Initial Loader */}
+        <div className="section-x mx-auto max-w-7xl py-8">
           {initialLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="flex-col gap-4 w-full flex items-center justify-center">
-                <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-                  <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-                </div>
-              </div>
+            <div className="flex items-center justify-center py-24">
+              <Spinner />
             </div>
           ) : (
             <>
-              <ul className="mt-8 grid gap-4 md:gap-5 gap-y-14 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-10 md:grid-cols-3 md:gap-x-4 xl:grid-cols-4">
                 {products.map((product) => (
                   <li key={product.id}>
                     <div
-                      className="group block overflow-hidden cursor-pointer border p-3 border-white/10"
+                      className="group block cursor-pointer border border-line bg-surface transition-colors duration-200 hover:border-primary"
                       onClick={() =>
                         isLargeScreen
                           ? handleLargeScreenClick(product.id)
@@ -153,10 +158,14 @@ function Products() {
                         isLargeScreen && setHoveredProductId(null)
                       }
                     >
-                      <div className="relative h-[180px] md:h-[450px] w-full overflow-hidden">
-                        {/* Blurred Placeholder */}
+                      <div className="relative h-[220px] w-full overflow-hidden bg-surface2 md:h-[420px]">
+                        {product.discount > 0 && (
+                          <span className="absolute left-0 top-0 z-10 bg-primary px-2.5 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-white">
+                            -{product.discount}%
+                          </span>
+                        )}
                         {!loadedImages.has(product.id) && (
-                          <div className="absolute inset-0 animate-pulse"></div>
+                          <div className="absolute inset-0 animate-pulse bg-surface2"></div>
                         )}
 
                         <Image
@@ -170,48 +179,46 @@ function Products() {
                               : product.images[0]?.image
                           }
                           alt={product.name}
-                          className={`h-[180px] md:h-[450px] w-full object-cover transition duration-500 group-hover:scale-105 text-white ${
+                          className={`h-[220px] w-full object-cover transition duration-500 group-hover:scale-105 md:h-[420px] ${
                             !loadedImages.has(product.id)
-                              ? "blur-md scale-110"
-                              : "blur-0 scale-100"
+                              ? "scale-110 blur-md"
+                              : "scale-100 blur-0"
                           }`}
                           onLoad={() => handleImageLoad(product.id)}
                           onError={() => handleImageLoad(product.id)}
                         />
+
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-full bg-primary py-2.5 text-center text-xs font-bold uppercase tracking-widest text-white transition-transform duration-300 group-hover:translate-y-0">
+                          View Product
+                        </div>
                       </div>
 
-                      <div className="relative pt-3">
-                        <h3 className="text-sm group-hover:underline group-hover:underline-offset-4 text-white">
+                      <div className="p-3">
+                        <h3 className="truncate text-sm font-semibold uppercase tracking-wide text-white">
                           {product.name}
                         </h3>
 
-                        <p className="mt-2">
+                        <p className="mt-2 flex items-center gap-2">
                           {product.discount > 0 ? (
                             <>
-                              <span className="tracking-wider text-white line-through opacity-70">
+                              <span className="text-base font-bold text-primary">
+                                {product.symbol}
+                                {product.discount_price.toFixed(2)}
+                              </span>
+                              <span className="text-sm text-smoke line-through">
                                 {product.symbol}
                                 {product.price.toFixed(2)}
                               </span>
-                              <span className="tracking-wider text-white ml-2">
-                                {product.symbol}
-                                {product.discount_price.toFixed(2)}{" "}
-                                <span className="uppercase">
-                                  {product.currency}
-                                </span>
-                              </span>
-                              <span className="ml-2 text-xs bg-red-500 font-semibold text-white px-2 py-0.5 rounded">
-                                -{product.discount}%
-                              </span>
                             </>
                           ) : (
-                            <span className="tracking-wider text-white">
+                            <span className="text-base font-bold text-white">
                               {product.symbol}
-                              {product.price.toFixed(2)}{" "}
-                              <span className="uppercase">
-                                {product.currency}
-                              </span>
+                              {product.price.toFixed(2)}
                             </span>
                           )}
+                          <span className="text-[0.7rem] uppercase text-smoke">
+                            {product.currency}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -219,21 +226,11 @@ function Products() {
                 ))}
               </ul>
 
-              {/* Infinite Scroll Trigger */}
               <div id="loadMoreTrigger" style={{ height: "50px" }}></div>
 
-              {/* Separate Loader for New Products */}
               {loadingMore && (
-                <div className="flex justify-center items-center py-10">
-                  <div className="flex justify-center items-center py-4">
-                    <div className="flex-col gap-2 w-full flex items-center justify-center">
-                      <div className="w-10 h-10 border-2 border-transparent text-gray-100 text-lg animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-                        <div className="w-8 h-8 border-2 border-transparent text-red-500 text-sm animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* <span className="text-gray-300 text-sm animate-pulse">Loading more products...</span> */}
+                <div className="flex items-center justify-center py-10">
+                  <Spinner size="sm" />
                 </div>
               )}
             </>
