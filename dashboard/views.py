@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import views as auth_views, authenticate, login
 from .forms import CustomAuthenticationForm, CollectionForm
 from django.db.models import Q
-from main.models import Order, Collection, User, Product, ProductImage, SizeGuid, ShippingMethod, ShippingRate
+from main.models import Order, Collection, User, Product, ProductImage, SizeGuid, ShippingMethod, ShippingRate, Waitlist
 
 
 # Custom test function to check if user is an admin
@@ -93,6 +93,15 @@ def collections(request, c_id=None):
 def customers(request):
     all_customers = User.objects.exclude(is_staff=True).order_by('-id')
     return render(request, 'customers.html', {'customers': all_customers})
+
+
+@user_passes_test(admin_check, login_url='/login/')
+def waitlist(request):
+    subscribers = Waitlist.objects.order_by('-created_at')
+    return render(request, 'waitlist.html', {
+        'subscribers': subscribers,
+        'total': subscribers.count(),
+    })
 
 
 @user_passes_test(admin_check, login_url='/login/')

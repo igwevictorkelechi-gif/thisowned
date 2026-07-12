@@ -114,6 +114,15 @@
           </a>
         </li>
 
+        <li class="nav-item menu-items {% if request.path == '/waitlist/' %}active{% endif %}">
+          <a class="nav-link" href="{% url 'waitlist' %}">
+            <span class="menu-icon">
+              <i class='bx bx-envelope'></i>
+            </span>
+            <span class="menu-title">Waitlist</span>
+          </a>
+        </li>
+
          <li class="nav-item menu-items {% if request.path == '/shipping/' %}active{% endif %}">
               <a class="nav-link" href="{% url 'shipping' %}">
                   <span class="menu-icon">

@@ -16,17 +16,30 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from a local .env file when present. In production
+# (e.g. Vercel) these are provided by the platform's environment settings.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
+
+
+def env_bool(name, default=False):
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0o_kuveh310c5ebde2570ax8bb*j5+kk#jxo&e5a&+x(l1jz0j'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-only-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool('DJANGO_DEBUG', False)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -89,34 +102,37 @@ WSGI_APPLICATION = 'website.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'verceldb',
-        'USER': 'default',
-        'PASSWORD': 'E1Adb3gZYCwm',
-        'HOST': 'ep-aged-field-a4yl7vxh-pooler.us-east-1.aws.neon.tech',
-        'PORT': '5432',
+# Use PostgreSQL when DB credentials are supplied via the environment,
+# otherwise fall back to a local SQLite database for development.
+if os.environ.get('DB_HOST') or os.environ.get('DB_PASSWORD'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'verceldb'),
+            'USER': os.environ.get('DB_USER', 'default'),
+            'PASSWORD': os.environ['DB_PASSWORD'],
+            'HOST': os.environ['DB_HOST'],
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-#
-# AWS_ACCESS_KEY_ID = '28440e2b6db0b9a530a13624648b887e'
-# AWS_SECRET_ACCESS_KEY = '0c6041637e80fa6eeb61331ead7574cdedddaa833c88aec65edac6a1e6a74177'
-# AWS_STORAGE_BUCKET_NAME = 'thisowned-eco'
-# # AWS_S3_ENDPOINT_URL = "https://depojvulqfgrxvinsdgn.supabase.co/storage/v1/object/public/"
-# AWS_S3_CUSTOM_DOMAIN = f'depojvulqfgrxvinsdgn.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}'
-# AWS_S3_REGION_NAME = "us-east-1"  # Supabase does not require a specific region
-# AWS_S3_SIGNATURE_VERSION = 's3v4'
-# AWS_S3_ADDRESSING_STYLE = 'virtual'
+# Legacy S3/boto storage config removed. If you switch to S3-compatible
+# storage, provide credentials via environment variables (e.g. AWS_ACCESS_KEY_ID,
+# AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME) rather than hardcoding them.
 
 DEFAULT_FILE_STORAGE = "website.storage.SupabaseStorage"
 
-SUPABASE_URL = "https://depojvulqfgrxvinsdgn.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlcG9qdnVscWZncnh2aW5zZGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU1NjA1MDUsImV4cCI6MjA0MTEzNjUwNX0.v6RWQjcYjdMXGouMr6jqpb__Xon_OKNmyBY7DBY6u88"
-SUPABASE_BUCKET_NAME = "thisowned-eco"
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
+SUPABASE_BUCKET_NAME = os.environ.get('SUPABASE_BUCKET_NAME', 'thisowned-eco')
 
 
 # Password validation
@@ -159,7 +175,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': 'your-secret-key',
+    'SIGNING_KEY': os.environ.get('JWT_SIGNING_KEY', SECRET_KEY),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
