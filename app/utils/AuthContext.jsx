@@ -9,18 +9,27 @@ export const AuthProvider = ({ children }) => {
   const { updateCart } = useCart(); // Get the updateCart function from context
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    const syncLoginState = () => {
       const accessToken = localStorage.getItem("accessToken");
       setIsLoggedIn(!!accessToken);
-      await updateCart(); // Update the cart when logging in
     };
 
-    checkLoginStatus();
-    window.addEventListener("storage", checkLoginStatus);
+    // On mount only sync the flag — CartProvider already fetches the cart,
+    // so fetching it here too would duplicate the request on every load.
+    syncLoginState();
+
+    // On login/logout (storage events) also refresh the cart, since the
+    // auth header changes what the server returns.
+    const handleAuthChange = async () => {
+      syncLoginState();
+      await updateCart();
+    };
+    window.addEventListener("storage", handleAuthChange);
 
     return () => {
-      window.removeEventListener("storage", checkLoginStatus);
+      window.removeEventListener("storage", handleAuthChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

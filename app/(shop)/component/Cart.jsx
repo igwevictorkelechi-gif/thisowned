@@ -5,20 +5,14 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useCart } from "../../utils/CartContext";
+import { successToast } from "../../utils/toast";
 import { useRouter } from "next/navigation";
 
 function Cart({ setIsCartEmpty }) {
   const router = useRouter();
-  const {
-    cart,
-    setCart,
-    loading,
-    updateCart,
-    updateCartCount,
-    token,
-    updateTotalPrice,
-  } = useCart();
+  const { cart, loading, applyCart, getCartToken } = useCart();
   const [headers, setHeaders] = useState({});
+  const [busyItems, setBusyItems] = useState(new Set());
 
   // Fetch cart data from server
   useEffect(() => {
@@ -31,11 +25,23 @@ function Cart({ setIsCartEmpty }) {
     setHeaders(mainHeaders);
   }, []);
 
-  // Helper function to update the quantity directly on the backend
+  const setItemBusy = (itemId, busy) => {
+    setBusyItems((prev) => {
+      const next = new Set(prev);
+      if (busy) next.add(itemId);
+      else next.delete(itemId);
+      return next;
+    });
+  };
+
+  // Update the quantity on the backend and apply the result locally —
+  // no second full-cart refetch needed.
   const updateQuantity = async (itemId, newQuantity) => {
+    if (busyItems.has(itemId)) return;
+    setItemBusy(itemId, true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${token}`,
+        `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${getCartToken()}`,
         {
           method: "PATCH",
           headers: {
@@ -47,41 +53,38 @@ function Cart({ setIsCartEmpty }) {
 
       if (response.ok) {
         const updatedItem = await response.json();
-
         const updatedCart = cart.map((item) =>
           item.id === updatedItem.id ? updatedItem : item
         );
-
-        setCart(updatedCart);
-        updateCartCount(updatedCart.length);
+        applyCart(updatedCart);
       } else {
         console.error("Failed to update item quantity");
       }
     } catch (error) {
       console.error(`Error updating item quantity in cart:`, error);
+    } finally {
+      setItemBusy(itemId, false);
     }
   };
 
-  const incrementQuantity = async (itemId) => {
+  const incrementQuantity = (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
-    const newQuantity = item.quantity + 1;
-    await updateQuantity(itemId, newQuantity);
-    await updateCart();
+    if (item) updateQuantity(itemId, item.quantity + 1);
   };
 
-  const decrementQuantity = async (itemId) => {
+  const decrementQuantity = (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
     if (item && item.quantity > 1) {
-      const newQuantity = item.quantity - 1;
-      await updateQuantity(itemId, newQuantity);
-      await updateCart();
+      updateQuantity(itemId, item.quantity - 1);
     }
   };
 
   const removeItem = async (itemId) => {
+    if (busyItems.has(itemId)) return;
+    setItemBusy(itemId, true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${token}`,
+        `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${getCartToken()}`,
         {
           method: "DELETE",
           headers: {
@@ -95,25 +98,10 @@ function Cart({ setIsCartEmpty }) {
       }
 
       const updatedCart = cart.filter((item) => item.id !== itemId);
-      setCart(updatedCart);
+      applyCart(updatedCart);
       setIsCartEmpty(updatedCart.length === 0);
 
-      await updateCart();
-
-      Swal.fire({
-        title: "Success!",
-        text: "Item has been successfully removed from the cart.",
-        icon: "success",
-        confirmButtonColor: "#e02e21",
-        confirmButtonText: "Close",
-      });
-
-      if (
-        response.status !== 204 &&
-        response.headers.get("content-length") !== "0"
-      ) {
-        await response.json();
-      }
+      successToast("Item removed from cart");
     } catch (error) {
       console.error("Error removing item from cart:", error);
       Swal.fire({
@@ -123,6 +111,8 @@ function Cart({ setIsCartEmpty }) {
         confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
+    } finally {
+      setItemBusy(itemId, false);
     }
   };
 
@@ -234,12 +224,17 @@ function Cart({ setIsCartEmpty }) {
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center border border-line bg-surface">
+                        <div
+                          className={`flex items-center border border-line bg-surface ${
+                            busyItems.has(item.id) ? "opacity-50" : ""
+                          }`}
+                        >
                           <button
                             type="button"
                             onClick={() => decrementQuantity(item.id)}
+                            disabled={busyItems.has(item.id)}
                             aria-label="Decrease"
-                            className="flex size-8 items-center justify-center text-white transition hover:text-primary"
+                            className="flex size-8 items-center justify-center text-white transition hover:text-primary disabled:cursor-wait"
                           >
                             <Minus size={13} />
                           </button>
@@ -249,8 +244,9 @@ function Cart({ setIsCartEmpty }) {
                           <button
                             type="button"
                             onClick={() => incrementQuantity(item.id)}
+                            disabled={busyItems.has(item.id)}
                             aria-label="Increase"
-                            className="flex size-8 items-center justify-center text-white transition hover:text-primary"
+                            className="flex size-8 items-center justify-center text-white transition hover:text-primary disabled:cursor-wait"
                           >
                             <Plus size={13} />
                           </button>
@@ -258,8 +254,9 @@ function Cart({ setIsCartEmpty }) {
 
                         <button
                           onClick={() => removeItem(item.id)}
+                          disabled={busyItems.has(item.id)}
                           aria-label="Remove item"
-                          className="text-smoke transition hover:text-primary"
+                          className="text-smoke transition hover:text-primary disabled:cursor-wait disabled:opacity-50"
                         >
                           <Trash2 size={18} />
                         </button>

@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { X } from "lucide-react";
 
-const STORAGE_KEY = "to_waitlist_popup_seen";
+// Permanent flag — only set once the visitor has actually joined the list.
+export const JOINED_KEY = "to_waitlist_joined";
+// Per-visit flag — dismissing hides the popup for this session only, so it
+// shows again the next time the visitor returns (until they join).
+const DISMISSED_KEY = "to_waitlist_dismissed";
 
 export default function WaitlistPopup() {
   const pathname = usePathname();
@@ -19,13 +23,15 @@ export default function WaitlistPopup() {
     // Never show on the dedicated waitlist page
     if (pathname && pathname.startsWith("/waitlist")) return;
 
-    let seen = false;
+    let suppressed = false;
     try {
-      seen = localStorage.getItem(STORAGE_KEY) === "1";
+      suppressed =
+        localStorage.getItem(JOINED_KEY) === "1" ||
+        sessionStorage.getItem(DISMISSED_KEY) === "1";
     } catch (e) {
-      seen = false;
+      suppressed = false;
     }
-    if (seen) return;
+    if (suppressed) return;
 
     const timer = setTimeout(() => setOpen(true), 2500);
     return () => clearTimeout(timer);
@@ -34,7 +40,8 @@ export default function WaitlistPopup() {
   const dismiss = () => {
     setOpen(false);
     try {
-      localStorage.setItem(STORAGE_KEY, "1");
+      // Session-only: the popup returns on the next visit until they join
+      sessionStorage.setItem(DISMISSED_KEY, "1");
     } catch (e) {
       /* ignore */
     }
@@ -67,7 +74,7 @@ export default function WaitlistPopup() {
         setStatus("success");
         setMessage("You're on the list. Watch your inbox for the drop.");
         try {
-          localStorage.setItem(STORAGE_KEY, "1");
+          localStorage.setItem(JOINED_KEY, "1");
         } catch (err) {
           /* ignore */
         }
@@ -84,6 +91,12 @@ export default function WaitlistPopup() {
       if (data && data.email) {
         setStatus("error");
         setMessage("Looks like you're already on the list.");
+        try {
+          // They're already subscribed — stop showing the popup on return
+          localStorage.setItem(JOINED_KEY, "1");
+        } catch (err) {
+          /* ignore */
+        }
       } else {
         throw new Error("Something went wrong. Please try again.");
       }

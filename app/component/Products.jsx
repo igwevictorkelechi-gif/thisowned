@@ -19,8 +19,8 @@ function Products() {
   const observerRef = useRef(null);
   const { currency } = useCurrency();
 
-  const fetchProducts = async (isInitialLoad = false) => {
-    if (!nextPageUrl || loadingMore) return;
+  const fetchProducts = async (isInitialLoad = false, url = nextPageUrl) => {
+    if (!url || loadingMore) return;
 
     if (isInitialLoad) {
       setInitialLoading(true);
@@ -36,8 +36,8 @@ function Products() {
         ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
       };
 
-      const separator = nextPageUrl.includes("?") ? "&" : "?";
-      const urlWithCurrency = `${nextPageUrl}${separator}code=${currency}`;
+      const separator = url.includes("?") ? "&" : "?";
+      const urlWithCurrency = `${url}${separator}code=${currency}`;
 
       const response = await fetch(urlWithCurrency, { headers });
 
@@ -71,7 +71,10 @@ function Products() {
   useEffect(() => {
     setProducts([]); // Clear products on currency change
     setNextPageUrl(process.env.NEXT_PUBLIC_PRODUCTS_URL);
-    fetchProducts(true);
+    // Pass the first-page URL explicitly — the nextPageUrl state above won't
+    // be visible to fetchProducts until the next render.
+    fetchProducts(true, process.env.NEXT_PUBLIC_PRODUCTS_URL);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currency]);
 
   useEffect(() => {

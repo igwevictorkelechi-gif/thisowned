@@ -7,6 +7,7 @@ import Image from "next/image";
 import Swal from "sweetalert2";
 import { useCart } from "../../../utils/CartContext";
 import { useCurrency } from "../../../utils/CurrencyContext";
+import { successToast } from "../../../utils/toast";
 
 function ShopDetails({ params }) {
   const { updateCart } = useCart(); // Use the context to access updateCart function
@@ -15,11 +16,17 @@ function ShopDetails({ params }) {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedSetItems, setSelectedSetItems] = useState([]); // Track selected set items
   const [selectedSetSizes, setSelectedSetSizes] = useState({}); // Track selected sizes for each set item
-  const [totalPrice, setTotalPrice] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addingSet, setAddingSet] = useState(false);
   const { currency } = useCurrency();
+
+  // Derived — never stored, so it can't drift out of sync
+  const setTotalPrice_ =
+    (product ? Number(product.price) || 0 : 0) * quantity +
+    selectedSetItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
 
   useEffect(() => {
     let mounted = true;
@@ -59,9 +66,6 @@ function ShopDetails({ params }) {
           if (firstAvailableSize) {
             setSelectedSize(firstAvailableSize.id);
           }
-
-          // Recalculate total price if needed
-          setTotalPrice(data.price * quantity);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -88,7 +92,11 @@ function ShopDetails({ params }) {
     return () => {
       mounted = false;
     };
-  }, [currency, params.id, quantity]);
+    // NOTE: quantity must NOT be a dependency here — it used to be, which
+    // refetched the whole product (with a full-page spinner) on every
+    // quantity +/- click.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency, params.id]);
 
   const generateToken = () => {
     const characters =
@@ -132,6 +140,8 @@ function ShopDetails({ params }) {
       });
       return;
     }
+    if (addingToCart) return;
+    setAddingToCart(true);
 
     const payload = {
       product: product.id,
@@ -162,14 +172,7 @@ function ShopDetails({ params }) {
       const data = await response.json();
 
       if (response.ok) {
-        Swal.fire({
-          title: "Success!",
-          text: "Product added to cart successfully!",
-          icon: "success",
-          confirmButtonColor: "#e02e21",
-          confirmButtonText: "Close",
-        });
-
+        successToast("Added to cart");
         updateCart(data); // Assuming the API returns the updated cart
       } else {
         Swal.fire({
@@ -194,10 +197,13 @@ function ShopDetails({ params }) {
         confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
+    } finally {
+      setAddingToCart(false);
     }
   };
 
   const handleSetItemChange = (item, isChecked) => {
+    // Total is derived from selectedSetItems, so only the list needs updating
     setSelectedSetItems((prevSelected) => {
       if (isChecked) {
         return [...prevSelected, item];
@@ -207,13 +213,6 @@ function ShopDetails({ params }) {
         );
       }
     });
-
-    // Update total price based on selected items
-    if (isChecked) {
-      setTotalPrice((prevTotal) => prevTotal + item.price);
-    } else {
-      setTotalPrice((prevTotal) => prevTotal - item.price);
-    }
   };
   // Function to handle size change for a specific set item
   const handleSetSizeChange = (itemId, size) => {
@@ -270,43 +269,44 @@ function ShopDetails({ params }) {
       return;
     }
 
-    try {
-      for (const payload of payloads) {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          }
-        );
-        const data = await response.json();
-        // Update the cart context
-        updateCart(data); // Assuming the API returns the updated cart
+    if (addingSet) return;
+    setAddingSet(true);
 
-        if (!response.ok) {
-          Swal.fire({
-            title: "Error!",
-            text: `Failed to add product to cart: ${
-              data.message || response.statusText
-            }`,
-            icon: "error",
-            confirmButtonColor: "#e02e21",
-            confirmButtonText: "Close",
-          });
-          return;
-        }
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const headers = {
+        "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      };
+
+      // Fire all POSTs in parallel instead of one-by-one
+      const responses = await Promise.all(
+        payloads.map((payload) =>
+          fetch(`${process.env.NEXT_PUBLIC_CART_URL}?token=${token}`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+          })
+        )
+      );
+
+      const failed = responses.filter((r) => !r.ok);
+
+      // One refetch after all items are added, not one per item
+      await updateCart();
+
+      if (failed.length > 0) {
+        Swal.fire({
+          title: "Error!",
+          text: `${failed.length} item(s) could not be added to the cart. Please try again.`,
+          icon: "error",
+          confirmButtonColor: "#e02e21",
+          confirmButtonText: "Close",
+        });
+        return;
       }
 
-      Swal.fire({
-        title: "Success!",
-        text: "Selected items added to cart successfully!",
-        icon: "success",
-        confirmButtonColor: "#e02e21",
-        confirmButtonText: "Close",
-      });
+      successToast("Selected items added to cart");
     } catch (error) {
       console.error("Error adding selected items to cart:", error);
       Swal.fire({
@@ -316,6 +316,8 @@ function ShopDetails({ params }) {
         confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
+    } finally {
+      setAddingSet(false);
     }
   };
 
@@ -467,8 +469,12 @@ function ShopDetails({ params }) {
                 </div>
 
                 <div className="mt-10">
-                  <button onClick={addToCart} className="btn-light w-full md:w-auto md:min-w-[18rem]">
-                    Add to Cart
+                  <button
+                    onClick={addToCart}
+                    disabled={addingToCart}
+                    className="btn-light w-full disabled:cursor-wait disabled:opacity-70 md:w-auto md:min-w-[18rem]"
+                  >
+                    {addingToCart ? "Adding..." : "Add to Cart"}
                   </button>
                 </div>
               </>
@@ -528,10 +534,14 @@ function ShopDetails({ params }) {
 
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm font-bold uppercase tracking-widest text-white">
-                    Total: <span className="text-primary">{totalPrice.toFixed(2)}</span>
+                    Total: <span className="text-primary">{setTotalPrice_.toFixed(2)}</span>
                   </p>
-                  <button className="btn-primary" onClick={addSelectedToCart}>
-                    Add Selected to Cart
+                  <button
+                    className="btn-primary disabled:cursor-wait disabled:opacity-70"
+                    onClick={addSelectedToCart}
+                    disabled={addingSet}
+                  >
+                    {addingSet ? "Adding..." : "Add Selected to Cart"}
                   </button>
                 </div>
               </div>

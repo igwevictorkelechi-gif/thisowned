@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { JOINED_KEY } from "../../component/WaitlistPopup";
 
 export default function WaitlistPage() {
   const [formData, setFormData] = useState({
@@ -46,6 +47,12 @@ export default function WaitlistPage() {
         setStatus("success");
         setMessage("You're on the list! We'll be in touch soon.");
         setFormData({ firstName: "", lastName: "", email: "" });
+        try {
+          // Suppress the homepage popup — this visitor has joined
+          localStorage.setItem(JOINED_KEY, "1");
+        } catch (err) {
+          /* ignore */
+        }
       } else {
         throw new Error("Something went wrong. Please try again.");
       }

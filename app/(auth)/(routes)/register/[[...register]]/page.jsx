@@ -7,6 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { successToast } from "../../../../utils/toast";
 import { useAuth } from "../../../../utils/AuthContext";
 import { useCurrency } from "../../../../utils/CurrencyContext";
 
@@ -103,17 +104,9 @@ function RegisterPage() {
           console.warn("Access or refresh token missing in the response");
         }
 
-        Swal.fire({
-          title: "Success!",
-          text: "Account created successfully",
-          icon: "success",
-          confirmButtonColor: "#e02e21",
-          confirmButtonText: "Close",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push("/shop");
-          }
-        });
+        // Redirect immediately — the toast confirms without blocking
+        successToast("Account created successfully");
+        router.push("/shop");
       } else {
         if (result.email && result.email.length > 0) {
           throw new Error(result.email[0]);

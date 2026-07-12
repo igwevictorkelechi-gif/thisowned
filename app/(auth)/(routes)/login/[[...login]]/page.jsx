@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import Swal from "sweetalert2";
+import { successToast } from "../../../../utils/toast";
 import { useAuth } from "../../../../utils/AuthContext";
 import { useCurrency } from "../../../../utils/CurrencyContext";
 
@@ -68,19 +69,11 @@ function Page() {
       setIsLoggedIn(true);
       window.dispatchEvent(new Event("storage"));
 
-      Swal.fire({
-        title: "Success!",
-        text: "Login successful",
-        icon: "success",
-        confirmButtonColor: "#e02e21",
-        confirmButtonText: "Close",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const params = new URLSearchParams(window.location.search);
-          const from = params.get("from");
-          router.push(from || "/shop");
-        }
-      });
+      // Redirect immediately — the toast confirms without blocking
+      successToast("Login successful");
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get("from");
+      router.push(from || "/shop");
     } catch (err) {
       setError(err.message);
       Swal.fire({

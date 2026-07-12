@@ -130,6 +130,23 @@ export const CartProvider = ({ children }) => {
     await fetchCartDetails();
   };
 
+  // Apply an already-known cart state locally (after a PATCH/DELETE) so the
+  // UI updates instantly without a second round-trip to the server.
+  const applyCart = (newCart) => {
+    const safeCart = Array.isArray(newCart) ? newCart : [];
+    setCart(safeCart);
+    updateCartCount(safeCart);
+    setTotalPrice(calculateTotalPrice(safeCart));
+  };
+
+  const getCartToken = () => {
+    try {
+      return localStorage.getItem("cartToken") || "";
+    } catch (e) {
+      return "";
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -137,6 +154,8 @@ export const CartProvider = ({ children }) => {
         setCart,
         loading,
         updateCart,
+        applyCart,
+        getCartToken,
         isCartEmpty,
         cartCount,
         updateCartCount,

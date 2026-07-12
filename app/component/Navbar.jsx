@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { navLinks } from "../constants/ContentConstants";
 import { useAuth } from "../utils/AuthContext";
 import { useCart } from "../utils/CartContext";
-import Swal from "sweetalert2";
+import { successToast } from "../utils/toast";
 import { useCurrency } from "../utils/CurrencyContext";
 
 const TICKER = [
@@ -23,7 +23,7 @@ function Navbar() {
   const [collections, setCollections] = useState([]);
   const [scrolled, setScrolled] = useState(false);
   const { isLoggedIn, setIsLoggedIn } = useAuth();
-  const { cartCount, updateCart } = useCart();
+  const { cartCount } = useCart();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -35,19 +35,13 @@ function Navbar() {
     setIsChecked(!isChecked);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setIsLoggedIn(false);
     closeMenu();
-    await updateCart();
-    Swal.fire({
-      title: "Success!",
-      text: "Logout successful",
-      icon: "success",
-      confirmButtonColor: "#e02e21",
-      confirmButtonText: "Close",
-    });
+    successToast("Logged out");
+    // The storage event triggers the cart refresh in AuthContext
     window.dispatchEvent(new Event("storage"));
   };
 
