@@ -12,7 +12,7 @@ import { useCurrency } from "../utils/CurrencyContext";
 const TICKER = [
   "FREE SHIPPING ON ORDERS OVER $150",
   "NEW DROPS EVERY WEEK",
-  "SEE IT · TOUCH IT · OBTAIN IT",
+  "KNOW THYSELF",
   "SECURE CHECKOUT · FLUTTERWAVE & PAYSTACK",
   "LIMITED STOCK — DON'T SLEEP",
 ];

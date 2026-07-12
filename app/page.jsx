@@ -51,10 +51,8 @@ export default function Home() {
         />
         <div className="section-x relative z-10 mx-auto w-full max-w-7xl py-20 text-center">
           <p className="eyebrow animate-fade-up text-primary">Thisowned — Est. Streetwear</p>
-          <h1 className="display mt-5 text-[3.4rem] leading-[0.86] sm:text-[6rem] lg:text-[8.5rem]">
-            See It.
-            <br />
-            Touch It. <span className="text-primary">Obtain It.</span>
+          <h1 className="display mt-5 text-[3.8rem] leading-[0.86] sm:text-[7rem] lg:text-[9.5rem]">
+            Know <span className="text-primary">Thyself</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-base uppercase tracking-wide text-smoke sm:text-lg">
             Exclusive drops, hype essentials and limited apparel. Wear what you own.

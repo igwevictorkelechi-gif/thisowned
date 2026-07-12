@@ -18,9 +18,9 @@ const anton = Anton({
 });
 
 export const metadata = {
-  title: "Thisowned — See It. Touch It. Obtain It.",
+  title: "Thisowned — Know Thyself",
   description:
-    "Thisowned streetwear. Exclusive drops, hype essentials and limited apparel. See it. Touch it. Obtain it.",
+    "Thisowned streetwear. Exclusive drops, hype essentials and limited apparel. Know thyself.",
   icons: {
     icon: "/logodark.png",
   },

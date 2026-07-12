@@ -46,8 +46,7 @@ function Footer() {
               alt="Thisowned"
             />
             <p className="mt-4 max-w-xs text-sm uppercase tracking-wide text-smoke">
-              See it. Touch it. Obtain it. The only trends, exclusive items — all
-              in one place.
+              Know thyself. The only trends, exclusive items — all in one place.
             </p>
           </div>
 
