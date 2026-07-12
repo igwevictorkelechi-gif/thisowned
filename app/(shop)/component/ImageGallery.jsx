@@ -6,38 +6,38 @@ function ImageGallery({ images }) {
   const [selectedImage, setSelectedImage] = useState(images[0].image);
   return (
     <div>
-      <div className="grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-3 lg:grid-cols-5">
         {/* Sidebar thumbnails */}
-        <div className="order-last flex gap-5 lg:order-none lg:flex-col">
-          {images
-            .filter((img) => img.image !== selectedImage)
-            .map((img, index) => (
-              <div
-                key={index}
-                onClick={() => setSelectedImage(img.image)}
-                className="overflow-hidden rounded-lg bg-gray-100"
-              >
-                <Image
-                  src={img.image}
-                  width={200}
-                  height={200}
-                  alt={`product image ${index + 1}`}
-                  className="object-center h-[110px] w-[110px] md:h-[150px] md:w-full object-cover cursor-pointer"
-                />
-              </div>
-            ))}
+        <div className="order-last flex gap-3 lg:order-none lg:flex-col">
+          {images.map((img, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedImage(img.image)}
+              className={`overflow-hidden border bg-surface2 transition ${
+                img.image === selectedImage
+                  ? "border-primary"
+                  : "border-line hover:border-white"
+              }`}
+              aria-label={`View image ${index + 1}`}
+            >
+              <Image
+                src={img.image}
+                width={200}
+                height={200}
+                alt={`product image ${index + 1}`}
+                className="h-[90px] w-[90px] cursor-pointer object-cover object-center md:h-[130px] md:w-full"
+              />
+            </button>
+          ))}
         </div>
-        <div className="relative overflow-hidden rounded-lg bg-gray-100 lg:col-span-4">
+        <div className="relative overflow-hidden border border-line bg-surface2 lg:col-span-4">
           <Image
             src={selectedImage}
-            width={500}
-            height={500}
+            width={600}
+            height={600}
             alt="product image"
-            className="object-center h-[400px] md:h-[650px] w-full object-cover"
+            className="h-[400px] w-full object-cover object-center md:h-[640px]"
           />
-          <span className="absolute left-0 top-0 rounded-br-lg bg-red-500 px-3 py-1.5 text-sm uppercase tracking-wider text-white">
-            Sale
-          </span>
         </div>
       </div>
     </div>

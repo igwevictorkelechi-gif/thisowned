@@ -2,31 +2,43 @@ import React from "react";
 
 function AboutUs() {
   return (
-    <div className="mx-auto px-4 py-10 sm:px-10 sm:py-20 lg:px-20 bg-black text-white">
-      <h1 className="text-2xl font-semibold text-white sm:text-3xl tracking-wider">
-        About Us
-      </h1>
-      <p className="mt-4 md:mt-5 text-sm md:text-base">
-        THISOWNED is a positive form of differentiation.
-      </p>
+    <div className="min-h-screen bg-ink text-white">
+      <header className="border-b border-line bg-surface">
+        <div className="section-x mx-auto max-w-5xl py-16 text-center">
+          <p className="eyebrow text-primary">The Movement</p>
+          <h1 className="display mt-3 text-5xl sm:text-7xl">About Us</h1>
+        </div>
+      </header>
 
-      <p className="mt-2 md:mt-1 text-sm md:text-base">
-        THISOWNED MEANS TO BE DIFFERENT IN SO MANY WAYS BEING DIFFERENT IN THE
-        SENSE THAT YOUR BEING SCARES PEOPLE TO THE EXTENT THEYLL TREAT YOU LIKE
-        A THISOWNED (DISOWNED) or Reject MEMBER OF A FAMILY OR AN ORGANIZATION.
-      </p>
+      <div className="section-x mx-auto max-w-3xl py-16">
+        <p className="text-lg font-semibold uppercase tracking-wide text-white">
+          Thisowned is a positive form of differentiation.
+        </p>
+        <p className="mt-6 leading-relaxed text-smoke">
+          Thisowned means to be different in so many ways — being different in
+          the sense that your being scares people to the extent they&apos;ll treat
+          you like a Thisowned (Disowned) or reject member of a family or an
+          organization.
+        </p>
 
-      <h1 className="text-2xl font-semibold text-white sm:text-3xl tracking-wider mt-14">
-        Contact
-      </h1>
-      <p className="mt-4 md:mt-5 text-sm md:text-base">
-        Manager: <a href="tel:+2347035075777">+234 703 507 5777</a>
-      </p>
-
-      <p className="mt-2 md:mt-1 text-sm md:text-base">
-        Email:{" "}
-        <a href="mailto:thisownedrep@gmail.com">thisownedrep@gmail.com</a>
-      </p>
+        <div className="mt-14 border-t border-line pt-10">
+          <h2 className="display text-4xl">Contact</h2>
+          <div className="mt-6 space-y-3 text-sm uppercase tracking-wide text-smoke">
+            <p>
+              Manager:{" "}
+              <a href="tel:+2347035075777" className="font-bold text-white transition hover:text-primary">
+                +234 703 507 5777
+              </a>
+            </p>
+            <p>
+              Email:{" "}
+              <a href="mailto:thisownedrep@gmail.com" className="font-bold text-white transition hover:text-primary">
+                thisownedrep@gmail.com
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -34,7 +34,6 @@ function Cart({ setIsCartEmpty }) {
   // Helper function to update the quantity directly on the backend
   const updateQuantity = async (itemId, newQuantity) => {
     try {
-      // Call API to update the cart item with the new quantity
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${token}`,
         {
@@ -42,19 +41,18 @@ function Cart({ setIsCartEmpty }) {
           headers: {
             ...headers,
           },
-          body: JSON.stringify({ quantity: newQuantity }), // Send the new quantity directly
+          body: JSON.stringify({ quantity: newQuantity }),
         }
       );
 
       if (response.ok) {
         const updatedItem = await response.json();
 
-        // Find the index of the updated item in the current cart
         const updatedCart = cart.map((item) =>
           item.id === updatedItem.id ? updatedItem : item
         );
 
-        setCart(updatedCart); // Update the cart with the updated item
+        setCart(updatedCart);
         updateCartCount(updatedCart.length);
       } else {
         console.error("Failed to update item quantity");
@@ -64,30 +62,28 @@ function Cart({ setIsCartEmpty }) {
     }
   };
 
-  // Increment item quantity by adding 1
   const incrementQuantity = async (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
     const newQuantity = item.quantity + 1;
-    await updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
-    await updateCart(); // This will fetch the latest cart data and update the context
+    await updateQuantity(itemId, newQuantity);
+    await updateCart();
   };
 
-  // Decrement item quantity by subtracting 1 (but not below 1)
   const decrementQuantity = async (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
     if (item && item.quantity > 1) {
       const newQuantity = item.quantity - 1;
-      await updateQuantity(itemId, newQuantity); // Call the update function with the new quantity
-      await updateCart(); // This will fetch the latest cart data and update the context
+      await updateQuantity(itemId, newQuantity);
+      await updateCart();
     }
   };
-  // Remove item from cart
+
   const removeItem = async (itemId) => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_CART_URL}${itemId}/?token=${token}`,
         {
-          method: "DELETE", // Delete item from cart
+          method: "DELETE",
           headers: {
             ...headers,
           },
@@ -98,49 +94,44 @@ function Cart({ setIsCartEmpty }) {
         throw new Error("Failed to remove item");
       }
 
-      // Optimistically update UI
       const updatedCart = cart.filter((item) => item.id !== itemId);
-      setCart(updatedCart); // Update cart state locally
-      setIsCartEmpty(updatedCart.length === 0); // Update cart empty status
+      setCart(updatedCart);
+      setIsCartEmpty(updatedCart.length === 0);
 
-      await updateCart(); // This will fetch the latest cart data and update the context
+      await updateCart();
 
-      // Only show success alert after successful removal
       Swal.fire({
         title: "Success!",
         text: "Item has been successfully removed from the cart.",
         icon: "success",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
 
-      // No need to call response.json() if no response body
       if (
         response.status !== 204 &&
         response.headers.get("content-length") !== "0"
       ) {
-        await response.json(); // Only attempt to parse if there is a response body
+        await response.json();
       }
     } catch (error) {
       console.error("Error removing item from cart:", error);
-      // Show error alert
       Swal.fire({
         title: "Error!",
         text: "Failed to remove item from the cart. Please try again.",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
     }
   };
 
-  const symbol = cart.length > 0 ? cart[0].product.symbol : ""; // Get symbol from the first item
+  const symbol = cart.length > 0 ? cart[0].product.symbol : "";
 
   const calculateTotalPrice = () => {
     if (!Array.isArray(cart)) return 0;
 
     return cart.reduce((total, item) => {
-      // Check if the item has a discount
       const price = item.product.discount
         ? item.product.discount_price
         : item.product.price;
@@ -148,48 +139,28 @@ function Cart({ setIsCartEmpty }) {
     }, 0);
   };
 
-  // Function to calculate total discount
   const calculateTotalDiscount = () => {
     if (!Array.isArray(cart)) return 0;
 
     return cart.reduce((total, item) => {
-      // Calculate discount amount for each item
       const discountAmount =
         (item.product.discount / 100) * item.product.price * item.quantity;
       return total + discountAmount;
     }, 0);
   };
 
-  // Get the total discount
   const totalDiscount = calculateTotalDiscount();
+  const carttotal = parseFloat(calculateTotalPrice().toFixed(2));
 
-  // Calculate totals
-  const carttotal = parseFloat(calculateTotalPrice().toFixed(2)); // Use toFixed to handle precision
-  // console.log(totalBeforeDiscount);
-
-  // const totalDiscount = parseFloat(calculateTotalDiscount().toFixed(2)); // Use toFixed for discount
-  // console.log(totalDiscount);
-
-  // Calculate total after applying the discount
-  // const totalAfterDiscount = parseFloat(
-  //   (
-  //     totalBeforeDiscount - Math.min(totalDiscount, totalBeforeDiscount)
-  //   ).toFixed(2)
-  // ); // Use toFixed to ensure precision
-
-  // console.log(totalAfterDiscount); // This should show a properly rounded value
-
-  // Handle proceed to checkout
   const handleProceedToCheckout = () => {
     const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
-      // Redirect to login page with a 'from' parameter
       Swal.fire({
-        title: "Error!",
+        title: "Hold up!",
         text: "Please login to checkout",
         icon: "info",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       }).then(() => {
         router.push(`/login?from=${encodeURIComponent("/cart")}`);
@@ -203,144 +174,134 @@ function Cart({ setIsCartEmpty }) {
   return (
     <div>
       <section>
-        <div className="mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="flex-col gap-4 w-full flex items-center justify-center">
-                  <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-                    <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-                  </div>
-                </div>
+        <div className="section-x mx-auto max-w-5xl py-10 sm:py-14">
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-line border-t-primary"></div>
+            </div>
+          ) : cart.length === 0 ? (
+            <div className="my-10 flex flex-col items-center justify-center text-center text-white">
+              <div className="flex size-20 items-center justify-center rounded-full border border-line bg-surface">
+                <ShoppingCart size={34} className="text-primary" />
               </div>
-            ) : cart.length === 0 ? (
-              <div className="flex flex-col items-center text-center justify-center my-7 text-white">
-                <ShoppingCart size={40} />
-
-                <p className="text-gray-100 text-2xl md:text-3xl font-semibold my-8">
-                  Your cart is currently empty.
-                </p>
-
-                <Link
-                  href="shop"
-                  className="block rounded bg-gray-100 text-center py-3 px-10 text-sm text-red-600 font-semibold transition hover:bg-gray-200 mt-2"
-                >
-                  Return to Shop
-                </Link>
-              </div>
-            ) : (
-              <div className="mt-8">
-                <ul className="space-y-6">
-                  {Array.isArray(cart) &&
-                    cart.map((item, index) => (
-                      <li key={index} className="flex items-center gap-4">
-                        <Image
-                          width={100}
-                          height={100}
-                          src={item.product.images[0].image}
-                          alt={item.product.name}
-                          className="size-14 rounded object-cover"
-                        />
-                        <div>
-                          <h3 className="text-sm text-gray-100">
-                            {item.product.name}
-                          </h3>
-                          <dl className="mt-0.5 space-y-1 text-[11.2px] text-gray-100">
-                            <div className="flex gap-3">
-                              <dt className="inline">Size:</dt>
-                              <dd className="inline">{item.size.rating}</dd>
-                            </div>
-                            <div className="flex gap-3">
-                              <dt className="inline">Price:</dt>
-                              <dd className="inline">
-                                {item.product.discount ? (
-                                  <span>
-                                    {item.product.symbol}
-                                    {item.product.discount_price.toFixed(2)}
-                                  </span>
-                                ) : null}
-                                <span
-                                  className={
-                                    item.product.discount
-                                      ? "line-through ml-1"
-                                      : ""
-                                  }
-                                >
-                                  {item.product.symbol}
-                                  {item.product.price.toFixed(2)}
-                                </span>
-                              </dd>
-                            </div>
-                          </dl>
-                        </div>
-
-                        <div className="flex flex-1 items-center justify-end gap-4 md:gap-5">
-                          <form className="flex flex-row gap-2">
-                            <button
-                              type="button"
-                              onClick={() => decrementQuantity(item.id)}
-                              className="text-white"
-                            >
-                              <Minus size={14} />
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              readOnly
-                              className="h-7 w-8 md:w-10 rounded border border-gray-200 bg-black p-0 text-center text-xs text-gray-100"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => incrementQuantity(item.id)}
-                              className="text-white"
-                            >
-                              <Plus size={14} />
-                            </button>
-                          </form>
-
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="text-gray-100 hover:text-red-600"
+              <h2 className="display mt-6 text-4xl sm:text-5xl">Your cart is empty</h2>
+              <p className="mt-3 text-sm uppercase tracking-wide text-smoke">
+                Time to fix that. Go find some heat.
+              </p>
+              <Link href="/shop" className="btn-primary mt-8">
+                Return to Shop
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <h1 className="display mb-8 text-4xl sm:text-6xl">Shopping Cart</h1>
+              <ul className="divide-y divide-line border-y border-line">
+                {Array.isArray(cart) &&
+                  cart.map((item, index) => (
+                    <li key={index} className="flex items-center gap-4 py-5">
+                      <Image
+                        width={100}
+                        height={100}
+                        src={item.product.images[0].image}
+                        alt={item.product.name}
+                        className="size-20 shrink-0 border border-line object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-sm font-semibold uppercase text-white">
+                          {item.product.name}
+                        </h3>
+                        <p className="mt-1 text-xs uppercase tracking-wide text-smoke">
+                          Size: <span className="text-white">{item.size.rating}</span>
+                        </p>
+                        <p className="mt-1 text-sm">
+                          {item.product.discount ? (
+                            <span className="font-bold text-primary">
+                              {item.product.symbol}
+                              {item.product.discount_price.toFixed(2)}
+                            </span>
+                          ) : null}
+                          <span
+                            className={
+                              item.product.discount
+                                ? "ml-2 text-smoke line-through"
+                                : "font-bold text-white"
+                            }
                           >
-                            <Trash2 size={16} />
+                            {item.product.symbol}
+                            {item.product.price.toFixed(2)}
+                          </span>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center border border-line bg-surface">
+                          <button
+                            type="button"
+                            onClick={() => decrementQuantity(item.id)}
+                            aria-label="Decrease"
+                            className="flex size-8 items-center justify-center text-white transition hover:text-primary"
+                          >
+                            <Minus size={13} />
+                          </button>
+                          <span className="w-8 text-center text-xs font-bold text-white">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => incrementQuantity(item.id)}
+                            aria-label="Increase"
+                            className="flex size-8 items-center justify-center text-white transition hover:text-primary"
+                          >
+                            <Plus size={13} />
                           </button>
                         </div>
-                      </li>
-                    ))}
-                </ul>
 
-                <div className="mt-8 flex justify-end border-t border-gray-400 pt-8">
-                  <div className="w-screen max-w-lg space-y-4">
-                    <dl className="space-y-0.5 text-sm text-gray-100">
-                      <div className="flex justify-between">
-                        <dt>Discount</dt>
-                        <dd className="font-semibold tracking-wider">
-                          {symbol}
-                          {totalDiscount.toFixed(2)}
-                        </dd>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          aria-label="Remove item"
+                          className="text-smoke transition hover:text-primary"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </div>
-                      <div className="flex justify-between text-base">
-                        <dt>Total</dt>
-                        <dd className="font-semibold tracking-wider">
-                          {symbol}
-                          {carttotal.toFixed(2)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <div className="flex justify-end">
-                      <button
-                        onClick={handleProceedToCheckout}
-                        className="block rounded bg-white px-10 py-2.5 text-sm text-gray-800 transition hover:bg-gray-100"
-                      >
-                        Checkout
-                      </button>
+                    </li>
+                  ))}
+              </ul>
+
+              <div className="mt-8 flex justify-end">
+                <div className="w-full max-w-md border border-line bg-surface p-6">
+                  <dl className="space-y-3 text-sm">
+                    <div className="flex justify-between text-smoke">
+                      <dt className="uppercase tracking-wide">Discount</dt>
+                      <dd className="font-semibold text-white">
+                        {symbol}
+                        {totalDiscount.toFixed(2)}
+                      </dd>
                     </div>
-                  </div>
+                    <div className="flex justify-between border-t border-line pt-3 text-lg">
+                      <dt className="font-bold uppercase tracking-wide text-white">Total</dt>
+                      <dd className="font-bold text-primary">
+                        {symbol}
+                        {carttotal.toFixed(2)}
+                      </dd>
+                    </div>
+                  </dl>
+                  <button
+                    onClick={handleProceedToCheckout}
+                    className="btn-primary mt-6 w-full"
+                  >
+                    Proceed to Checkout
+                  </button>
+                  <Link
+                    href="/shop"
+                    className="mt-3 block text-center text-xs font-bold uppercase tracking-widest text-smoke transition hover:text-white"
+                  >
+                    Continue Shopping
+                  </Link>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

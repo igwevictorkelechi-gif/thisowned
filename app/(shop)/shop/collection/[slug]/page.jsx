@@ -98,25 +98,20 @@ function CollectionsPage({ params }) {
   };
 
   return (
-    <div className="mx-auto bg-black">
-      <header className="text-center pt-10 pb-2">
-        <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider">
+    <div className="min-h-screen bg-ink">
+      <header className="border-b border-line bg-surface">
+        <div className="section-x mx-auto max-w-7xl py-12 text-center">
+          <p className="eyebrow text-primary">Curated Drops</p>
           {params?.slug === "all" ? (
-            <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider">
-              All Collections{" "}
-            </h2>
+            <h1 className="display mt-3 text-5xl sm:text-7xl">All Collections</h1>
           ) : nameLoading ? (
-            <div className="flex justify-center items-center h-8">
-              <Loader className="flex items-center justify-center mx-auto animate-spin" />
-              {/* <div className="w-40 h-8 bg-gray-900 animate-pulse rounded"></div> */}
+            <div className="mt-3 flex h-14 items-center justify-center">
+              <Loader className="animate-spin text-primary" />
             </div>
           ) : (
-            <h2 className="text-xl font-bold text-white sm:text-3xl tracking-wider uppercase">
-              {collectionName}
-              {/* Collections */}
-            </h2>
+            <h1 className="display mt-3 text-5xl sm:text-7xl">{collectionName}</h1>
           )}
-        </h2>
+        </div>
       </header>
       <ProductCollections
         collections={collections}

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ArrowLeftCircle, BadgeInfo, Info } from "lucide-react";
+import { ArrowLeftCircle, BadgeInfo } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -38,7 +38,6 @@ export default function OrderDetailsPage({ params }) {
 
         const data = await response.json();
 
-        // Find the specific item from the URL query
         const selectedItem = data.items.find(
           (item) => item.product.id === parseInt(itemId)
         );
@@ -49,7 +48,7 @@ export default function OrderDetailsPage({ params }) {
 
         setOrderDetails({
           ...data,
-          items: [selectedItem], // Only include the selected item
+          items: [selectedItem],
         });
       } catch (err) {
         console.error("Error fetching order details:", err);
@@ -60,197 +59,126 @@ export default function OrderDetailsPage({ params }) {
     };
 
     fetchOrderDetails();
-  }, [currency, params.id, itemId]); // Added currency to dependencies
+  }, [currency, params.id, itemId]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20 bg-black">
-        <div className="flex-col gap-4 w-full flex items-center justify-center">
-          <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-            <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-          </div>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center bg-ink">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-line border-t-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-black">
-        <div className="flex flex-col items-center text-center justify-center py-16 text-red-500">
-          <BadgeInfo size={55} />
-
-          <p className="text-white text-2xl md:text-3xl font-semibold my-8">
-            {error}
-          </p>
-
-          <Link
-            href="../../orders"
-            className="block rounded bg-gray-100 text-center py-3 px-10 text-sm text-red-600 font-semibold transition hover:bg-gray-200 mt-2"
-          >
-            Back to orders
-          </Link>
-        </div>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-ink text-center text-white">
+        <BadgeInfo size={48} className="text-primary" />
+        <p className="mt-6 text-lg font-semibold uppercase tracking-wide">{error}</p>
+        <Link href="/orders" className="btn-primary mt-8">
+          Back to Orders
+        </Link>
       </div>
     );
   }
 
   const getStatusBadge = (status) => {
     const statusStyles = {
-      pending: "bg-yellow-400 text-yellow-700",
-      processing: "bg-orange-500 text-orange-100",
-      cancelled: "bg-red-500 text-white",
-      completed: "bg-green-500 text-white",
+      pending: "bg-yellow-400 text-black",
+      processing: "bg-orange-500 text-white",
+      cancelled: "bg-primary text-white",
+      completed: "bg-green-600 text-white",
     };
-
     const statusText = {
       pending: "Pending",
       processing: "Processing",
       cancelled: "Cancelled",
       completed: "Success",
     };
-
     return (
       <span
-        className={`inline-flex items-center justify-center rounded-full ${statusStyles[status]} px-2 py-0.5`}
+        className={`inline-flex items-center px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider ${statusStyles[status] || "bg-yellow-400 text-black"}`}
       >
-        <p className="whitespace-nowrap text-sm">{statusText[status]}</p>
+        {statusText[status] || "Pending"}
       </span>
     );
   };
 
   const { shipping_address, payment_detail, items, status } = orderDetails;
 
+  const Row = ({ label, children }) => (
+    <div className="grid grid-cols-1 gap-1 p-4 sm:grid-cols-3 sm:gap-4">
+      <dt className="text-xs font-bold uppercase tracking-wider text-smoke">{label}</dt>
+      <dd className="text-sm text-white sm:col-span-2">{children}</dd>
+    </div>
+  );
+
   return (
-    <div className="bg-black min-h-screen">
-      <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-14">
-        <div className="flex py-10">
-          <h1 className="text-2xl font-semibold flex gap-4 items-center text-white">
-            <Link href="../orders">
-              <ArrowLeftCircle size={22} />
-            </Link>
-            Order Details
-          </h1>
-        </div>
+    <div className="min-h-screen bg-ink">
+      <div className="section-x mx-auto max-w-4xl py-14">
+        <h1 className="display flex items-center gap-4 text-4xl sm:text-5xl">
+          <Link href="/orders" className="text-white transition hover:text-primary">
+            <ArrowLeftCircle size={30} />
+          </Link>
+          Order Details
+        </h1>
 
-        <div className="grid gap-8">
+        <div className="mt-10 grid gap-6">
           {/* Customer Information */}
-          <div className="flow-root rounded-lg border border-gray-600 py-3 shadow-sm">
-            <dl className="-my-3 divide-y divide-gray-600 text-sm">
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Full name</dt>
-                <dd className="text-white sm:col-span-2">
-                  {shipping_address.first_name} {shipping_address.last_name}
-                </dd>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Phone number</dt>
-                <dd className="text-white sm:col-span-2">
-                  {shipping_address.phone}
-                </dd>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Email</dt>
-                <dd className="text-white sm:col-span-2">
-                  {shipping_address.email}
-                </dd>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Address</dt>
-                <dd className="text-white sm:col-span-2">
-                  {shipping_address.address}
-                </dd>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">City</dt>
-                <dd className="text-white sm:col-span-2">
-                  {shipping_address.city}
-                </dd>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">State</dt>
-                <dd className="text-white sm:col-span-2">
-                  {shipping_address.state}
-                </dd>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1 p-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Status</dt>
-                <dd className="text-white sm:col-span-2">
-                  {getStatusBadge(status)}
-                </dd>
-              </div>
+          <div className="border border-line bg-surface">
+            <h2 className="border-b border-line px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary">
+              Shipping
+            </h2>
+            <dl className="divide-y divide-line">
+              <Row label="Full Name">
+                {shipping_address.first_name} {shipping_address.last_name}
+              </Row>
+              <Row label="Phone">{shipping_address.phone}</Row>
+              <Row label="Email">{shipping_address.email}</Row>
+              <Row label="Address">{shipping_address.address}</Row>
+              <Row label="City">{shipping_address.city}</Row>
+              <Row label="State">{shipping_address.state}</Row>
+              <Row label="Status">{getStatusBadge(status)}</Row>
             </dl>
           </div>
 
           {/* Order Items */}
-          <div className="flow-root rounded-lg border border-gray-600 py-3 shadow-sm">
-            <h2 className="text-xl font-semibold text-white px-3 mb-4">
+          <div className="border border-line bg-surface">
+            <h2 className="border-b border-line px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary">
               Order Item
             </h2>
-            <div className="space-y-4">
-              {items[0] && (
-                <div className="flex items-center gap-4 p-3 border-t border-gray-600">
-                  <Image
-                    src={items[0].product.image}
-                    alt={items[0].product.name}
-                    className="w-16 h-16 object-cover rounded"
-                    width={100}
-                    height={100}
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-white font-medium">
-                      {items[0].product.name}
-                    </h3>
-                    <p className="text-gray-400 text-sm">
-                      Size: {items[0].size}
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                      Quantity: {items[0].quantity}
-                    </p>
-                    <p className="text-white text-sm">
-                      <span className="uppercase">
-                        {items[0].product.currency}:
-                      </span>{" "}
-                      {items[0].product.price.toFixed(2)}
-                    </p>
-                  </div>
+            {items[0] && (
+              <div className="flex items-center gap-4 p-4">
+                <Image
+                  src={items[0].product.image}
+                  alt={items[0].product.name}
+                  className="size-20 border border-line object-cover"
+                  width={100}
+                  height={100}
+                />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold uppercase text-white">
+                    {items[0].product.name}
+                  </h3>
+                  <p className="mt-1 text-xs text-smoke">Size: {items[0].size}</p>
+                  <p className="text-xs text-smoke">Quantity: {items[0].quantity}</p>
+                  <p className="mt-1 text-sm font-bold text-white">
+                    <span className="uppercase">{items[0].product.currency} </span>
+                    {items[0].product.price.toFixed(2)}
+                  </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Payment Details */}
-          <div className="flow-root rounded-lg border border-gray-600 py-3 shadow-sm">
-            <h2 className="text-xl font-semibold text-white px-3 mb-4">
-              Payment Details
+          <div className="border border-line bg-surface">
+            <h2 className="border-b border-line px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary">
+              Payment
             </h2>
-            <dl className="-my-3 divide-y divide-gray-600 text-sm px-3">
-              <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Payment Method</dt>
-                <dd className="text-white sm:col-span-2">
-                  {payment_detail.method}
-                </dd>
-              </div>
-              <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">
-                  Transaction Reference
-                </dt>
-                <dd className="text-white sm:col-span-2">
-                  {payment_detail.tx_ref}
-                </dd>
-              </div>
-              <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
-                <dt className="font-semibold text-white">Payment Status</dt>
-                <dd className="text-white sm:col-span-2">
-                  {payment_detail.status}
-                </dd>
-              </div>
+            <dl className="divide-y divide-line">
+              <Row label="Payment Method">{payment_detail.method}</Row>
+              <Row label="Transaction Ref">{payment_detail.tx_ref}</Row>
+              <Row label="Payment Status">{payment_detail.status}</Row>
             </dl>
           </div>
         </div>

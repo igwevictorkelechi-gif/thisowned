@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -11,7 +12,7 @@ import { useCurrency } from "../../../../utils/CurrencyContext";
 
 function RegisterPage() {
   const router = useRouter();
-  const { updateCurrency } = useCurrency(); // Get currency and updateCurrency
+  const { updateCurrency } = useCurrency();
   const { setIsLoggedIn } = useAuth();
   const [formData, setFormData] = useState({
     first_name: "",
@@ -25,7 +26,6 @@ function RegisterPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch countries on component mount
     const fetchCountries = async () => {
       try {
         const response = await fetch(process.env.NEXT_PUBLIC_AUTH_REGISTER_URL);
@@ -33,8 +33,6 @@ function RegisterPage() {
           throw new Error("Failed to fetch countries");
         }
         const data = await response.json();
-        // console.log("Fetched data:", data);
-
         setCountries(data.countries);
       } catch (err) {
         console.error("Error fetching countries:", err);
@@ -66,11 +64,8 @@ function RegisterPage() {
       });
 
       const result = await response.json();
-      // console.log("Response status:", response.status);
-      // console.log("Response body:", result);
 
       if (response.ok) {
-        // Reset form data to initial state,
         setFormData({
           first_name: "",
           last_name: "",
@@ -78,12 +73,10 @@ function RegisterPage() {
           country: "",
           password: "",
         });
-        // Store tokens securely (assuming they're in the result)
         if (result.access && result.refresh) {
           localStorage.setItem("accessToken", result.access);
           localStorage.setItem("refreshToken", result.refresh);
 
-          // Fetch the current user data with the access token
           const userResponse = await fetch(
             `${process.env.NEXT_PUBLIC_USERS_URL}current`,
             {
@@ -101,16 +94,10 @@ function RegisterPage() {
           const userData = await userResponse.json();
           const { country, currency } = userData;
 
-          // Optionally store or display this data as needed
-          // console.log("User Data:", { country, currency });
-
           localStorage.setItem("currency", currency);
 
-          // Update currency in global state (assuming you use useCurrency context)
-          updateCurrency(currency); // This will update the currency context globally
-          // Update login state
+          updateCurrency(currency);
           setIsLoggedIn(true);
-          // Trigger a custom event to notify other components
           window.dispatchEvent(new Event("storage"));
         } else {
           console.warn("Access or refresh token missing in the response");
@@ -120,16 +107,14 @@ function RegisterPage() {
           title: "Success!",
           text: "Account created successfully",
           icon: "success",
-          confirmButtonColor: "#000000",
+          confirmButtonColor: "#e02e21",
           confirmButtonText: "Close",
         }).then((result) => {
           if (result.isConfirmed) {
-            // Redirect to shop page using Next.js router
             router.push("/shop");
           }
         });
       } else {
-        // Handle validation errors
         if (result.email && result.email.length > 0) {
           throw new Error(result.email[0]);
         } else {
@@ -143,204 +128,110 @@ function RegisterPage() {
         title: "Error!",
         text: err.message || "Registration failed. Please try again.",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const inputClass =
+    "mt-2 w-full border border-line bg-ink px-3 py-3 text-sm text-white placeholder:text-smoke focus:border-primary focus:outline-none";
+
   return (
-    <div>
-      <main className="w-full flex flex-col items-center justify-center px-5 mt-[6rem] my-10">
-        <div className="max-w-sm w-full text-gray-600 space-y-5">
-          <div className="text-center pb-4">
-            <Link className="flex items-center justify-center" href="/">
-              <Image
-                src="/thisowned-logo.png"
-                width={100}
-                height={100}
-                style={{
-                  width: "9rem",
-                  height: "3rem",
-                  objectFit: "contain",
-                }}
-                alt="logo"
-              />
-            </Link>
-            <div className="mt-3">
-              <h3 className="text-gray-800 text-2xl font-semibold tracking-wider">
-                Create an account
-              </h3>
+    <main className="flex min-h-[calc(100vh-4.5rem)] items-center justify-center bg-ink px-5 py-16">
+      <div className="w-full max-w-md border border-line bg-surface p-8 sm:p-10">
+        <div className="text-center">
+          <Link className="inline-flex items-center justify-center" href="/">
+            <Image
+              src="/thisowned-logo.png"
+              width={160}
+              height={54}
+              style={{ width: "9rem", height: "3rem", objectFit: "contain" }}
+              alt="Thisowned"
+            />
+          </Link>
+          <p className="eyebrow mt-6 text-primary">Join The Mob</p>
+          <h1 className="display mt-2 text-4xl">Create Account</h1>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div className="flex flex-col gap-5 sm:flex-row">
+            <div className="w-full">
+              <label className="eyebrow text-white">First Name</label>
+              <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} required className={inputClass} />
+            </div>
+            <div className="w-full">
+              <label className="eyebrow text-white">Last Name</label>
+              <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} required className={inputClass} />
             </div>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="font-medium text-sm">First Name</label>
-              <input
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleChange}
-                required
-                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="font-medium text-sm">Last Name</label>
-              <input
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
-                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="font-medium text-sm">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
-              />
-            </div>
+          <div>
+            <label className="eyebrow text-white">Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} required className={inputClass} />
+          </div>
 
-            <div className="relative mx-auto">
-              <label className="font-medium text-sm">Country</label>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="absolute top-6 bottom-0 w-5 h-5 my-auto text-gray-400 right-3"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <select
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2.5 text-sm text-gray-500 border rounded-lg outline-none appearance-none focus:border-gray-600"
-              >
-                <option value="">Select your country</option>
-                {Array.isArray(countries) && countries.length > 0 ? (
-                  countries.map((country, index) => (
-                    <option key={index} value={country}>
-                      {country}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>
-                    Loading...
+          <div className="relative">
+            <label className="eyebrow text-white">Country</label>
+            <ChevronDown className="pointer-events-none absolute bottom-3.5 right-3 size-4 text-smoke" />
+            <select
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              required
+              className="mt-2 w-full appearance-none border border-line bg-ink px-3 py-3 text-sm text-white outline-none focus:border-primary"
+            >
+              <option value="">Select your country</option>
+              {Array.isArray(countries) && countries.length > 0 ? (
+                countries.map((country, index) => (
+                  <option key={index} value={country}>
+                    {country}
                   </option>
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="font-medium text-sm">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength="6"
-                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-gray-600 shadow-sm rounded-lg"
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-x-3">
-                <input
-                  type="checkbox"
-                  id="remember-me-checkbox"
-                  className="checkbox-item peer hidden"
-                />
-                <label
-                  htmlFor="remember-me-checkbox"
-                  className="relative flex w-5 h-5 bg-white peer-checked:bg-red-600 rounded-md border ring-offset-2 ring-red-600 duration-150 peer-active:ring cursor-pointer after:absolute after:inset-x-0 after:top-[3px] after:m-auto after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
-                ></label>
-                <span>Remember me</span>
-              </div>
-            </div>
-            <button
-              type="submit"
-              className={`w-full px-4 py-2 text-white font-medium hover:bg-gray-800 rounded-lg duration-150 
-               flex items-center justify-center  ${
-                 isLoading ? "bg-gray-800 py-2" : "bg-black"
-               }`}
-              disabled={isLoading} // Disable button while loading
-            >
-              {isLoading ? (
-                <div className="dot-spinner">
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                  <div className="dot-spinner__dot"></div>
-                </div>
+                ))
               ) : (
-                "Register"
+                <option value="" disabled>
+                  Loading...
+                </option>
               )}
-            </button>
-          </form>
-          {/* <button className="w-full flex items-center justify-center gap-x-3 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-50 duration-150 active:bg-gray-100">
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g clipPath="url(#clip0_17_40)">
-                <path
-                  d="M47.532 24.5528C47.532 22.9214 47.3997 21.2811 47.1175 19.6761H24.48V28.9181H37.4434C36.9055 31.8988 35.177 34.5356 32.6461 36.2111V42.2078H40.3801C44.9217 38.0278 47.532 31.8547 47.532 24.5528Z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M24.48 48.0016C30.9529 48.0016 36.4116 45.8764 40.3888 42.2078L32.6549 36.2111C30.5031 37.675 27.7252 38.5039 24.4888 38.5039C18.2275 38.5039 12.9187 34.2798 11.0139 28.6006H3.03296V34.7825C7.10718 42.8868 15.4056 48.0016 24.48 48.0016Z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M11.0051 28.6006C9.99973 25.6199 9.99973 22.3922 11.0051 19.4115V13.2296H3.03298C-0.371021 20.0112 -0.371021 28.0009 3.03298 34.7825L11.0051 28.6006Z"
-                  fill="#FBBC04"
-                />
-                <path
-                  d="M24.48 9.49932C27.9016 9.44641 31.2086 10.7339 33.6866 13.0973L40.5387 6.24523C36.2 2.17101 30.4414 -0.068932 24.48 0.00161733C15.4055 0.00161733 7.10718 5.11644 3.03296 13.2296L11.005 19.4115C12.901 13.7235 18.2187 9.49932 24.48 9.49932Z"
-                  fill="#EA4335"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_17_40">
-                  <rect width="48" height="48" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
-            Continue with Google
-          </button> */}
+            </select>
+          </div>
 
-          <p className="text-center">
-            Already have an account?{" "}
-            <Link
-              href="login"
-              className="font-medium text-red-600 hover:text-red-500"
-            >
-              Login
-            </Link>
-          </p>
-        </div>
-      </main>
-    </div>
+          <div>
+            <label className="eyebrow text-white">Password</label>
+            <input type="password" name="password" value={formData.password} onChange={handleChange} required minLength="6" className={inputClass} />
+          </div>
+
+          <button
+            type="submit"
+            className="btn-primary flex w-full items-center justify-center disabled:opacity-70"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="dot-spinner">
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+              </div>
+            ) : (
+              "Register"
+            )}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-smoke">
+          Already have an account?{" "}
+          <Link href="login" className="font-bold uppercase tracking-wide text-primary hover:text-primary-dark">
+            Login
+          </Link>
+        </p>
+      </div>
+    </main>
   );
 }
 

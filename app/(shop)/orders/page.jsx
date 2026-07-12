@@ -3,7 +3,7 @@ import OrdersTable from "../component/OrdersTable";
 
 function Cart() {
   return (
-    <div className="bg-black">
+    <div className="min-h-screen bg-ink">
       <OrdersTable />
     </div>
   );

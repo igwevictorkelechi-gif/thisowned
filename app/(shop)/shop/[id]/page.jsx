@@ -1,5 +1,5 @@
 "use client";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import ImageGallery from "../../component/ImageGallery";
@@ -48,8 +48,6 @@ function ShopDetails({ params }) {
         const data = await response.json();
         if (mounted) {
           setProduct(data);
-          // Reset selections when currency changes
-          // setSelectedSize("");
           setSelectedSetItems([]);
           setSelectedSetSizes({});
 
@@ -57,8 +55,6 @@ function ShopDetails({ params }) {
           const firstAvailableSize = data.size_guide.find(
             (size) => size.is_available
           );
-
-          // console.log(firstAvailableSize);
 
           if (firstAvailableSize) {
             setSelectedSize(firstAvailableSize.id);
@@ -131,10 +127,9 @@ function ShopDetails({ params }) {
         title: "Error!",
         text: "Please select a size",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
-      // alert("Please select a size");
       return;
     }
 
@@ -144,8 +139,6 @@ function ShopDetails({ params }) {
       quantity: quantity,
       token: token,
     };
-
-    // console.log("Request body:", payload);
 
     try {
       // Get the access token from localStorage
@@ -173,22 +166,19 @@ function ShopDetails({ params }) {
           title: "Success!",
           text: "Product added to cart successfully!",
           icon: "success",
-          confirmButtonColor: "#000000",
+          confirmButtonColor: "#e02e21",
           confirmButtonText: "Close",
         });
 
-        // Update the cart context
         updateCart(data); // Assuming the API returns the updated cart
-        // alert("Product added to cart successfully!");
       } else {
         Swal.fire({
           title: "Error!",
           text: "Failed to add product to cart. Please try again.",
           icon: "error",
-          confirmButtonColor: "#000000",
+          confirmButtonColor: "#e02e21",
           confirmButtonText: "Close",
         });
-        // alert("Failed to add product to cart. Please try again.");
         console.log(
           `Failed to add product to cart: ${
             data.message || response.statusText
@@ -201,11 +191,9 @@ function ShopDetails({ params }) {
         title: "Error!",
         text: "An error occurred. Please try again.",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
-
-      // alert("An error occurred. Please try again.");
     }
   };
 
@@ -241,7 +229,7 @@ function ShopDetails({ params }) {
         title: "Error!",
         text: "Please select at least one set item.",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
       return;
@@ -255,7 +243,7 @@ function ShopDetails({ params }) {
             title: "Error!",
             text: `Please select a size for ${item.name}`,
             icon: "error",
-            confirmButtonColor: "#000000",
+            confirmButtonColor: "#e02e21",
             confirmButtonText: "Close",
           });
           return null; // Skip this item if no size is selected
@@ -276,7 +264,7 @@ function ShopDetails({ params }) {
         title: "Error!",
         text: "Please select valid sizes for all items.",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
       return;
@@ -305,7 +293,7 @@ function ShopDetails({ params }) {
               data.message || response.statusText
             }`,
             icon: "error",
-            confirmButtonColor: "#000000",
+            confirmButtonColor: "#e02e21",
             confirmButtonText: "Close",
           });
           return;
@@ -316,7 +304,7 @@ function ShopDetails({ params }) {
         title: "Success!",
         text: "Selected items added to cart successfully!",
         icon: "success",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
     } catch (error) {
@@ -325,369 +313,257 @@ function ShopDetails({ params }) {
         title: "Error!",
         text: "An error occurred. Please try again.",
         icon: "error",
-        confirmButtonColor: "#000000",
+        confirmButtonColor: "#e02e21",
         confirmButtonText: "Close",
       });
     }
   };
 
-  // Show loading state while fetching new data
-  if (loading) {
-    return (
-      <div className="bg-black">
-        <div className="flex justify-center items-center py-20">
-          <div className="flex-col gap-4 w-full flex items-center justify-center">
-            <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-              <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const Loader = () => (
+    <div className="flex min-h-[60vh] items-center justify-center bg-ink">
+      <div className="h-16 w-16 animate-spin rounded-full border-4 border-line border-t-primary"></div>
+    </div>
+  );
 
-  // SPIN LOADER
-  if (!product) {
-    return (
-      <div className="bg-black">
-        <div className="flex justify-center items-center py-20">
-          <div className="flex-col gap-4 w-full flex items-center justify-center">
-            <div className="w-20 h-20 border-4 border-transparent text-gray-100 text-4xl animate-spin flex items-center justify-center border-t-gray-100 rounded-full">
-              <div className="w-16 h-16 border-4 border-transparent text-red-500 text-2xl animate-spin flex items-center justify-center border-t-red-500 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    ); // Display a loading message while fetching
-  }
+  if (loading) return <Loader />;
+  if (!product) return <Loader />;
+
+  const tabs = [
+    { id: "description", label: "Description" },
+    { id: "delivery", label: "Delivery & Return" },
+    { id: "care", label: "Care" },
+  ];
+
+  const tabContent = {
+    description: product.details,
+    delivery: product.delivery_and_return,
+    care: product.care,
+  };
 
   return (
-    <div className="bg-black">
-      <section className="mx-4 lg:mx-auto px-4 py-8 sm:px-32 max-w-[95%] sm:py-12">
-        <>
-          <div className="flex">
-            <nav aria-label="Breadcrumb">
-              <ol className="flex items-center gap-1 text-xs text-white">
-                <li>
-                  <Link
-                    href="/"
-                    className="block transition hover:text-gray-200"
-                  >
-                    <span className="sr-only"> Home </span>
-                    <Home size={15} />
-                  </Link>
-                </li>
-                <li className="rtl:rotate-180">
-                  <ChevronRight size={15} />
-                </li>
-                <li>
-                  <Link
-                    href="/../shop"
-                    className="block transition hover:text-gray-200"
-                  >
-                    Shop
-                  </Link>
-                </li>
-                <li className="rtl:rotate-180">
-                  <ChevronRight size={15} />
-                </li>
-                <li>
-                  <span className="block transition hover:text-gray-200">
-                    {product.name}
+    <div className="min-h-screen bg-ink">
+      <section className="section-x mx-auto max-w-7xl py-8 sm:py-12">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-8">
+          <ol className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-smoke">
+            <li>
+              <Link href="/" className="transition hover:text-primary">
+                <Home size={14} />
+              </Link>
+            </li>
+            <li>
+              <ChevronRight size={13} />
+            </li>
+            <li>
+              <Link href="/shop" className="transition hover:text-primary">
+                Shop
+              </Link>
+            </li>
+            <li>
+              <ChevronRight size={13} />
+            </li>
+            <li className="truncate text-white">{product.name}</li>
+          </ol>
+        </nav>
+
+        <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
+          {/* Gallery */}
+          <div className="w-full lg:w-1/2">
+            <ImageGallery images={product.images} />
+          </div>
+
+          {/* Details */}
+          <div className="w-full lg:w-1/2">
+            <h1 className="display text-3xl sm:text-5xl">{product.name}</h1>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              {product.discount > 0 ? (
+                <>
+                  <span className="text-2xl font-bold text-primary">
+                    {product.symbol} {product.discount_price.toFixed(2)}
                   </span>
-                </li>
-              </ol>
-            </nav>
-          </div>
-          <div className="flex flex-col lg:flex-row gap-12 md:gap-28 mt-8">
-            <div className="w-full">
-              <ImageGallery images={product.images} />
+                  <span className="text-lg text-smoke line-through">
+                    {product.symbol} {product.price.toFixed(2)}
+                  </span>
+                  <span className="bg-primary px-2 py-0.5 text-xs font-bold uppercase text-white">
+                    -{product.discount}%
+                  </span>
+                </>
+              ) : (
+                <span className="text-2xl font-bold text-white">
+                  {product.symbol} {product.price.toFixed(2)}
+                </span>
+              )}
+              <span className="text-xs uppercase text-smoke">
+                {product.currency}
+              </span>
             </div>
-            <div className="w-full">
-              <div className="md:mt-16 ml-0">
-                <h1 className="font-semibold text-2xl text-white">
-                  {product.name}
-                </h1>
-                <p className="font-light text-[1.3rem] mt-4 text-white">
-                  {product.discount > 0 ? (
-                    <>
-                      <span className="line-through opacity-70">
-                        {product.symbol} {product.price.toFixed(2)}
-                      </span>
-                      <span className="ml-3">
-                        {product.symbol} {product.discount_price.toFixed(2)}
-                      </span>
-                      <span className="ml-2 text-xs font-semibold bg-red-500 px-2 py-0.5 rounded -mt-0.5">
-                        -{product.discount}%
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      {product.symbol} {product.price.toFixed(2)}
-                    </>
-                  )}
-                </p>
 
-                {!product.in_stock ? (
-                  <p className="mt-6 text-red-500 font-bold">
-                    This product is currently out of stock.
-                  </p>
-                ) : (
-                  <>
-                    <div className="mt-6 flex items-center gap-6">
-                      <label className="block text-base font-medium text-white">
-                        Size:
-                      </label>
+            {!product.in_stock ? (
+              <p className="mt-8 border border-primary bg-primary/10 px-4 py-3 text-sm font-bold uppercase tracking-widest text-primary">
+                Out of stock
+              </p>
+            ) : (
+              <>
+                <div className="mt-8">
+                  <label className="eyebrow text-white">Select Size</label>
+                  <fieldset className="mt-3 flex flex-wrap gap-2.5">
+                    {product.size_guide.map(
+                      (size) =>
+                        size.is_available && (
+                          <label
+                            key={size.id}
+                            htmlFor={`Size${size.rating}`}
+                            className={`flex min-w-[3rem] cursor-pointer items-center justify-center border px-4 py-2 text-sm font-bold uppercase transition ${
+                              selectedSize === size.id
+                                ? "border-primary bg-primary text-white"
+                                : "border-line bg-surface text-white hover:border-white"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="SizeOption"
+                              value={size.id}
+                              id={`Size${size.rating}`}
+                              className="sr-only"
+                              checked={selectedSize === size.id}
+                              onChange={() => handleSizeChange(size.id)}
+                            />
+                            {size.rating}
+                          </label>
+                        )
+                    )}
+                  </fieldset>
+                </div>
 
-                      <fieldset className="flex flex-wrap gap-3">
-                        {product.size_guide.map(
-                          (size) =>
-                            size.is_available && (
-                              <div key={size.id}>
-                                <label
-                                  htmlFor={`Size${size.rating}`}
-                                  className={`flex cursor-pointer items-center justify-center rounded-md border px-2 py-0.5 ${
-                                    selectedSize === size.id
-                                      ? "border-red-500 bg-white text-red-500 font-bold"
-                                      : "border-gray-100 bg-white text-gray-900 hover:border-gray-200"
-                                  }`}
-                                >
-                                  <input
-                                    type="radio"
-                                    name="SizeOption"
-                                    value={size.id}
-                                    id={`Size${size.rating}`}
-                                    className="sr-only"
-                                    checked={selectedSize === size.id}
-                                    onChange={() => handleSizeChange(size.id)}
-                                  />
-                                  <p className="text-sm font-medium uppercase">
-                                    {size.rating}
-                                  </p>
-                                </label>
-                              </div>
-                            )
-                        )}
-                      </fieldset>
-                    </div>
-
-                    <div className="mt-10 flex items-center gap-x-5">
-                      <label
-                        htmlFor="Quantity"
-                        className="font-medium text-base text-white"
-                      >
-                        Quantity:
-                      </label>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={decrementQuantity}
-                          type="button"
-                          className="size-10 leading-10 text-white transition hover:opacity-75"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          id="Quantity"
-                          min={1}
-                          value={quantity}
-                          onChange={handleQuantityChange}
-                          className="h-10 w-16 rounded border bg-black border-gray-200 text-center text-white"
-                        />
-                        <button
-                          onClick={incrementQuantity}
-                          type="button"
-                          className="size-10 leading-10 text-white transition hover:opacity-75"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-12">
-                      <button
-                        onClick={addToCart}
-                        className="bg-white hover:opacity-95 hover:text-red-500 hover:font-medium text-whte p-3 w-[100%] md:max-w-[52%] shadow-sm rounded-sm"
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
-                  </>
-                )}
-                {/* Conditionally render "Complete the Set" */}
-                {product.complete_set && product.complete_set.length > 0 && (
-                  <div className="mt-20">
-                    <hr className="md:w-[90%] mb-6 border-gray-700" />
-
-                    <h1 className="text-white tracking-tigher mb-10 font-semibold text-base">
-                      COMPLETE THE SET
-                    </h1>
-                    <div className="w-full grid grid-cols-2 gap-20 lg:grid-cols-3 lg:gap-[6rem]">
-                      {product.complete_set.map((setItem) =>
-                        setItem.products.map((item) => (
-                          <div key={item.id}>
-                            <div className="flex flex-col justify-center items-center">
-                              <Image
-                                width={160}
-                                height={160}
-                                src={item.images[0].image}
-                                alt={item.name}
-                                className="rounded object-cover"
-                              />
-                            </div>
-                            <div className="mt-3">
-                              <h3 className="font-medium text-sm text-gray-100 group-hover:underline group-hover:underline-offset-4">
-                                {item.name}
-                              </h3>
-                              <div className="relative w-72 max-w-full mx-auto my-5">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="absolute top-0 bottom-0 w-5 h-5 my-auto text-gray-400 right-3"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                <select
-                                  className="w-full px-3 py-1 text-sm text-gray-100 bg-black border rounded-lg shadow-sm outline-none appearance-none focus:ring-offset-2 focus:ring-red-500 focus:ring-1"
-                                  value={selectedSetSizes[item.id] || ""} // Track selected size for this item
-                                  onChange={(e) =>
-                                    handleSetSizeChange(item.id, e.target.value)
-                                  } // Handle size change
-                                >
-                                  <option value="" disabled>
-                                    Select size
-                                  </option>
-                                  {item.size.map((size) => (
-                                    <option key={size} value={size[0]}>
-                                      {size[1]}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div className="flex items-center justify-between mt-3">
-                                <input
-                                  type="checkbox"
-                                  className="size-4 rounded border-gray-300"
-                                  id={`Option${item.id}`}
-                                  onChange={(e) =>
-                                    handleSetItemChange(item, e.target.checked)
-                                  }
-                                />
-                                <p className="text-sm text-gray-200">
-                                  {item.symbol} {item.price.toFixed(2)}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    <div className="my-10">
-                      <h1 className="text-white font-bold text-base tracking-wider">
-                        TOTAL PRICE:{" "}
-                        <span className="ml-10">{totalPrice.toFixed(2)}</span>
-                      </h1>
-                      <button
-                        className="bg-white hover:opacity-95 hover:text-red-500 hover:font-medium text-whte p-1.5 w-[100%]
-                       md:max-w-[38%] shadow-sm rounded-sm mt-6"
-                        onClick={addSelectedToCart}
-                      >
-                        Add selected to Cart
-                      </button>
-                    </div>
+                <div className="mt-8">
+                  <label className="eyebrow text-white">Quantity</label>
+                  <div className="mt-3 inline-flex items-center border border-line bg-surface">
+                    <button
+                      onClick={decrementQuantity}
+                      type="button"
+                      aria-label="Decrease quantity"
+                      className="flex size-11 items-center justify-center text-white transition hover:text-primary"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <input
+                      type="number"
+                      id="Quantity"
+                      min={1}
+                      value={quantity}
+                      onChange={handleQuantityChange}
+                      className="h-11 w-14 border-x border-line bg-ink text-center font-bold text-white [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button
+                      onClick={incrementQuantity}
+                      type="button"
+                      aria-label="Increase quantity"
+                      className="flex size-11 items-center justify-center text-white transition hover:text-primary"
+                    >
+                      <Plus size={16} />
+                    </button>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10">
-            {/* Tab navigation */}
-            <div className="pb-8 md:pb-0 border-b border-gray-200">
-              <nav className="-mb-px flex flex-col md:flex-row gap-4 md:gap-6">
-                {/* Product Description Tab */}
-                <button
-                  onClick={() => setActiveTab("description")}
-                  className={`shrink-0 rounded-t-lg md:border p-1.5 md:p-3 text-sm font-medium tracking-wider ${
-                    activeTab === "description"
-                      ? "border-gray-300 border-b-white text-white border-l border-r"
-                      : "border-transparent text-gray-400"
-                  }`}
-                >
-                  Product Description
-                </button>
-
-                {/* Delivery Tab */}
-                <button
-                  onClick={() => setActiveTab("delivery")}
-                  className={`shrink-0 rounded-t-lg md:border p-1.5 md:p-3 text-sm font-medium tracking-wider ${
-                    activeTab === "delivery"
-                      ? "border-gray-300 border-b-white text-white border-l border-r"
-                      : "border-transparent text-gray-400"
-                  }`}
-                >
-                  Delivery and return
-                </button>
-
-                {/* Delivery Tab */}
-                <button
-                  onClick={() => setActiveTab("care")}
-                  className={`shrink-0 rounded-t-lg md:border p-1.5 md:p-3 text-sm font-medium tracking-wider ${
-                    activeTab === "care"
-                      ? "border-gray-300 border-b-white text-white border-l border-r"
-                      : "border-transparent text-gray-400"
-                  }`}
-                >
-                  Care
-                </button>
-              </nav>
-            </div>
-
-            {/* Tab content */}
-            <div className="mt-7 text-white text-sm">
-              {activeTab === "description" && (
-                <div>
-                  <ul>
-                    {product.details.split("\r\n").map((detail, index) => (
-                      <li key={index}>{detail}</li>
-                    ))}
-                  </ul>
                 </div>
-              )}
 
-              {activeTab === "delivery" && (
-                <div>
-                  <ul>
-                    {product.delivery_and_return
-                      .split("\r\n")
-                      .map((detail, index) => (
-                        <li key={index}>{detail}</li>
-                      ))}
-                  </ul>
+                <div className="mt-10">
+                  <button onClick={addToCart} className="btn-light w-full md:w-auto md:min-w-[18rem]">
+                    Add to Cart
+                  </button>
                 </div>
-              )}
+              </>
+            )}
 
-              {activeTab === "care" && (
-                <div>
-                  <p>
-                    {product.care.split("\r\n").map((line, index) => (
-                      <span key={index}>
-                        {line}
-                        <br />
-                      </span>
-                    ))}
+            {/* Complete the set */}
+            {product.complete_set && product.complete_set.length > 0 && (
+              <div className="mt-14 border-t border-line pt-10">
+                <h2 className="display mb-8 text-2xl">Complete the Set</h2>
+                <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
+                  {product.complete_set.map((setItem) =>
+                    setItem.products.map((item) => (
+                      <div key={item.id} className="border border-line bg-surface p-3">
+                        <Image
+                          width={200}
+                          height={200}
+                          src={item.images[0].image}
+                          alt={item.name}
+                          className="h-40 w-full object-cover"
+                        />
+                        <h3 className="mt-3 truncate text-sm font-semibold uppercase text-white">
+                          {item.name}
+                        </h3>
+                        <select
+                          className="mt-3 w-full appearance-none border border-line bg-ink px-3 py-2 text-sm text-white outline-none focus:border-primary"
+                          value={selectedSetSizes[item.id] || ""}
+                          onChange={(e) =>
+                            handleSetSizeChange(item.id, e.target.value)
+                          }
+                        >
+                          <option value="" disabled>
+                            Select size
+                          </option>
+                          {item.size.map((size) => (
+                            <option key={size} value={size[0]}>
+                              {size[1]}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="mt-3 flex items-center justify-between">
+                          <p className="text-sm font-bold text-white">
+                            {item.symbol} {item.price.toFixed(2)}
+                          </p>
+                          <input
+                            type="checkbox"
+                            className="size-4 accent-primary"
+                            id={`Option${item.id}`}
+                            onChange={(e) =>
+                              handleSetItemChange(item, e.target.checked)
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-bold uppercase tracking-widest text-white">
+                    Total: <span className="text-primary">{totalPrice.toFixed(2)}</span>
                   </p>
+                  <button className="btn-primary" onClick={addSelectedToCart}>
+                    Add Selected to Cart
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </>
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-16">
+          <div className="flex flex-wrap gap-2 border-b border-line">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-5 py-3 text-xs font-bold uppercase tracking-widest transition ${
+                  activeTab === tab.id
+                    ? "border-b-2 border-primary text-white"
+                    : "text-smoke hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-6 space-y-1 text-sm leading-relaxed text-white/80">
+            {(tabContent[activeTab] || "")
+              .split("\r\n")
+              .map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+          </div>
+        </div>
       </section>
     </div>
   );
